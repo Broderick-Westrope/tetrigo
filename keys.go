@@ -25,3 +25,31 @@ func DefaultKeyMap() *KeyMap {
 		HardDrop:         key.NewBinding(key.WithKeys("up", "w", "i"), key.WithHelp("w, i, up", "hard drop")),
 	}
 }
+
+func (k *KeyMap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		k.Quit,
+		k.Help,
+	}
+}
+
+func (k *KeyMap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{
+			k.Quit,
+			k.Help,
+		},
+		{
+			k.Left,
+			k.Right,
+		},
+		{
+			k.Clockwise,
+			k.CounterClockwise,
+		},
+		{
+			k.SoftDrop,
+			k.HardDrop,
+		},
+	}
+}

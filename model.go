@@ -1,21 +1,29 @@
 package main
 
 import (
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type Piece struct {
+}
+
 type Model struct {
 	playfield [40][10]byte
 	styles    *Styles
+	help      help.Model
 	keys      *KeyMap
 }
 
 func InitialModel() *Model {
 	return &Model{
-		playfield: [40][10]byte{},
-		styles:    DefaultStyles(),
-		keys:      DefaultKeyMap(),
+		playfield: [40][10]byte{
+			{0, 'I', 'O', 'T', 'S', 'Z', 'J', 'L', 'G'},
+		},
+		styles: DefaultStyles(),
+		help:   help.New(),
+		keys:   DefaultKeyMap(),
 	}
 }
 
@@ -29,6 +37,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
+		case key.Matches(msg, m.keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
 		}
 	}
 
@@ -59,5 +69,5 @@ func (m Model) View() string {
 		}
 	}
 
-	return m.styles.Program.Render(output)
+	return m.styles.Program.Render(output) + "\n" + m.help.View(m.keys)
 }
