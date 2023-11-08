@@ -69,7 +69,7 @@ type Tetrimino struct {
 	X, Y  int // the top left cell of the tetrimino
 }
 
-// RandomTetrimino returns a random tetrimino.
+// randomTetrimino returns a random tetrimino.
 // The tetrimino will be positioned just above the playfield.
 func RandomTetrimino(playfieldHeight int) *Tetrimino {
 	t := tetriminos[rand.Intn(len(tetriminos))]
@@ -77,11 +77,17 @@ func RandomTetrimino(playfieldHeight int) *Tetrimino {
 	return &t
 }
 
+func (p *Playfield) NewTetrimino() *Tetrimino {
+	tet := RandomTetrimino(len(p))
+	p.addCells(tet)
+	return tet
+}
+
 // MoveDown moves the tetrimino down one row.
 // If the tetrimino cannot move down, it will be added to the playfield and a new tetrimino will be returned.
 func (t *Tetrimino) MoveDown(playfield *Playfield) (*Tetrimino, error) {
 	if !t.canMoveDown(*playfield) {
-		return RandomTetrimino(len(playfield)), nil
+		return playfield.NewTetrimino(), nil
 	}
 	err := playfield.removeCells(t)
 	if err != nil {
