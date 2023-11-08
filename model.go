@@ -1,33 +1,40 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/stopwatch"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Playfield [40][10]byte
 
 type Model struct {
-	playfield Playfield
-	styles    *Styles
-	help      help.Model
-	keys      *KeyMap
+	playfield  Playfield
+	styles     *Styles
+	help       help.Model
+	keys       *KeyMap
+	stopwatch  stopwatch.Model
+	currentTet *Tetrimino
 }
 
 func InitialModel() *Model {
-	return &Model{
-		playfield: Playfield{
-			{0, 'I', 'O', 'T', 'S', 'Z', 'J', 'L', 'G'},
-		},
-		styles: DefaultStyles(),
-		help:   help.New(),
-		keys:   DefaultKeyMap(),
+	m := &Model{
+		playfield: Playfield{},
+		styles:    DefaultStyles(),
+		help:      help.New(),
+		keys:      DefaultKeyMap(),
+		stopwatch: stopwatch.NewWithInterval(time.Millisecond * 300),
 	}
+	m.currentTet = m.playfield.NewTetrimino()
+	return m
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return m.stopwatch.Init()
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -39,9 +46,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		}
+	case stopwatch.TickMsg:
+		newTet, err := m.currentTet.MoveDown(&m.playfield)
+		if err != nil {
+			panic(fmt.Errorf("failed to move tetrimino down: %w", err))
+		}
+		if newTet != nil {
+			m.currentTet = newTet
+		}
+	default:
+		s := fmt.Sprintf("message type: %T\n", msg)
+		fmt.Print(s)
 	}
 
-	return m, nil
+	var stopwatchCmd tea.Cmd
+	m.stopwatch, stopwatchCmd = m.stopwatch.Update(msg)
+
+	return m, stopwatchCmd
 }
 
 func (m Model) View() string {
@@ -63,7 +84,7 @@ func (m Model) View() string {
 				}
 			}
 		}
-		if row < 19 {
+		if row < len(m.playfield)-1 {
 			output += "\n"
 		}
 	}
