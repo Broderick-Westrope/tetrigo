@@ -221,3 +221,147 @@ func TestTetrimino_MoveDown(t *testing.T) {
 		})
 	}
 }
+
+func TestTetrimino_MoveLeft(t *testing.T) {
+	tt := []struct {
+		name              string
+		startingPlayfield Playfield
+		startingTet       Tetrimino
+		expectedPlayfield Playfield
+		expectsErr        bool
+	}{
+		{
+			name: "can, empty playfield",
+			startingPlayfield: Playfield{
+				{0, 'T', 'T', 'T'},
+				{0, 0, 'T', 0},
+			},
+			startingTet: Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				X: 1, Y: 0,
+			},
+			expectedPlayfield: Playfield{
+				{'T', 'T', 'T'},
+				{0, 'T', 0},
+			},
+			expectsErr: false,
+		},
+		{
+			name: "can, perfect fit",
+			startingPlayfield: Playfield{
+				{'#', 0, 'T', 'T', 'T'},
+				{'#', '#', 0, 'T', 0},
+			},
+			startingTet: Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				X: 2, Y: 0,
+			},
+			expectedPlayfield: Playfield{
+				{'#', 'T', 'T', 'T'},
+				{'#', '#', 'T', 0},
+			},
+			expectsErr: false,
+		},
+		{
+			name: "can, ghost cells",
+			startingPlayfield: Playfield{
+				{'#', 'G', 'T', 'T', 'T'},
+				{'#', '#', 'G', 'T', 0},
+			},
+			startingTet: Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				X: 2, Y: 0,
+			},
+			expectedPlayfield: Playfield{
+				{'#', 'T', 'T', 'T'},
+				{'#', '#', 'T', 0},
+			},
+			expectsErr: false,
+		},
+		{
+			name: "cannot, blocking tetrimino",
+			startingPlayfield: Playfield{
+				{'#', 'T', 'T', 'T'},
+				{'#', 0, 'T', 0},
+			},
+			startingTet: Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				X: 1, Y: 0,
+			},
+			expectedPlayfield: Playfield{
+				{'#', 'T', 'T', 'T'},
+				{'#', 0, 'T', 0},
+			},
+			expectsErr: false,
+		},
+		{
+			name: "cannot, end of playfield",
+			startingPlayfield: Playfield{
+				{'T', 'T', 'T'},
+				{0, 'T', 0},
+			},
+			startingTet: Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				X: 0, Y: 0,
+			},
+			expectedPlayfield: Playfield{
+				{'T', 'T', 'T'},
+				{0, 'T', 0},
+			},
+			expectsErr: false,
+		},
+		{
+			name: "error, wrong value",
+			startingPlayfield: Playfield{
+				{0, 'X', 'X', 'X'},
+				{0, 0, 'X', 0},
+			},
+			startingTet: Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				X: 1, Y: 0,
+			},
+			expectedPlayfield: Playfield{},
+			expectsErr:        true,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.startingTet.MoveLeft(&tc.startingPlayfield)
+
+			if tc.expectsErr && err == nil {
+				t.Errorf("expected error, got nil")
+			} else if !tc.expectsErr && err != nil {
+				t.Errorf("expected nil, got error")
+			}
+
+			if err == nil && tc.startingPlayfield != tc.expectedPlayfield {
+				t.Errorf("expected playfield %v, got %v", tc.expectedPlayfield, tc.startingPlayfield)
+			}
+		})
+	}
+}
