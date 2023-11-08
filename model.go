@@ -6,14 +6,14 @@ import (
 )
 
 type Model struct {
-	playfield [40][20]byte
+	playfield [40][10]byte
 	styles    *Styles
 	keys      *KeyMap
 }
 
 func InitialModel() *Model {
 	return &Model{
-		playfield: [40][20]byte{},
+		playfield: [40][10]byte{},
 		styles:    DefaultStyles(),
 		keys:      DefaultKeyMap(),
 	}
