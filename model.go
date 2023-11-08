@@ -45,6 +45,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
+		case key.Matches(msg, m.keys.Left):
+			err := m.currentTet.MoveLeft(&m.playfield)
+			if err != nil {
+				panic(fmt.Errorf("failed to move tetrimino left: %w", err))
+			}
+		case key.Matches(msg, m.keys.Right):
+			err := m.currentTet.MoveRight(&m.playfield)
+			if err != nil {
+				panic(fmt.Errorf("failed to move tetrimino right: %w", err))
+			}
 		}
 	case stopwatch.TickMsg:
 		newTet, err := m.currentTet.MoveDown(&m.playfield)
