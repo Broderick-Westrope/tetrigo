@@ -116,7 +116,7 @@ func (t *Tetrimino) MoveLeft(playfield *Playfield) error {
 // MoveRight moves the tetrimino right one column.
 // If the tetrimino cannot move right, it will not move.
 func (t *Tetrimino) MoveRight(playfield *Playfield) error {
-	if !t.canMoveLeft(*playfield) {
+	if !t.canMoveRight(*playfield) {
 		return nil
 	}
 	err := playfield.removeCells(t)
