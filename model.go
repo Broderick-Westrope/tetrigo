@@ -48,7 +48,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	var output string
 
-	for row := 0; row < 20; row++ {
+	for row := (len(m.playfield) - 20); row < len(m.playfield); row++ {
 		for col := range m.playfield[row] {
 			switch m.playfield[row][col] {
 			case 0:
