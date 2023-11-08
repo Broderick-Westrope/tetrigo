@@ -43,15 +43,13 @@ func (m Model) View() string {
 			switch m.playfield[row][col] {
 			case 0:
 				output += " "
-			case 'I':
-			case 'O':
-			case 'T':
-			case 'S':
-			case 'Z':
-			case 'J':
-			case 'L':
 			default:
-				output += "?"
+				v, ok := m.styles.TetriminoStyles[m.playfield[row][col]]
+				if ok {
+					output += v.Render("█")
+				} else {
+					output += "?"
+				}
 			}
 		}
 		if row < 19 {
