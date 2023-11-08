@@ -85,12 +85,12 @@ func (t *Tetrimino) MoveDown(playfield *Playfield) (*Tetrimino, error) {
 	}
 	err := playfield.removeCells(t)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.Y++
 	err = playfield.addCells(t)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to add cells: %w", err)
 	}
 	return nil, nil
 }
@@ -103,12 +103,12 @@ func (t *Tetrimino) MoveLeft(playfield *Playfield) error {
 	}
 	err := playfield.removeCells(t)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.X--
 	err = playfield.addCells(t)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to add cells: %w", err)
 	}
 	return nil
 }
@@ -121,12 +121,12 @@ func (t *Tetrimino) MoveRight(playfield *Playfield) error {
 	}
 	err := playfield.removeCells(t)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.X++
 	err = playfield.addCells(t)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to add cells: %w", err)
 	}
 	return nil
 }
