@@ -42,13 +42,15 @@ func (m Model) View() string {
 		for col := range m.playfield[row] {
 			switch m.playfield[row][col] {
 			case 0:
-				output += " "
+				output += m.styles.ColIndicator.Render("▕ ")
+			case 'G':
+				output += "░░"
 			default:
-				v, ok := m.styles.TetriminoStyles[m.playfield[row][col]]
+				cellStyle, ok := m.styles.TetriminoStyles[m.playfield[row][col]]
 				if ok {
-					output += v.Render("█")
+					output += cellStyle.Render("██")
 				} else {
-					output += "?"
+					output += "? "
 				}
 			}
 		}
