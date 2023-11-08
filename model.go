@@ -6,11 +6,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Piece struct {
-}
+type Playfield [40][10]byte
 
 type Model struct {
-	playfield [40][10]byte
+	playfield Playfield
 	styles    *Styles
 	help      help.Model
 	keys      *KeyMap
@@ -18,7 +17,7 @@ type Model struct {
 
 func InitialModel() *Model {
 	return &Model{
-		playfield: [40][10]byte{
+		playfield: Playfield{
 			{0, 'I', 'O', 'T', 'S', 'Z', 'J', 'L', 'G'},
 		},
 		styles: DefaultStyles(),
