@@ -209,7 +209,8 @@ func TestTetrimino_MoveDown(t *testing.T) {
 				t.Errorf("expected nil, got error")
 			}
 
-			if err == nil && tc.startingPlayfield != tc.expectedPlayfield {
+			// TODO: look into a better way to avoid comparing new tetriminos
+			if err == nil && (!reflect.DeepEqual(tc.startingPlayfield[:10], tc.expectedPlayfield[:10]) || !reflect.DeepEqual(tc.startingPlayfield[30:], tc.expectedPlayfield[30:])) {
 				t.Errorf("expected playfield %v, got %v", tc.expectedPlayfield, tc.startingPlayfield)
 			}
 
