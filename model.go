@@ -12,13 +12,20 @@ import (
 
 type Playfield [40][10]byte
 
+type Fall struct {
+	stopwatch    stopwatch.Model
+	defaultTime  time.Duration
+	softDropTime time.Duration
+	currentMode  uint8
+}
+
 type Model struct {
 	playfield  Playfield
 	styles     *Styles
 	help       help.Model
 	keys       *KeyMap
-	stopwatch  stopwatch.Model
 	currentTet *Tetrimino
+	fall       Fall
 }
 
 func InitialModel() *Model {
@@ -27,14 +34,18 @@ func InitialModel() *Model {
 		styles:    DefaultStyles(),
 		help:      help.New(),
 		keys:      DefaultKeyMap(),
-		stopwatch: stopwatch.NewWithInterval(time.Millisecond * 300),
+		fall: Fall{
+			defaultTime:  time.Millisecond * 300,
+			softDropTime: time.Millisecond * 100,
+		},
 	}
+	m.fall.stopwatch = stopwatch.NewWithInterval(m.fall.defaultTime)
 	m.currentTet = m.playfield.NewTetrimino()
 	return m
 }
 
 func (m Model) Init() tea.Cmd {
-	return m.stopwatch.Init()
+	return m.fall.stopwatch.Init()
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -75,6 +86,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			m.currentTet = newTet
+		case key.Matches(msg, m.keys.SoftDrop):
+			m.fall.toggleSoftDrop()
 		}
 	case stopwatch.TickMsg:
 		newTet, err := m.currentTet.MoveDown(&m.playfield)
@@ -89,10 +102,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		fmt.Print(s)
 	}
 
-	var stopwatchCmd tea.Cmd
-	m.stopwatch, stopwatchCmd = m.stopwatch.Update(msg)
+	var cmd tea.Cmd
+	m.fall.stopwatch, cmd = m.fall.stopwatch.Update(msg)
 
-	return m, stopwatchCmd
+	return m, cmd
 }
 
 func (m Model) View() string {
@@ -120,4 +133,14 @@ func (m Model) View() string {
 	}
 
 	return m.styles.Program.Render(output) + "\n" + m.help.View(m.keys)
+}
+
+func (f *Fall) toggleSoftDrop() {
+	if f.currentMode == 0 {
+		f.currentMode = 1
+		f.stopwatch.Interval = f.softDropTime
+		return
+	}
+	f.currentMode = 0
+	f.stopwatch.Interval = f.defaultTime
 }
