@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestRandomTetrimino(t *testing.T) {
 	tt := []struct {
@@ -39,8 +42,8 @@ func TestRandomTetrimino(t *testing.T) {
 			default:
 				t.Errorf("tetrimino value %c not valid", tet.Value)
 			}
-			if tet.Y != expectedY {
-				t.Errorf("expected tetrimino to be at row %d, got %d", expectedY, tet.Y)
+			if tet.Pos.Y != expectedY {
+				t.Errorf("expected tetrimino to be at row %d, got %d", expectedY, tet.Pos.Y)
 			}
 		})
 	}
@@ -67,7 +70,7 @@ func TestTetrimino_MoveDown(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{},
@@ -91,7 +94,7 @@ func TestTetrimino_MoveDown(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{},
@@ -116,7 +119,7 @@ func TestTetrimino_MoveDown(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{},
@@ -140,7 +143,7 @@ func TestTetrimino_MoveDown(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{'T', 'T', 'T'},
@@ -166,7 +169,7 @@ func TestTetrimino_MoveDown(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 38,
+				Pos: Coordinate{X: 0, Y: 38},
 			},
 			expectedPlayfield: Playfield{
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {},
@@ -191,7 +194,7 @@ func TestTetrimino_MoveDown(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{},
 			expectsTet:        false,
@@ -243,7 +246,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 1, Y: 0,
+				Pos: Coordinate{X: 1, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{'T', 'T', 'T'},
@@ -263,7 +266,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 2, Y: 0,
+				Pos: Coordinate{X: 2, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{'#', 'T', 'T', 'T'},
@@ -283,7 +286,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 2, Y: 0,
+				Pos: Coordinate{X: 2, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{'#', 'T', 'T', 'T'},
@@ -303,7 +306,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 1, Y: 0,
+				Pos: Coordinate{X: 1, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{'#', 'T', 'T', 'T'},
@@ -323,7 +326,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{'T', 'T', 'T'},
@@ -343,7 +346,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 1, Y: 0,
+				Pos: Coordinate{X: 1, Y: 0},
 			},
 			expectedPlayfield: Playfield{},
 			expectsErr:        true,
@@ -387,7 +390,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{0, 'T', 'T', 'T'},
@@ -407,7 +410,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{0, 'T', 'T', 'T', '#'},
@@ -427,7 +430,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{0, 'T', 'T', 'T', '#'},
@@ -447,7 +450,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{'T', 'T', 'T', '#'},
@@ -467,7 +470,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 7, Y: 0,
+				Pos: Coordinate{X: 7, Y: 0},
 			},
 			expectedPlayfield: Playfield{
 				{0, 0, 0, 0, 0, 0, 0, 'T', 'T', 'T'},
@@ -487,7 +490,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				X: 0, Y: 0,
+				Pos: Coordinate{X: 0, Y: 0},
 			},
 			expectedPlayfield: Playfield{},
 			expectsErr:        true,
