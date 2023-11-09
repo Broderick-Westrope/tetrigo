@@ -179,7 +179,7 @@ func (t *Tetrimino) canMoveDown(playfield Playfield) bool {
 			if bottomRow+t.Pos.Y+1 >= len(playfield) {
 				return false
 			}
-			if !isCellOccupied(playfield[bottomRow+t.Pos.Y+1][col+t.Pos.X]) {
+			if !isCellEmpty(playfield[bottomRow+t.Pos.Y+1][col+t.Pos.X]) {
 				return false
 			}
 		}
@@ -194,7 +194,7 @@ func (t *Tetrimino) canMoveLeft(playfield Playfield) bool {
 			if leftCol+t.Pos.X-1 < 0 {
 				return false
 			}
-			if !isCellOccupied(playfield[row+t.Pos.Y][leftCol+t.Pos.X-1]) {
+			if !isCellEmpty(playfield[row+t.Pos.Y][leftCol+t.Pos.X-1]) {
 				return false
 			}
 		}
@@ -209,7 +209,7 @@ func (t *Tetrimino) canMoveRight(playfield Playfield) bool {
 			if rightCol+t.Pos.X+1 >= len(playfield[0]) {
 				return false
 			}
-			if !isCellOccupied(playfield[row+t.Pos.Y][rightCol+t.Pos.X+1]) {
+			if !isCellEmpty(playfield[row+t.Pos.Y][rightCol+t.Pos.X+1]) {
 				return false
 			}
 		}
@@ -235,7 +235,7 @@ func (p *Playfield) addCells(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
-				if !isCellOccupied(p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]) {
+				if !isCellEmpty(p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]) {
 					return fmt.Errorf("cell at row %d, col %d is not empty or a ghost", row+tetrimino.Pos.Y, col+tetrimino.Pos.X)
 				}
 				p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = tetrimino.Value
@@ -366,6 +366,6 @@ func deepCopyCells(cells [][]bool) [][]bool {
 	return cellsCopy
 }
 
-func isCellOccupied(cell byte) bool {
-	return cell != 0 && cell != 'G'
+func isCellEmpty(cell byte) bool {
+	return cell == 0 || cell == 'G'
 }
