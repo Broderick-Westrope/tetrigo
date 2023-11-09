@@ -65,6 +65,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				panic(fmt.Errorf("failed to rotate tetrimino counter-clockwise: %w", err))
 			}
+		case key.Matches(msg, m.keys.HardDrop):
+			var newTet *Tetrimino = nil
+			var err error
+			for newTet == nil {
+				newTet, err = m.currentTet.MoveDown(&m.playfield)
+				if err != nil {
+					panic(fmt.Errorf("failed to move tetrimino down: %w", err))
+				}
+			}
+			m.currentTet = newTet
 		}
 	case stopwatch.TickMsg:
 		newTet, err := m.currentTet.MoveDown(&m.playfield)
