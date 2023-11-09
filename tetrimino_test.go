@@ -512,3 +512,67 @@ func TestTetrimino_MoveRight(t *testing.T) {
 		})
 	}
 }
+
+func TestIsCellEmpty(t *testing.T) {
+	tt := []struct {
+		name     string
+		cell     byte
+		expected bool
+	}{
+		{
+			name:     "0",
+			cell:     0,
+			expected: true,
+		},
+		{
+			name:     "G",
+			cell:     'G',
+			expected: true,
+		},
+		{
+			name:     "I",
+			cell:     'I',
+			expected: false,
+		},
+		{
+			name:     "O",
+			cell:     'O',
+			expected: false,
+		},
+		{
+			name:     "T",
+			cell:     'T',
+			expected: false,
+		},
+		{
+			name:     "S",
+			cell:     'S',
+			expected: false,
+		},
+		{
+			name:     "Z",
+			cell:     'Z',
+			expected: false,
+		},
+		{
+			name:     "J",
+			cell:     'J',
+			expected: false,
+		},
+		{
+			name:     "L",
+			cell:     'L',
+			expected: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isCellEmpty(tc.cell)
+
+			if result != tc.expected {
+				t.Errorf("got %v, want %v", result, tc.expected)
+			}
+		})
+	}
+}
