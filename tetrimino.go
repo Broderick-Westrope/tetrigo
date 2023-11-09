@@ -271,17 +271,17 @@ func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
 }
 
 func (t Tetrimino) rotateClockwise() *Tetrimino {
-	cellsCopy := make([][]bool, len(t.Cells))
-	copy(cellsCopy, t.Cells)
-	t.Cells = cellsCopy
+	t.Cells = deepCopyCells(t.Cells)
 
-	// reverse the order of the matrix rows
+	// Reverse the order of the rows
 	for i, j := 0, len(t.Cells)-1; i < j; i, j = i+1, j-1 {
 		t.Cells[i], t.Cells[j] = t.Cells[j], t.Cells[i]
 	}
+
 	t.transpose()
 
-	t.CurrentRotation = (t.CurrentRotation + 1) % len(t.RotationCoords)
+	// Update the rotation and position
+	t.CurrentRotation = positiveMod(t.CurrentRotation+1, len(t.RotationCoords))
 	t.Pos.X += t.RotationCoords[t.CurrentRotation].X
 	t.Pos.Y += t.RotationCoords[t.CurrentRotation].Y
 
@@ -289,12 +289,22 @@ func (t Tetrimino) rotateClockwise() *Tetrimino {
 }
 
 func (t Tetrimino) rotateCounterClockwise() *Tetrimino {
-	t.transpose()
-	for row := range t.Cells {
-		for i, j := 0, len(t.Cells[row])-1; i < j; i, j = i+1, j-1 {
-			t.Cells[row][i], t.Cells[row][j] = t.Cells[row][j], t.Cells[row][i]
+	t.Cells = deepCopyCells(t.Cells)
+
+	// Reverse the order of the columns
+	for _, row := range t.Cells {
+		for i, j := 0, len(row)-1; i < j; i, j = i+1, j-1 {
+			row[i], row[j] = row[j], row[i]
 		}
 	}
+
+	t.transpose()
+
+	// Update the rotation and position
+	t.CurrentRotation = positiveMod(t.CurrentRotation-1, len(t.RotationCoords))
+	t.Pos.X -= t.RotationCoords[t.CurrentRotation].X
+	t.Pos.Y -= t.RotationCoords[t.CurrentRotation].Y
+
 	return &t
 }
 
@@ -323,9 +333,6 @@ func (t *Tetrimino) canRotate(playfield *Playfield, original *Tetrimino) bool {
 				if isOutOfBoundsVertically(cellCol, t.Pos.X, playfield) {
 					return false
 				}
-				// if isCellOccupied(Coordinate{X: cellCol, Y: cellRow}, t.Pos, playfield, original) {
-				// 	return false
-				// }
 			}
 		}
 	}
@@ -341,37 +348,20 @@ func isOutOfBoundsVertically(cellCol, tetCol int, playfield *Playfield) bool {
 	return cellCol < 0 || cellCol >= len(playfield[0])
 }
 
-func isCellOccupied(cell, tetPos Coordinate, playfield *Playfield, originalTet *Tetrimino) bool {
-	cellValue := playfield[cell.Y+tetPos.Y][cell.Y+tetPos.X]
-	if cellValue == 0 {
-		return false
+func positiveMod(dividend, divisor int) int {
+	result := dividend % divisor
+	if result < 0 && divisor > 0 {
+		// If the result is negative and the divisor is positive, add the divisor to get the positive equivalent.
+		result += divisor
 	}
-	if cellValue == 'G' {
-		return false
-	}
-
-	// Is the cell within the bounds of the original tet?
-	// Is the cell occupied by the original tet?
-
-	cell.Y = tetPos.Y + cell.Y
-	cell.X = tetPos.X + cell.X
-
-	isInOriginalY := cell.Y >= originalTet.Pos.Y && cell.Y < originalTet.Pos.Y+len(originalTet.Cells)
-	isInOriginalX := cell.X >= originalTet.Pos.X && cell.X < originalTet.Pos.X+len(originalTet.Cells[0])
-	if !isInOriginalY || !isInOriginalX {
-		return false
-	}
-
-	cell.Y -= originalTet.Pos.Y
-	cell.X -= originalTet.Pos.X
-
-	return originalTet.Cells[cell.Y][cell.X]
+	return result
 }
 
-// # # # # #
-// N # # # #
-// N # # O #
-// N B O O #
-// # # # # #
-// # # # # #
-// # # # # #
+func deepCopyCells(cells [][]bool) [][]bool {
+	cellsCopy := make([][]bool, len(cells))
+	for i := range cells {
+		cellsCopy[i] = make([]bool, len(cells[i]))
+		copy(cellsCopy[i], cells[i])
+	}
+	return cellsCopy
+}
