@@ -10,7 +10,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Playfield [40][10]byte
+type Model struct {
+	playfield  Playfield
+	styles     *Styles
+	help       help.Model
+	keys       *KeyMap
+	currentTet *Tetrimino
+	fall       Fall
+}
 
 type Fall struct {
 	stopwatch    stopwatch.Model
@@ -19,13 +26,14 @@ type Fall struct {
 	currentMode  uint8
 }
 
-type Model struct {
-	playfield  Playfield
-	styles     *Styles
-	help       help.Model
-	keys       *KeyMap
-	currentTet *Tetrimino
-	fall       Fall
+func (f *Fall) toggleSoftDrop() {
+	if f.currentMode == 0 {
+		f.currentMode = 1
+		f.stopwatch.Interval = f.softDropTime
+		return
+	}
+	f.currentMode = 0
+	f.stopwatch.Interval = f.defaultTime
 }
 
 func InitialModel() *Model {
@@ -139,14 +147,4 @@ func (m Model) View() string {
 	}
 
 	return m.styles.Program.Render(output) + "\n" + m.help.View(m.keys)
-}
-
-func (f *Fall) toggleSoftDrop() {
-	if f.currentMode == 0 {
-		f.currentMode = 1
-		f.stopwatch.Interval = f.softDropTime
-		return
-	}
-	f.currentMode = 0
-	f.stopwatch.Interval = f.defaultTime
 }

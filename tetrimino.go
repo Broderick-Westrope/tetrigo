@@ -112,12 +112,6 @@ func RandomTetrimino(playfieldHeight int) *Tetrimino {
 	return &t
 }
 
-func (p *Playfield) NewTetrimino() *Tetrimino {
-	tet := RandomTetrimino(len(p))
-	p.addCells(tet)
-	return tet
-}
-
 // MoveDown moves the tetrimino down one row.
 // If the tetrimino cannot move down, it will be added to the playfield and a new tetrimino will be returned.
 func (t *Tetrimino) MoveDown(playfield *Playfield) error {
@@ -212,34 +206,6 @@ func (t *Tetrimino) canMoveRight(playfield Playfield) bool {
 		}
 	}
 	return true
-}
-
-func (p *Playfield) removeCells(tetrimino *Tetrimino) error {
-	for row := range tetrimino.Cells {
-		for col := range tetrimino.Cells[row] {
-			if tetrimino.Cells[row][col] {
-				if v := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]; v != tetrimino.Value {
-					return fmt.Errorf("cell at row %d, col %d is not the expected value", row+tetrimino.Pos.Y, col+tetrimino.Pos.X)
-				}
-				p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = 0
-			}
-		}
-	}
-	return nil
-}
-
-func (p *Playfield) addCells(tetrimino *Tetrimino) error {
-	for row := range tetrimino.Cells {
-		for col := range tetrimino.Cells[row] {
-			if tetrimino.Cells[row][col] {
-				if !isCellEmpty(p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]) {
-					return fmt.Errorf("cell at row %d, col %d is not empty or a ghost", row+tetrimino.Pos.Y, col+tetrimino.Pos.X)
-				}
-				p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = tetrimino.Value
-			}
-		}
-	}
-	return nil
 }
 
 func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
@@ -362,30 +328,6 @@ func deepCopyCells(cells [][]bool) [][]bool {
 	return cellsCopy
 }
 
-func (p *Playfield) isLineComplete(row int) bool {
-	for _, cell := range p[row] {
-		if isCellEmpty(cell) {
-			return false
-		}
-	}
-	return true
-}
-
-func (p *Playfield) removeLine(row int) {
-	p[0] = [10]byte{}
-	for i := row; i > 0; i-- {
-		p[i] = p[i-1]
-	}
-}
-
 func isCellEmpty(cell byte) bool {
 	return cell == 0 || cell == 'G'
-}
-
-func (p *Playfield) removeCompletedLines(tet *Tetrimino) {
-	for row := range tet.Cells {
-		if p.isLineComplete(tet.Pos.Y + row) {
-			p.removeLine(tet.Pos.Y + row)
-		}
-	}
 }
