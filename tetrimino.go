@@ -120,25 +120,17 @@ func (p *Playfield) NewTetrimino() *Tetrimino {
 
 // MoveDown moves the tetrimino down one row.
 // If the tetrimino cannot move down, it will be added to the playfield and a new tetrimino will be returned.
-func (t *Tetrimino) MoveDown(playfield *Playfield) (*Tetrimino, error) {
-	if !t.canMoveDown(*playfield) {
-		for row := range t.Cells {
-			if playfield.isLineComplete(t.Pos.Y + row) {
-				playfield.removeLine(t.Pos.Y + row)
-			}
-		}
-		return playfield.NewTetrimino(), nil
-	}
+func (t *Tetrimino) MoveDown(playfield *Playfield) error {
 	err := playfield.removeCells(t)
 	if err != nil {
-		return nil, fmt.Errorf("failed to remove cells: %w", err)
+		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.Pos.Y++
 	err = playfield.addCells(t)
 	if err != nil {
-		return nil, fmt.Errorf("failed to add cells: %w", err)
+		return fmt.Errorf("failed to add cells: %w", err)
 	}
-	return nil, nil
+	return nil
 }
 
 // MoveLeft moves the tetrimino left one column.
@@ -225,8 +217,8 @@ func (t *Tetrimino) canMoveRight(playfield Playfield) bool {
 func (p *Playfield) removeCells(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
-			if tetrimino.Cells[row][col] { // if the cell is true
-				if v := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]; v != tetrimino.Value { // if the cell is not the expected value
+			if tetrimino.Cells[row][col] {
+				if v := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]; v != tetrimino.Value {
 					return fmt.Errorf("cell at row %d, col %d is not the expected value", row+tetrimino.Pos.Y, col+tetrimino.Pos.X)
 				}
 				p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = 0
@@ -356,7 +348,6 @@ func isOutOfBoundsVertically(cellCol, tetCol int, playfield *Playfield) bool {
 func positiveMod(dividend, divisor int) int {
 	result := dividend % divisor
 	if result < 0 && divisor > 0 {
-		// If the result is negative and the divisor is positive, add the divisor to get the positive equivalent.
 		result += divisor
 	}
 	return result
@@ -389,4 +380,12 @@ func (p *Playfield) removeLine(row int) {
 
 func isCellEmpty(cell byte) bool {
 	return cell == 0 || cell == 'G'
+}
+
+func (p *Playfield) removeCompletedLines(tet *Tetrimino) {
+	for row := range tet.Cells {
+		if p.isLineComplete(tet.Pos.Y + row) {
+			p.removeLine(tet.Pos.Y + row)
+		}
+	}
 }

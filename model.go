@@ -77,25 +77,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				panic(fmt.Errorf("failed to rotate tetrimino counter-clockwise: %w", err))
 			}
 		case key.Matches(msg, m.keys.HardDrop):
-			var newTet *Tetrimino = nil
 			var err error
-			for newTet == nil {
-				newTet, err = m.currentTet.MoveDown(&m.playfield)
+			for {
+				if !m.currentTet.canMoveDown(m.playfield) {
+					m.playfield.removeCompletedLines(m.currentTet)
+					m.currentTet = m.playfield.NewTetrimino()
+					break
+				}
+
+				err = m.currentTet.MoveDown(&m.playfield)
 				if err != nil {
-					panic(fmt.Errorf("failed to move tetrimino down: %w", err))
+					panic(fmt.Errorf("failed to move tetrimino down with hard drop: %w", err))
 				}
 			}
-			m.currentTet = newTet
 		case key.Matches(msg, m.keys.SoftDrop):
 			m.fall.toggleSoftDrop()
 		}
 	case stopwatch.TickMsg:
-		newTet, err := m.currentTet.MoveDown(&m.playfield)
+		if !m.currentTet.canMoveDown(m.playfield) {
+			m.playfield.removeCompletedLines(m.currentTet)
+			m.currentTet = m.playfield.NewTetrimino()
+			break
+		}
+		err := m.currentTet.MoveDown(&m.playfield)
 		if err != nil {
 			panic(fmt.Errorf("failed to move tetrimino down: %w", err))
-		}
-		if newTet != nil {
-			m.currentTet = newTet
 		}
 	default:
 		s := fmt.Sprintf("message type: %T\n", msg)
