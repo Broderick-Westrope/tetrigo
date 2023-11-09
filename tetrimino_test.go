@@ -513,6 +513,35 @@ func TestTetrimino_MoveRight(t *testing.T) {
 	}
 }
 
+func TestDeepCopyCells(t *testing.T) {
+	var cells, cellsCopy [][]bool
+
+	// Case: modify byte
+	cells = [][]bool{
+		{false, false},
+	}
+
+	cellsCopy = deepCopyCells(cells)
+	cellsCopy[0][0] = true
+
+	if cells[0][0] {
+		t.Errorf("byte was modified")
+	}
+
+	// Case: modify inner array
+	cells = [][]bool{
+		{false, false},
+	}
+
+	cellsCopy = deepCopyCells(cells)
+	cellsCopy[0] = []bool{true, false}
+
+	if cells[0][0] {
+		t.Errorf("byte was modified")
+	}
+
+}
+
 func TestIsCellEmpty(t *testing.T) {
 	tt := []struct {
 		name     string
