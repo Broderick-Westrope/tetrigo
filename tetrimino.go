@@ -122,6 +122,11 @@ func (p *Playfield) NewTetrimino() *Tetrimino {
 // If the tetrimino cannot move down, it will be added to the playfield and a new tetrimino will be returned.
 func (t *Tetrimino) MoveDown(playfield *Playfield) (*Tetrimino, error) {
 	if !t.canMoveDown(*playfield) {
+		for row := range t.Cells {
+			if playfield.isLineComplete(t.Pos.Y + row) {
+				playfield.removeLine(t.Pos.Y + row)
+			}
+		}
 		return playfield.NewTetrimino(), nil
 	}
 	err := playfield.removeCells(t)
@@ -364,6 +369,22 @@ func deepCopyCells(cells [][]bool) [][]bool {
 		copy(cellsCopy[i], cells[i])
 	}
 	return cellsCopy
+}
+
+func (p *Playfield) isLineComplete(row int) bool {
+	for _, cell := range p[row] {
+		if isCellEmpty(cell) {
+			return false
+		}
+	}
+	return true
+}
+
+func (p *Playfield) removeLine(row int) {
+	p[0] = [10]byte{}
+	for i := row; i > 0; i-- {
+		p[i] = p[i-1]
+	}
 }
 
 func isCellEmpty(cell byte) bool {
