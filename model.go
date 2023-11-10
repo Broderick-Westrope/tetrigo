@@ -111,9 +111,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			panic(fmt.Errorf("failed to move tetrimino down: %w", err))
 		}
-	default:
-		s := fmt.Sprintf("message type: %T\n", msg)
-		fmt.Print(s)
 	}
 
 	var cmd tea.Cmd
