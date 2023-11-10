@@ -513,6 +513,57 @@ func TestTetrimino_MoveRight(t *testing.T) {
 	}
 }
 
+func TestPositiveMod(t *testing.T) {
+	tt := []struct {
+		name       string
+		dividend   int
+		divisor    int
+		expected   int
+		expectsErr bool
+	}{
+		{
+			"0 mod 0",
+			0, 0, 0, true,
+		},
+		{
+			"1 mod 0",
+			0, 0, 0, true,
+		},
+		{
+			"3 mod 5",
+			3, 5, 3, false,
+		},
+		{
+			"5 mod 5",
+			5, 5, 0, false,
+		},
+		{
+			"3 mod -5",
+			3, -5, 3, false,
+		},
+		{
+			"5 mod -5",
+			5, -5, 0, false,
+		},
+		{
+			"-4 mod -5",
+			-4, -5, -4, false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := positiveMod(tc.dividend, tc.divisor)
+			if result != tc.expected {
+				t.Errorf("result: got %v, want %v", result, tc.expected)
+			}
+			if tc.expectsErr != (err != nil) {
+				t.Error("err: got error, want nil")
+			}
+		})
+	}
+}
+
 func TestDeepCopyCells(t *testing.T) {
 	var cells, cellsCopy [][]bool
 
