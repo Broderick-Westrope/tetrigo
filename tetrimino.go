@@ -214,18 +214,25 @@ func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
 	}
 
 	var rotated *Tetrimino
+	var err error
 	if clockwise {
-		rotated = t.rotateClockwise()
+		rotated, err = t.rotateClockwise()
 	} else {
-		rotated = t.rotateCounterClockwise()
+		rotated, err = t.rotateCounterClockwise()
 	}
-	err := playfield.removeCells(t)
+	if err != nil {
+		return fmt.Errorf("failed to rotate tetrimino: %w", err)
+	}
+
+	err = playfield.removeCells(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
+
 	if rotated.canRotate(playfield, t) {
 		t.Cells = rotated.Cells
 	}
+
 	err = playfield.addCells(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
@@ -233,7 +240,7 @@ func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
 	return nil
 }
 
-func (t Tetrimino) rotateClockwise() *Tetrimino {
+func (t Tetrimino) rotateClockwise() (*Tetrimino, error) {
 	t.Cells = deepCopyCells(t.Cells)
 
 	// Reverse the order of the rows
@@ -243,15 +250,19 @@ func (t Tetrimino) rotateClockwise() *Tetrimino {
 
 	t.transpose()
 
-	// Update the rotation and position
-	t.CurrentRotation = positiveMod(t.CurrentRotation+1, len(t.RotationCoords))
+	var err error
+	t.CurrentRotation, err = positiveMod(t.CurrentRotation+1, len(t.RotationCoords))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get positive mod: %w", err)
+	}
+
 	t.Pos.X += t.RotationCoords[t.CurrentRotation].X
 	t.Pos.Y += t.RotationCoords[t.CurrentRotation].Y
 
-	return &t
+	return &t, nil
 }
 
-func (t Tetrimino) rotateCounterClockwise() *Tetrimino {
+func (t Tetrimino) rotateCounterClockwise() (*Tetrimino, error) {
 	t.Cells = deepCopyCells(t.Cells)
 
 	// Reverse the order of the columns
@@ -263,12 +274,16 @@ func (t Tetrimino) rotateCounterClockwise() *Tetrimino {
 
 	t.transpose()
 
-	// Update the rotation and position
-	t.CurrentRotation = positiveMod(t.CurrentRotation-1, len(t.RotationCoords))
+	var err error
+	t.CurrentRotation, err = positiveMod(t.CurrentRotation-1, len(t.RotationCoords))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get positive mod: %w", err)
+	}
+
 	t.Pos.X -= t.RotationCoords[t.CurrentRotation].X
 	t.Pos.Y -= t.RotationCoords[t.CurrentRotation].Y
 
-	return &t
+	return &t, nil
 }
 
 func (t *Tetrimino) transpose() {
@@ -311,12 +326,15 @@ func isOutOfBoundsVertically(cellCol, tetCol int, playfield *Playfield) bool {
 	return cellCol < 0 || cellCol >= len(playfield[0])
 }
 
-func positiveMod(dividend, divisor int) int {
+func positiveMod(dividend, divisor int) (int, error) {
+	if divisor == 0 {
+		return 0, fmt.Errorf("cannot %v divide by %v", dividend, divisor)
+	}
 	result := dividend % divisor
 	if result < 0 && divisor > 0 {
 		result += divisor
 	}
-	return result
+	return result, nil
 }
 
 func deepCopyCells(cells [][]bool) [][]bool {
