@@ -305,10 +305,10 @@ func (t *Tetrimino) canRotate(playfield *Playfield, original *Tetrimino) bool {
 	for cellRow := range t.Cells {
 		for cellCol := range t.Cells[cellRow] {
 			if t.Cells[cellRow][cellCol] {
-				if isOutOfBoundsHorizontally(cellRow, t.Pos.Y, playfield) {
+				if isOutOfBoundsHorizontally(cellCol, t.Pos.X, playfield) {
 					return false
 				}
-				if isOutOfBoundsVertically(cellCol, t.Pos.X, playfield) {
+				if isOutOfBoundsVertically(cellRow, t.Pos.Y, playfield) {
 					return false
 				}
 			}
@@ -317,13 +317,13 @@ func (t *Tetrimino) canRotate(playfield *Playfield, original *Tetrimino) bool {
 	return true
 }
 
-func isOutOfBoundsHorizontally(cellRow, tetRow int, playfield *Playfield) bool {
-	cellRow += tetRow
-	return cellRow < 0 || cellRow >= len(playfield)
+func isOutOfBoundsHorizontally(tetPosX, cellCol int, playfield *Playfield) bool {
+	tetPosX += cellCol
+	return tetPosX < 0 || tetPosX >= len(playfield[0])
 }
-func isOutOfBoundsVertically(cellCol, tetCol int, playfield *Playfield) bool {
-	cellCol += tetCol
-	return cellCol < 0 || cellCol >= len(playfield[0])
+func isOutOfBoundsVertically(tetPosY, cellRow int, playfield *Playfield) bool {
+	tetPosY += cellRow
+	return tetPosY < 0 || tetPosY >= len(playfield)
 }
 
 func positiveMod(dividend, divisor int) (int, error) {
