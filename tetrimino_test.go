@@ -547,6 +547,160 @@ func TestIsOutOfBoundsHorizontally(t *testing.T) {
 	}
 }
 
+func TestCanRotate(t *testing.T) {
+	playfield := &Playfield{}
+
+	tt := []struct {
+		name      string
+		playfield *Playfield
+		rotated   *Tetrimino
+		expects   bool
+	}{
+		{
+			"can rotate, empty board & starting position",
+			playfield,
+			&Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true, false},
+					{true, true, true},
+				},
+				Pos: Coordinate{
+					X: startingPositions['6'].X,
+					Y: startingPositions['6'].Y + 20,
+				},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['6'],
+			},
+			true,
+		},
+		{
+			"can rotate, perfect fit",
+			&Playfield{
+				{0, 0, 0, 'X'},
+				{'X', 0, 'X'},
+				{'X', 'X', 'X'},
+			},
+			&Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos: Coordinate{
+					X: 0,
+					Y: 0,
+				},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+			true,
+		},
+		{
+			"cannot rotate, blocking cell",
+			&Playfield{
+				{'X'},
+			},
+			&Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos: Coordinate{
+					X: 0,
+					Y: 0,
+				},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+			false,
+		},
+		{
+			"cannot rotate, out of bounds left",
+			playfield,
+			&Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos: Coordinate{
+					X: -1,
+					Y: 0,
+				},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+			false,
+		},
+		{
+			"cannot rotate, out of bounds right",
+			playfield,
+			&Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos: Coordinate{
+					X: len(playfield[0]) - 2,
+					Y: 0,
+				},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+			false,
+		},
+		{
+			"cannot rotate, out of bounds up",
+			playfield,
+			&Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos: Coordinate{
+					X: 0,
+					Y: -1,
+				},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+			false,
+		},
+		{
+			"cannot rotate, out of bounds down",
+			playfield,
+			&Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos: Coordinate{
+					X: 0,
+					Y: len(playfield) - 1,
+				},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+			false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.rotated.canRotate(tc.playfield)
+
+			if result != tc.expects {
+				t.Errorf("got %v, want %v", result, tc.expects)
+			}
+		})
+	}
+}
+
 func TestIsOutOfBoundsVertically(t *testing.T) {
 	playfield := &Playfield{}
 
