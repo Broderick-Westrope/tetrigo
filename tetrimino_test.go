@@ -513,6 +513,74 @@ func TestTetrimino_MoveRight(t *testing.T) {
 	}
 }
 
+func TestIsOutOfBoundsHorizontally(t *testing.T) {
+	playfield := &Playfield{}
+
+	tt := []struct {
+		name    string
+		tetPosX int
+		cellCol int
+		expects bool
+	}{
+		{
+			"out left", 0, -1, true,
+		},
+		{
+			"in left", -1, 1, false,
+		},
+		{
+			"in right", 10, -1, false,
+		},
+		{
+			"out right", 10, 0, true,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isOutOfBoundsHorizontally(tc.tetPosX, tc.cellCol, playfield)
+
+			if result != tc.expects {
+				t.Errorf("got %v, want %v", result, tc.expects)
+			}
+		})
+	}
+}
+
+func TestIsOutOfBoundsVertically(t *testing.T) {
+	playfield := &Playfield{}
+
+	tt := []struct {
+		name    string
+		tetPosY int
+		cellRow int
+		expects bool
+	}{
+		{
+			"out up", 0, -1, true,
+		},
+		{
+			"in up", -1, 1, false,
+		},
+		{
+			"in down", 40, -1, false,
+		},
+		{
+			"out down", 40, 0, true,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isOutOfBoundsVertically(tc.tetPosY, tc.cellRow, playfield)
+
+			if result != tc.expects {
+				t.Errorf("got %v, want %v", result, tc.expects)
+			}
+		})
+	}
+}
+
 func TestPositiveMod(t *testing.T) {
 	tt := []struct {
 		name       string
