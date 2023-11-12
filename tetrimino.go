@@ -26,13 +26,19 @@ var RotationCoords = map[byte][]Coordinate{
 	},
 }
 
+var startingPositions = map[byte]Coordinate{
+	'I': {X: 3, Y: -1},
+	'O': {X: 4, Y: -2},
+	'6': {X: 3, Y: -2},
+}
+
 var tetriminos = []Tetrimino{
 	{
 		Value: 'I',
 		Cells: [][]bool{
 			{true, true, true, true},
 		},
-		Pos:            Coordinate{X: 3, Y: -1},
+		Pos:            startingPositions['I'],
 		RotationCoords: RotationCoords['I'],
 	},
 	{
@@ -41,7 +47,7 @@ var tetriminos = []Tetrimino{
 			{true, true},
 			{true, true},
 		},
-		Pos:            Coordinate{X: 4, Y: -2},
+		Pos:            startingPositions['O'],
 		RotationCoords: RotationCoords['O'],
 	},
 	{
@@ -50,7 +56,7 @@ var tetriminos = []Tetrimino{
 			{false, true, false},
 			{true, true, true},
 		},
-		Pos:            Coordinate{X: 3, Y: -2},
+		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
 	{
@@ -59,7 +65,7 @@ var tetriminos = []Tetrimino{
 			{false, true, true},
 			{true, true, false},
 		},
-		Pos:            Coordinate{X: 3, Y: -2},
+		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
 	{
@@ -68,7 +74,7 @@ var tetriminos = []Tetrimino{
 			{true, true, false},
 			{false, true, true},
 		},
-		Pos:            Coordinate{X: 3, Y: -2},
+		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
 	{
@@ -77,7 +83,7 @@ var tetriminos = []Tetrimino{
 			{true, false, false},
 			{true, true, true},
 		},
-		Pos:            Coordinate{X: 3, Y: -2},
+		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
 	{
@@ -86,7 +92,7 @@ var tetriminos = []Tetrimino{
 			{false, false, true},
 			{true, true, true},
 		},
-		Pos:            Coordinate{X: 3, Y: -2},
+		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
 }
@@ -229,7 +235,7 @@ func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 
-	if rotated.canRotate(playfield, t) {
+	if rotated.canRotate(playfield) {
 		t.Cells = rotated.Cells
 	}
 
@@ -301,14 +307,14 @@ func (t *Tetrimino) transpose() {
 	t.Cells = result
 }
 
-func (t *Tetrimino) canRotate(playfield *Playfield, original *Tetrimino) bool {
+func (t *Tetrimino) canRotate(playfield *Playfield) bool {
 	for cellRow := range t.Cells {
 		for cellCol := range t.Cells[cellRow] {
 			if t.Cells[cellRow][cellCol] {
-				if isOutOfBoundsHorizontally(cellCol, t.Pos.X, playfield) {
+				if isOutOfBoundsHorizontally(t.Pos.X, cellCol, playfield) {
 					return false
 				}
-				if isOutOfBoundsVertically(cellRow, t.Pos.Y, playfield) {
+				if isOutOfBoundsVertically(t.Pos.Y, cellRow, playfield) {
 					return false
 				}
 				if !isCellEmpty(playfield[t.Pos.Y+cellRow][t.Pos.X+cellCol]) {
