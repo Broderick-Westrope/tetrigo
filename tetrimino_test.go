@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -513,35 +514,60 @@ func TestTetrimino_MoveRight(t *testing.T) {
 	}
 }
 
-func TestIsOutOfBoundsHorizontally(t *testing.T) {
-	playfield := &Playfield{}
-
+func TestTranspose(t *testing.T) {
 	tt := []struct {
-		name    string
-		tetPosX int
-		cellCol int
-		expects bool
+		name          string
+		tet           *Tetrimino
+		expectedCells [][]bool
 	}{
 		{
-			"out left", 0, -1, true,
+			"1x2",
+			&Tetrimino{
+				Cells: [][]bool{
+					{true, false},
+				},
+			},
+			[][]bool{
+				{true},
+				{false},
+			},
 		},
 		{
-			"in left", -1, 1, false,
+			"2x2",
+			&Tetrimino{
+				Cells: [][]bool{
+					{true, false},
+					{true, false},
+				},
+			},
+			[][]bool{
+				{true, true},
+				{false, false},
+			},
 		},
 		{
-			"in right", 10, -1, false,
-		},
-		{
-			"out right", 10, 0, true,
+			"3x3",
+			&Tetrimino{
+				Cells: [][]bool{
+					{true, false, true},
+					{true, false, false},
+					{true, false, true},
+				},
+			},
+			[][]bool{
+				{true, true, true},
+				{false, false, false},
+				{true, false, true},
+			},
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := isOutOfBoundsHorizontally(tc.tetPosX, tc.cellCol, playfield)
+			tc.tet.transpose()
 
-			if result != tc.expects {
-				t.Errorf("got %v, want %v", result, tc.expects)
+			if !reflect.DeepEqual(tc.tet.Cells, tc.expectedCells) {
+				t.Errorf("got %v,\nwant %v", tc.tet.Cells, tc.expectedCells)
 			}
 		})
 	}
@@ -693,6 +719,40 @@ func TestCanRotate(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			result := tc.rotated.canRotate(tc.playfield)
+
+			if result != tc.expects {
+				t.Errorf("got %v, want %v", result, tc.expects)
+			}
+		})
+	}
+}
+
+func TestIsOutOfBoundsHorizontally(t *testing.T) {
+	playfield := &Playfield{}
+
+	tt := []struct {
+		name    string
+		tetPosX int
+		cellCol int
+		expects bool
+	}{
+		{
+			"out left", 0, -1, true,
+		},
+		{
+			"in left", -1, 1, false,
+		},
+		{
+			"in right", 10, -1, false,
+		},
+		{
+			"out right", 10, 0, true,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := isOutOfBoundsHorizontally(tc.tetPosX, tc.cellCol, playfield)
 
 			if result != tc.expects {
 				t.Errorf("got %v, want %v", result, tc.expects)
