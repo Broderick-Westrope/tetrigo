@@ -311,6 +311,9 @@ func (t *Tetrimino) canRotate(playfield *Playfield, original *Tetrimino) bool {
 				if isOutOfBoundsVertically(cellRow, t.Pos.Y, playfield) {
 					return false
 				}
+				if !isCellEmpty(playfield[t.Pos.Y+cellRow][t.Pos.X+cellCol]) {
+					return false
+				}
 			}
 		}
 	}
