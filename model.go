@@ -18,7 +18,7 @@ type Model struct {
 	keys       *KeyMap
 	currentTet *Tetrimino
 	fall       *Fall
-	level      uint
+	scoring    *scoring
 }
 
 type Fall struct {
@@ -57,9 +57,9 @@ func InitialModel() *Model {
 		styles:    DefaultStyles(),
 		help:      help.New(),
 		keys:      DefaultKeyMap(),
-		level:     1,
+		scoring:   &scoring{total: 0, backToBack: false, level: 1},
 	}
-	m.fall = defaultFall(m.level)
+	m.fall = defaultFall(m.scoring.level)
 	m.currentTet = m.playfield.NewTetrimino()
 	return m
 }
@@ -100,7 +100,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var err error
 			for {
 				if !m.currentTet.canMoveDown(m.playfield) {
-					m.playfield.removeCompletedLines(m.currentTet)
+					action := m.playfield.removeCompletedLines(m.currentTet)
+					m.scoring.processAction(action)
 					m.currentTet = m.playfield.NewTetrimino()
 					break
 				}
@@ -115,7 +116,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case stopwatch.TickMsg:
 		if !m.currentTet.canMoveDown(m.playfield) {
-			m.playfield.removeCompletedLines(m.currentTet)
+			action := m.playfield.removeCompletedLines(m.currentTet)
+			m.scoring.processAction(action)
 			m.currentTet = m.playfield.NewTetrimino()
 			break
 		}

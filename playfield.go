@@ -54,10 +54,11 @@ func (p *Playfield) NewTetrimino() *Tetrimino {
 	return tet
 }
 
-func (p *Playfield) removeCompletedLines(tet *Tetrimino) {
+func (p *Playfield) removeCompletedLines(tet *Tetrimino) action {
 	for row := range tet.Cells {
 		if p.isLineComplete(tet.Pos.Y + row) {
 			p.removeLine(tet.Pos.Y + row)
 		}
 	}
+	return actionNone
 }
