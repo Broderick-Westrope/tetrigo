@@ -18,6 +18,7 @@ type Model struct {
 	keys       *KeyMap
 	currentTet *Tetrimino
 	fall       *Fall
+	level      uint
 }
 
 type Fall struct {
@@ -25,11 +26,10 @@ type Fall struct {
 	defaultTime  time.Duration
 	softDropTime time.Duration
 	isSoftDrop   bool
-	level        uint16
 }
 
-func (f *Fall) calculateFallSpeeds() {
-	speed := math.Pow((0.8-float64(f.level-1)*0.007), float64(f.level-1)) * 1000000
+func (f *Fall) calculateFallSpeeds(level uint) {
+	speed := math.Pow((0.8-float64(level-1)*0.007), float64(level-1)) * 1000000
 
 	f.defaultTime = time.Microsecond * time.Duration(speed)
 	f.softDropTime = time.Microsecond * time.Duration(speed/10)
@@ -44,11 +44,9 @@ func (f *Fall) toggleSoftDrop() {
 	f.stopwatch.Interval = f.defaultTime
 }
 
-func defaultFall() *Fall {
-	f := Fall{
-		level: 1,
-	}
-	f.calculateFallSpeeds()
+func defaultFall(level uint) *Fall {
+	f := Fall{}
+	f.calculateFallSpeeds(level)
 	f.stopwatch = stopwatch.NewWithInterval(f.defaultTime)
 	return &f
 }
@@ -59,8 +57,9 @@ func InitialModel() *Model {
 		styles:    DefaultStyles(),
 		help:      help.New(),
 		keys:      DefaultKeyMap(),
-		fall:      defaultFall(),
+		level:     1,
 	}
+	m.fall = defaultFall(m.level)
 	m.currentTet = m.playfield.NewTetrimino()
 	return m
 }
