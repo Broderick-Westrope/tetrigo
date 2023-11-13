@@ -55,10 +55,25 @@ func (p *Playfield) NewTetrimino() *Tetrimino {
 }
 
 func (p *Playfield) removeCompletedLines(tet *Tetrimino) action {
+	lines := 0
 	for row := range tet.Cells {
 		if p.isLineComplete(tet.Pos.Y + row) {
 			p.removeLine(tet.Pos.Y + row)
+			lines++
 		}
+	}
+
+	switch lines {
+	case 0:
+		return actionNone
+	case 1:
+		return actionSingle
+	case 2:
+		return actionDouble
+	case 3:
+		return actionTriple
+	case 4:
+		return actionTetris
 	}
 	return actionNone
 }
