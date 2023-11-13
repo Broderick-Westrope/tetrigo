@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Model struct {
@@ -17,6 +18,7 @@ type Model struct {
 	help       help.Model
 	keys       *KeyMap
 	currentTet *Tetrimino
+	holdTet    *Tetrimino
 	fall       *Fall
 	scoring    *scoring
 }
@@ -58,6 +60,14 @@ func InitialModel() *Model {
 		help:      help.New(),
 		keys:      DefaultKeyMap(),
 		scoring:   &scoring{total: 0, backToBack: false, level: 1},
+		holdTet: &Tetrimino{
+			Cells: [][]bool{
+				{false, false, false},
+				{false, false, false},
+				{false, false, false},
+			},
+			Value: 0,
+		},
 	}
 	m.fall = defaultFall(m.scoring.level)
 	m.currentTet = m.playfield.NewTetrimino()
@@ -134,28 +144,61 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	var output string
+	var output = lipgloss.JoinHorizontal(lipgloss.Top,
+		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView()),
+		m.playfieldView(),
+	)
 
+	return output + "\n" + m.help.View(m.keys)
+}
+
+func (m Model) playfieldView() string {
+	var output string
 	for row := (len(m.playfield) - 20); row < len(m.playfield); row++ {
 		for col := range m.playfield[row] {
-			switch m.playfield[row][col] {
-			case 0:
-				output += m.styles.ColIndicator.Render("▕ ")
-			case 'G':
-				output += "░░"
-			default:
-				cellStyle, ok := m.styles.TetriminoStyles[m.playfield[row][col]]
-				if ok {
-					output += cellStyle.Render("██")
-				} else {
-					output += "? "
-				}
-			}
+			output += m.renderCell(m.playfield[row][col])
 		}
 		if row < len(m.playfield)-1 {
 			output += "\n"
 		}
 	}
+	return m.styles.Playfield.Render(output)
+}
 
-	return m.styles.Program.Render(output) + "\n" + m.help.View(m.keys)
+func (m Model) informationView() string {
+	var output string
+	output += fmt.Sprintln("Score: ", m.scoring.total)
+	output += fmt.Sprintln("Level: ", m.scoring.level)
+	return m.styles.Information.Render(output)
+}
+
+func (m Model) holdView() string {
+	var output string
+	output += "Hold:\n"
+	for row := range m.holdTet.Cells {
+		for col := range m.holdTet.Cells[row] {
+			if m.holdTet.Cells[row][col] {
+				output += m.renderCell(m.holdTet.Value)
+			} else {
+				output += m.renderCell(0)
+			}
+		}
+		output += "\n"
+	}
+	return m.styles.Hold.Render(output)
+}
+
+func (m Model) renderCell(cell byte) string {
+	switch cell {
+	case 0:
+		return m.styles.ColIndicator.Render("▕ ")
+	case 'G':
+		return "░░"
+	default:
+		cellStyle, ok := m.styles.TetriminoStyles[cell]
+		if ok {
+			return cellStyle.Render("██")
+		}
+	}
+	return "??"
 }

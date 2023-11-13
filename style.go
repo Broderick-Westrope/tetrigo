@@ -3,14 +3,16 @@ package main
 import "github.com/charmbracelet/lipgloss"
 
 type Styles struct {
-	Program         lipgloss.Style
+	Playfield       lipgloss.Style
 	ColIndicator    lipgloss.Style
 	TetriminoStyles map[byte]lipgloss.Style
+	Hold            lipgloss.Style
+	Information     lipgloss.Style
 }
 
 func DefaultStyles() *Styles {
 	return &Styles{
-		Program:      lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0),
+		Playfield:    lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0),
 		ColIndicator: lipgloss.NewStyle().Foreground(lipgloss.Color("#303040")),
 		TetriminoStyles: map[byte]lipgloss.Style{
 			'I': lipgloss.NewStyle().Foreground(lipgloss.Color("#64C4EB")),
@@ -21,5 +23,7 @@ func DefaultStyles() *Styles {
 			'J': lipgloss.NewStyle().Foreground(lipgloss.Color("#5C65A8")),
 			'L': lipgloss.NewStyle().Foreground(lipgloss.Color("#E07F3A")),
 		},
+		Hold:        lipgloss.NewStyle().Width(10).Height(5).Border(lipgloss.RoundedBorder(), true, false, true, true).Align(lipgloss.Center, lipgloss.Center),
+		Information: lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
 	}
 }
