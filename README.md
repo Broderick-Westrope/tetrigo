@@ -1,5 +1,7 @@
 # Tetrigo
 
+*teh·tree·go*
+
 ![app demo](./docs/assets/demo1.png)
 
 A Golang implementation of Tetris, attempting to follow the official [2009 Tetris Design Guideline](https://github.com/Broderick-Westrope/tetrigo/tree/main/docs/2009-Tetris-Design-Guideline.pdf).
