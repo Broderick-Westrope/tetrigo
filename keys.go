@@ -24,7 +24,7 @@ func DefaultKeyMap() *KeyMap {
 		CounterClockwise: key.NewBinding(key.WithKeys("q", "u"), key.WithHelp("q, u", "rotate counter-clockwise")),
 		SoftDrop:         key.NewBinding(key.WithKeys("s", "k"), key.WithHelp("s, k", "toggle soft drop")),
 		HardDrop:         key.NewBinding(key.WithKeys("w", "i"), key.WithHelp("w, i", "hard drop")),
-		Hold:             key.NewBinding(key.WithKeys("space"), key.WithHelp("space", "hold")),
+		Hold:             key.NewBinding(key.WithKeys(" "), key.WithHelp("space", "hold")),
 	}
 }
 
