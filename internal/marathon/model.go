@@ -1,4 +1,4 @@
-package main
+package marathon
 
 import (
 	"fmt"
@@ -24,13 +24,13 @@ type Model struct {
 	bag        *tetris.Bag
 }
 
-func InitialModel() *Model {
+func InitialModel(level uint) *Model {
 	m := &Model{
 		matrix:  tetris.Matrix{},
 		styles:  DefaultStyles(),
 		help:    help.New(),
 		keys:    DefaultKeyMap(),
-		scoring: tetris.NewScoring(1),
+		scoring: tetris.NewScoring(level),
 		holdTet: &tetris.Tetrimino{
 			Cells: [][]bool{
 				{false, false, false},
@@ -42,7 +42,7 @@ func InitialModel() *Model {
 		canHold: true,
 	}
 	m.bag = tetris.NewBag(len(m.matrix))
-	m.fall = defaultFall(m.scoring.Level())
+	m.fall = defaultFall(level)
 	m.currentTet = m.bag.Next()
 	err := m.matrix.AddTetrimino(m.currentTet)
 	if err != nil {

@@ -1,4 +1,4 @@
-package main
+package marathon
 
 import "github.com/charmbracelet/bubbles/key"
 
