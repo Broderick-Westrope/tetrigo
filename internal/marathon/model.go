@@ -2,6 +2,7 @@ package marathon
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/tetris"
 	"github.com/charmbracelet/bubbles/help"
@@ -22,6 +23,7 @@ type Model struct {
 	fall       *Fall
 	scoring    *tetris.Scoring
 	bag        *tetris.Bag
+	timer      stopwatch.Model
 }
 
 func InitialModel(level uint) *Model {
@@ -40,6 +42,7 @@ func InitialModel(level uint) *Model {
 			Value: 0,
 		},
 		canHold: true,
+		timer:   stopwatch.NewWithInterval(time.Millisecond),
 	}
 	m.bag = tetris.NewBag(len(m.matrix))
 	m.fall = defaultFall(level)
@@ -52,7 +55,7 @@ func InitialModel(level uint) *Model {
 }
 
 func (m Model) Init() tea.Cmd {
-	return m.fall.stopwatch.Init()
+	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -102,6 +105,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case stopwatch.TickMsg:
+		if m.fall.stopwatch.ID() != msg.ID {
+			break
+		}
 		_, err := m.lowerTetrimino()
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
@@ -109,9 +115,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	var cmd tea.Cmd
-	m.fall.stopwatch, cmd = m.fall.stopwatch.Update(msg)
+	var cmds []tea.Cmd
 
-	return m, cmd
+	m.timer, cmd = m.timer.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.fall.stopwatch, cmd = m.fall.stopwatch.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
@@ -146,11 +158,23 @@ func (m *Model) informationView() string {
 	var output string
 	output += fmt.Sprintln("Score: ", m.scoring.Total())
 	output += fmt.Sprintln("Level: ", m.scoring.Level())
+
+	elapsed := m.timer.Elapsed().Seconds()
+	minutes := int(elapsed) / 60
+
+	output += "Time: "
+	if minutes > 0 {
+		seconds := int(elapsed) % 60
+		output += fmt.Sprintf("%02d:%02d\n", minutes, seconds)
+	} else {
+		output += fmt.Sprintf("%06.3f\n", elapsed)
+	}
+
 	return m.styles.Information.Render(output)
 }
 
 func (m *Model) holdView() string {
-	output := "Hold:\n" + m.renderTetrimino(m.holdTet)
+	output := "Hold:\n" + m.renderTetrimino(m.holdTet, 1)
 	return m.styles.Hold.Render(output)
 }
 
@@ -160,19 +184,19 @@ func (m *Model) bagView() string {
 		if i > 5 {
 			break
 		}
-		output += "\n" + m.renderTetrimino(&t)
+		output += "\n" + m.renderTetrimino(&t, 1)
 	}
 	return m.styles.Bag.Render(output)
 }
 
-func (m *Model) renderTetrimino(t *tetris.Tetrimino) string {
+func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	var output string
 	for row := range t.Cells {
 		for col := range t.Cells[row] {
 			if t.Cells[row][col] {
 				output += m.renderCell(t.Value)
 			} else {
-				output += m.renderCell(0)
+				output += m.renderCell(background)
 			}
 		}
 		output += "\n"
@@ -184,6 +208,8 @@ func (m *Model) renderCell(cell byte) string {
 	switch cell {
 	case 0:
 		return m.styles.ColIndicator.Render("▕ ")
+	case 1:
+		return m.styles.TetriminoStyles[cell].Render("  ")
 	case 'G':
 		return "░░"
 	default:
