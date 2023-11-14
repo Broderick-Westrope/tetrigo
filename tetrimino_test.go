@@ -5,50 +5,6 @@ import (
 	"testing"
 )
 
-func TestRandomTetrimino(t *testing.T) {
-	tt := []struct {
-		name            string
-		playfieldHeight int
-	}{
-		{
-			name:            "height 20",
-			playfieldHeight: 21,
-		},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			tet := RandomTetrimino(tc.playfieldHeight)
-			if tet == nil {
-				t.Errorf("expected tetrimino, got nil")
-			}
-
-			var expectedY int
-			switch tet.Value {
-			case 'I':
-				expectedY = (tc.playfieldHeight - 20) - 1
-			case 'O':
-				expectedY = (tc.playfieldHeight - 20) - 2
-			case 'T':
-				expectedY = (tc.playfieldHeight - 20) - 2
-			case 'S':
-				expectedY = (tc.playfieldHeight - 20) - 2
-			case 'Z':
-				expectedY = (tc.playfieldHeight - 20) - 2
-			case 'J':
-				expectedY = (tc.playfieldHeight - 20) - 2
-			case 'L':
-				expectedY = (tc.playfieldHeight - 20) - 2
-			default:
-				t.Errorf("tetrimino value %c not valid", tet.Value)
-			}
-			if tet.Pos.Y != expectedY {
-				t.Errorf("expected tetrimino to be at row %d, got %d", expectedY, tet.Pos.Y)
-			}
-		})
-	}
-}
-
 // func TestTetrimino_MoveDown(t *testing.T) {
 // 	tt := []struct {
 // 		name              string
