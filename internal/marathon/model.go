@@ -158,6 +158,7 @@ func (m *Model) informationView() string {
 	var output string
 	output += fmt.Sprintln("Score: ", m.scoring.Total())
 	output += fmt.Sprintln("Level: ", m.scoring.Level())
+	output += fmt.Sprintln("Cleared: ", m.scoring.Lines())
 
 	elapsed := m.timer.Elapsed().Seconds()
 	minutes := int(elapsed) / 60

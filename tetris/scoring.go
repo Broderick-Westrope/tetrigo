@@ -3,6 +3,7 @@ package tetris
 type Scoring struct {
 	level      uint
 	total      uint
+	lines      uint
 	backToBack bool
 }
 
@@ -39,54 +40,78 @@ func (s *Scoring) Total() uint {
 	return s.total
 }
 
+func (s *Scoring) Lines() uint {
+	return s.lines
+}
+
 func (s *Scoring) ProcessAction(a action) {
 	if a == actionNone {
 		return
 	}
 
+	points := 0.0
 	switch a {
 	case actionSingle:
-		s.total += 100 * s.level
+		points = 100
+	case actionDouble:
+		points = 300
+	case actionTriple:
+		points = 500
+	case actionTetris:
+		points = 800
+	case actionMiniTSpin:
+		points = 100
+	case actionMiniTSpinSingle:
+		points = 200
+	case actionTSpin:
+		points = 400
+	case actionTSpinSingle:
+		points = 800
+	case actionTSpinDouble:
+		points = 1200
+	case actionTSpinTriple:
+		points = 1600
+	}
+
+	backToBack := 0.0
+	switch a {
+	case actionSingle:
 		s.backToBack = false
 	case actionDouble:
-		s.total += 300 * s.level
 		s.backToBack = false
 	case actionTriple:
-		s.total += 500 * s.level
 		s.backToBack = false
 	case actionTetris:
-		s.total += 800 * s.level
 		if s.backToBack {
-			s.total += 400 * s.level
+			backToBack = points * 0.5
 		}
 		s.backToBack = true
-	case actionMiniTSpin:
-		s.total += 100 * s.level
 	case actionMiniTSpinSingle:
-		s.total += 200 * s.level
 		if s.backToBack {
-			s.total += 100 * s.level
+			backToBack = points * 0.5
 		}
 		s.backToBack = true
-	case actionTSpin:
-		s.total += 400 * s.level
 	case actionTSpinSingle:
-		s.total += 800 * s.level
 		if s.backToBack {
-			s.total += 400 * s.level
+			backToBack = points * 0.5
 		}
 		s.backToBack = true
 	case actionTSpinDouble:
-		s.total += 1200 * s.level
 		if s.backToBack {
-			s.total += 600 * s.level
+			backToBack = points * 0.5
 		}
 		s.backToBack = true
 	case actionTSpinTriple:
-		s.total += 1600 * s.level
 		if s.backToBack {
-			s.total += 800 * s.level
+			backToBack = points * 0.5
 		}
 		s.backToBack = true
+	}
+
+	s.total += uint(points+backToBack) * s.level
+	s.lines += uint((points + backToBack) / 100)
+
+	if s.lines >= s.level*5 {
+		s.level++
 	}
 }
