@@ -1,4 +1,4 @@
-package main
+package tetris
 
 import (
 	"fmt"
@@ -6,6 +6,98 @@ import (
 
 type Coordinate struct {
 	X, Y int
+}
+
+var RotationCoords = map[byte][]Coordinate{
+	'I': {
+		{X: -1, Y: -1},
+		{X: 2, Y: 1},
+		{X: -2, Y: -2},
+		{X: 1, Y: 2},
+	},
+	'O': {
+		{X: 0, Y: 0},
+		{X: 0, Y: 0},
+		{X: 0, Y: 0},
+		{X: 0, Y: 0},
+	},
+	'6': { // All tetriminos with 6 cells (T, S, Z, J, L)
+		{X: 0, Y: 0},
+		{X: 1, Y: 0},
+		{X: -1, Y: -1},
+		{X: 0, Y: 1},
+	},
+}
+
+var startingPositions = map[byte]Coordinate{
+	'I': {X: 3, Y: -1},
+	'O': {X: 4, Y: -2},
+	'6': {X: 3, Y: -2},
+}
+
+var Tetriminos = []Tetrimino{
+	{
+		Value: 'I',
+		Cells: [][]bool{
+			{true, true, true, true},
+		},
+		Pos:            startingPositions['I'],
+		RotationCoords: RotationCoords['I'],
+	},
+	{
+		Value: 'O',
+		Cells: [][]bool{
+			{true, true},
+			{true, true},
+		},
+		Pos:            startingPositions['O'],
+		RotationCoords: RotationCoords['O'],
+	},
+	{
+		Value: 'T',
+		Cells: [][]bool{
+			{false, true, false},
+			{true, true, true},
+		},
+		Pos:            startingPositions['6'],
+		RotationCoords: RotationCoords['6'],
+	},
+	{
+		Value: 'S',
+		Cells: [][]bool{
+			{false, true, true},
+			{true, true, false},
+		},
+		Pos:            startingPositions['6'],
+		RotationCoords: RotationCoords['6'],
+	},
+	{
+		Value: 'Z',
+		Cells: [][]bool{
+			{true, true, false},
+			{false, true, true},
+		},
+		Pos:            startingPositions['6'],
+		RotationCoords: RotationCoords['6'],
+	},
+	{
+		Value: 'J',
+		Cells: [][]bool{
+			{true, false, false},
+			{true, true, true},
+		},
+		Pos:            startingPositions['6'],
+		RotationCoords: RotationCoords['6'],
+	},
+	{
+		Value: 'L',
+		Cells: [][]bool{
+			{false, false, true},
+			{true, true, true},
+		},
+		Pos:            startingPositions['6'],
+		RotationCoords: RotationCoords['6'],
+	},
 }
 
 type Tetrimino struct {
@@ -67,7 +159,7 @@ func (t *Tetrimino) MoveRight(playfield *Playfield) error {
 	return nil
 }
 
-func (t *Tetrimino) canMoveDown(playfield Playfield) bool {
+func (t *Tetrimino) CanMoveDown(playfield Playfield) bool {
 	bottomRow := len(t.Cells) - 1
 	for col := range t.Cells[bottomRow] {
 		if t.Cells[bottomRow][col] {

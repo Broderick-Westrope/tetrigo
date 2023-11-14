@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math"
-	"time"
 
+	"github.com/Broderick-Westrope/tetrigo/tetris"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
@@ -13,56 +12,26 @@ import (
 )
 
 type Model struct {
-	playfield  Playfield
+	playfield  tetris.Playfield
 	styles     *Styles
 	help       help.Model
 	keys       *KeyMap
-	currentTet *Tetrimino
-	holdTet    *Tetrimino
+	currentTet *tetris.Tetrimino
+	holdTet    *tetris.Tetrimino
 	canHold    bool
 	fall       *Fall
-	scoring    *scoring
-	bag        *bag
-}
-
-type Fall struct {
-	stopwatch    stopwatch.Model
-	defaultTime  time.Duration
-	softDropTime time.Duration
-	isSoftDrop   bool
-}
-
-func (f *Fall) calculateFallSpeeds(level uint) {
-	speed := math.Pow((0.8-float64(level-1)*0.007), float64(level-1)) * 1000000
-
-	f.defaultTime = time.Microsecond * time.Duration(speed)
-	f.softDropTime = time.Microsecond * time.Duration(speed/10)
-}
-
-func (f *Fall) toggleSoftDrop() {
-	f.isSoftDrop = !f.isSoftDrop
-	if f.isSoftDrop {
-		f.stopwatch.Interval = f.softDropTime
-		return
-	}
-	f.stopwatch.Interval = f.defaultTime
-}
-
-func defaultFall(level uint) *Fall {
-	f := Fall{}
-	f.calculateFallSpeeds(level)
-	f.stopwatch = stopwatch.NewWithInterval(f.defaultTime)
-	return &f
+	scoring    *tetris.Scoring
+	bag        *tetris.Bag
 }
 
 func InitialModel() *Model {
 	m := &Model{
-		playfield: Playfield{},
+		playfield: tetris.Playfield{},
 		styles:    DefaultStyles(),
 		help:      help.New(),
 		keys:      DefaultKeyMap(),
-		scoring:   &scoring{total: 0, backToBack: false, level: 1},
-		holdTet: &Tetrimino{
+		scoring:   tetris.NewScoring(1),
+		holdTet: &tetris.Tetrimino{
 			Cells: [][]bool{
 				{false, false, false},
 				{false, false, false},
@@ -72,9 +41,9 @@ func InitialModel() *Model {
 		},
 		canHold: true,
 	}
-	m.bag = defaultBag(len(m.playfield))
-	m.fall = defaultFall(m.scoring.level)
-	m.currentTet = m.bag.next()
+	m.bag = tetris.NewBag(len(m.playfield))
+	m.fall = defaultFall(m.scoring.Level())
+	m.currentTet = m.bag.Next()
 	err := m.playfield.AddTetrimino(m.currentTet)
 	if err != nil {
 		panic(fmt.Errorf("failed to add tetrimino to playfield: %w", err))
@@ -175,8 +144,8 @@ func (m *Model) playfieldView() string {
 
 func (m *Model) informationView() string {
 	var output string
-	output += fmt.Sprintln("Score: ", m.scoring.total)
-	output += fmt.Sprintln("Level: ", m.scoring.level)
+	output += fmt.Sprintln("Score: ", m.scoring.Total())
+	output += fmt.Sprintln("Level: ", m.scoring.Level())
 	return m.styles.Information.Render(output)
 }
 
@@ -196,7 +165,7 @@ func (m *Model) bagView() string {
 	return m.styles.Bag.Render(output)
 }
 
-func (m *Model) renderTetrimino(t *Tetrimino) string {
+func (m *Model) renderTetrimino(t *tetris.Tetrimino) string {
 	var output string
 	for row := range t.Cells {
 		for col := range t.Cells[row] {
@@ -234,7 +203,7 @@ func (m *Model) holdTetrimino() error {
 	// Swap the current tetrimino with the hold tetrimino
 	if m.holdTet.Value == 0 {
 		m.holdTet = m.currentTet
-		m.currentTet = m.bag.next()
+		m.currentTet = m.bag.Next()
 	} else {
 		m.holdTet, m.currentTet = m.currentTet, m.holdTet
 	}
@@ -243,7 +212,7 @@ func (m *Model) holdTetrimino() error {
 
 	// Reset the position of the hold tetrimino
 	var found bool
-	for _, t := range tetriminos {
+	for _, t := range tetris.Tetriminos {
 		if t.Value == m.holdTet.Value {
 			m.holdTet.Pos = t.Pos
 			m.holdTet.Pos.Y += (len(m.playfield) - 20)
@@ -266,10 +235,10 @@ func (m *Model) holdTetrimino() error {
 }
 
 func (m *Model) lowerTetrimino() (bool, error) {
-	if !m.currentTet.canMoveDown(m.playfield) {
-		action := m.playfield.removeCompletedLines(m.currentTet)
-		m.scoring.processAction(action)
-		m.currentTet = m.bag.next()
+	if !m.currentTet.CanMoveDown(m.playfield) {
+		action := m.playfield.RemoveCompletedLines(m.currentTet)
+		m.scoring.ProcessAction(action)
+		m.currentTet = m.bag.Next()
 		err := m.playfield.AddTetrimino(m.currentTet)
 		if err != nil {
 			return false, fmt.Errorf("failed to add tetrimino to playfield: %w", err)

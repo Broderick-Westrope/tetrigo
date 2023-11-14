@@ -1,4 +1,4 @@
-package main
+package tetris
 
 import "fmt"
 
@@ -48,7 +48,7 @@ func (p *Playfield) AddTetrimino(tetrimino *Tetrimino) error {
 	return nil
 }
 
-func (p *Playfield) removeCompletedLines(tet *Tetrimino) action {
+func (p *Playfield) RemoveCompletedLines(tet *Tetrimino) action {
 	lines := 0
 	for row := range tet.Cells {
 		if p.isLineComplete(tet.Pos.Y + row) {

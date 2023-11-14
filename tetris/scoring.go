@@ -1,6 +1,6 @@
-package main
+package tetris
 
-type scoring struct {
+type Scoring struct {
 	level      uint
 	total      uint
 	backToBack bool
@@ -23,7 +23,23 @@ const (
 	actionTSpinTriple
 )
 
-func (s *scoring) processAction(a action) {
+func NewScoring(level uint) *Scoring {
+	return &Scoring{
+		level:      level,
+		total:      0,
+		backToBack: false,
+	}
+}
+
+func (s *Scoring) Level() uint {
+	return s.level
+}
+
+func (s *Scoring) Total() uint {
+	return s.total
+}
+
+func (s *Scoring) ProcessAction(a action) {
 	if a == actionNone {
 		return
 	}
