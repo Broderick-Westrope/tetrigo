@@ -19,6 +19,7 @@ type Model struct {
 	keys       *KeyMap
 	currentTet *Tetrimino
 	holdTet    *Tetrimino
+	canHold    bool
 	fall       *Fall
 	scoring    *scoring
 	bag        *bag
@@ -69,6 +70,7 @@ func InitialModel() *Model {
 			},
 			Value: 0,
 		},
+		canHold: true,
 	}
 	m.bag = defaultBag(len(m.playfield))
 	m.fall = defaultFall(m.scoring.level)
@@ -113,41 +115,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				panic(fmt.Errorf("failed to rotate tetrimino counter-clockwise: %w", err))
 			}
 		case key.Matches(msg, m.keys.HardDrop):
-			var err error
 			for {
-				if !m.currentTet.canMoveDown(m.playfield) {
-					action := m.playfield.removeCompletedLines(m.currentTet)
-					m.scoring.processAction(action)
-					m.currentTet = m.bag.next()
-					err := m.playfield.AddTetrimino(m.currentTet)
-					if err != nil {
-						panic(fmt.Errorf("failed to add tetrimino to playfield: %w", err))
-					}
-					break
-				}
-
-				err = m.currentTet.MoveDown(&m.playfield)
+				finished, err := m.lowerTetrimino()
 				if err != nil {
-					panic(fmt.Errorf("failed to move tetrimino down with hard drop: %w", err))
+					panic(fmt.Errorf("failed to lower tetrimino (hard drop): %w", err))
+				}
+				if finished {
+					break
 				}
 			}
 		case key.Matches(msg, m.keys.SoftDrop):
 			m.fall.toggleSoftDrop()
+		case key.Matches(msg, m.keys.Hold):
+			err := m.holdTetrimino()
+			if err != nil {
+				panic(fmt.Errorf("failed to hold tetrimino: %w", err))
+			}
 		}
 	case stopwatch.TickMsg:
-		if !m.currentTet.canMoveDown(m.playfield) {
-			action := m.playfield.removeCompletedLines(m.currentTet)
-			m.scoring.processAction(action)
-			m.currentTet = m.bag.next()
-			err := m.playfield.AddTetrimino(m.currentTet)
-			if err != nil {
-				panic(fmt.Errorf("failed to add tetrimino to playfield: %w", err))
-			}
-			break
-		}
-		err := m.currentTet.MoveDown(&m.playfield)
+		_, err := m.lowerTetrimino()
 		if err != nil {
-			panic(fmt.Errorf("failed to move tetrimino down: %w", err))
+			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
 	}
 
@@ -220,4 +208,64 @@ func (m Model) renderCell(cell byte) string {
 		}
 	}
 	return "??"
+}
+
+func (m *Model) holdTetrimino() error {
+	if !m.canHold {
+		return nil
+	}
+
+	// Swap the current tetrimino with the hold tetrimino
+	if m.holdTet.Value == 0 {
+		m.holdTet = m.currentTet
+		m.currentTet = m.bag.next()
+	} else {
+		m.holdTet, m.currentTet = m.currentTet, m.holdTet
+	}
+
+	m.playfield.RemoveTetrimino(m.holdTet)
+
+	// Reset the position of the hold tetrimino
+	var found bool
+	for _, t := range tetriminos {
+		if t.Value == m.holdTet.Value {
+			m.holdTet.Pos = t.Pos
+			m.holdTet.Pos.Y += (len(m.playfield) - 20)
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("failed to find tetrimino with value '%v'", m.currentTet.Value)
+	}
+
+	// Add the current tetrimino to the playfield
+	err := m.playfield.AddTetrimino(m.currentTet)
+	if err != nil {
+		return fmt.Errorf("failed to add tetrimino to playfield: %w", err)
+	}
+
+	m.canHold = false
+	return nil
+}
+
+func (m *Model) lowerTetrimino() (bool, error) {
+	if !m.currentTet.canMoveDown(m.playfield) {
+		action := m.playfield.removeCompletedLines(m.currentTet)
+		m.scoring.processAction(action)
+		m.currentTet = m.bag.next()
+		err := m.playfield.AddTetrimino(m.currentTet)
+		if err != nil {
+			return false, fmt.Errorf("failed to add tetrimino to playfield: %w", err)
+		}
+		m.canHold = true
+		return true, nil
+	}
+
+	err := m.currentTet.MoveDown(&m.playfield)
+	if err != nil {
+		return false, fmt.Errorf("failed to move tetrimino down: %w", err)
+	}
+
+	return false, nil
 }

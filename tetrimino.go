@@ -19,7 +19,7 @@ type Tetrimino struct {
 // MoveDown moves the tetrimino down one row.
 // If the tetrimino cannot move down, it will be added to the playfield and a new tetrimino will be returned.
 func (t *Tetrimino) MoveDown(playfield *Playfield) error {
-	err := playfield.removeCells(t)
+	err := playfield.RemoveTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
@@ -37,7 +37,7 @@ func (t *Tetrimino) MoveLeft(playfield *Playfield) error {
 	if !t.canMoveLeft(*playfield) {
 		return nil
 	}
-	err := playfield.removeCells(t)
+	err := playfield.RemoveTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
@@ -55,7 +55,7 @@ func (t *Tetrimino) MoveRight(playfield *Playfield) error {
 	if !t.canMoveRight(*playfield) {
 		return nil
 	}
-	err := playfield.removeCells(t)
+	err := playfield.RemoveTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
@@ -128,7 +128,7 @@ func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
 		return fmt.Errorf("failed to rotate tetrimino: %w", err)
 	}
 
-	err = playfield.removeCells(t)
+	err = playfield.RemoveTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
