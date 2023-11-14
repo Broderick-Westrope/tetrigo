@@ -5,14 +5,14 @@ import (
 )
 
 type Bag struct {
-	Elements        []Tetrimino
-	playfieldHeight int
+	Elements     []Tetrimino
+	matrixHeight int
 }
 
-func NewBag(playfieldHeight int) *Bag {
+func NewBag(matrixHeight int) *Bag {
 	b := Bag{
-		Elements:        make([]Tetrimino, 0, 14),
-		playfieldHeight: playfieldHeight,
+		Elements:     make([]Tetrimino, 0, 14),
+		matrixHeight: matrixHeight,
 	}
 	b.fillBag()
 	b.fillBag()
@@ -27,7 +27,7 @@ func (b *Bag) Next() *Tetrimino {
 		b.fillBag()
 	}
 
-	tet.Pos.Y += b.playfieldHeight - 20
+	tet.Pos.Y += b.matrixHeight - 20
 	return &tet
 }
 

@@ -8,14 +8,14 @@ import (
 func TestTetrimino_MoveLeft(t *testing.T) {
 	tt := []struct {
 		name              string
-		startingPlayfield Playfield
+		startingPlayfield Matrix
 		startingTet       Tetrimino
-		expectedPlayfield Playfield
+		expectedPlayfield Matrix
 		expectsErr        bool
 	}{
 		{
-			name: "can, empty playfield",
-			startingPlayfield: Playfield{
+			name: "can, empty matrix",
+			startingPlayfield: Matrix{
 				{0, 'T', 'T', 'T'},
 				{0, 0, 'T', 0},
 			},
@@ -27,7 +27,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 				},
 				Pos: Coordinate{X: 1, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{'T', 'T', 'T'},
 				{0, 'T', 0},
 			},
@@ -35,7 +35,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 		},
 		{
 			name: "can, perfect fit",
-			startingPlayfield: Playfield{
+			startingPlayfield: Matrix{
 				{'#', 0, 'T', 'T', 'T'},
 				{'#', '#', 0, 'T', 0},
 			},
@@ -47,7 +47,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 				},
 				Pos: Coordinate{X: 2, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{'#', 'T', 'T', 'T'},
 				{'#', '#', 'T', 0},
 			},
@@ -55,7 +55,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 		},
 		{
 			name: "can, ghost cells",
-			startingPlayfield: Playfield{
+			startingPlayfield: Matrix{
 				{'#', 'G', 'T', 'T', 'T'},
 				{'#', '#', 'G', 'T', 0},
 			},
@@ -67,7 +67,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 				},
 				Pos: Coordinate{X: 2, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{'#', 'T', 'T', 'T'},
 				{'#', '#', 'T', 0},
 			},
@@ -75,7 +75,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 		},
 		{
 			name: "cannot, blocking tetrimino",
-			startingPlayfield: Playfield{
+			startingPlayfield: Matrix{
 				{'#', 'T', 'T', 'T'},
 				{'#', 0, 'T', 0},
 			},
@@ -87,15 +87,15 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 				},
 				Pos: Coordinate{X: 1, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{'#', 'T', 'T', 'T'},
 				{'#', 0, 'T', 0},
 			},
 			expectsErr: false,
 		},
 		{
-			name: "cannot, end of playfield",
-			startingPlayfield: Playfield{
+			name: "cannot, end of matrix",
+			startingPlayfield: Matrix{
 				{'T', 'T', 'T'},
 				{0, 'T', 0},
 			},
@@ -107,7 +107,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{'T', 'T', 'T'},
 				{0, 'T', 0},
 			},
@@ -115,7 +115,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 		},
 		{
 			name: "error, wrong value",
-			startingPlayfield: Playfield{
+			startingPlayfield: Matrix{
 				{0, 'X', 'X', 'X'},
 				{0, 0, 'X', 0},
 			},
@@ -127,7 +127,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 				},
 				Pos: Coordinate{X: 1, Y: 0},
 			},
-			expectedPlayfield: Playfield{},
+			expectedPlayfield: Matrix{},
 			expectsErr:        true,
 		},
 	}
@@ -143,7 +143,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 			}
 
 			if err == nil && tc.startingPlayfield != tc.expectedPlayfield {
-				t.Errorf("expected playfield %v, got %v", tc.expectedPlayfield, tc.startingPlayfield)
+				t.Errorf("expected matrix %v, got %v", tc.expectedPlayfield, tc.startingPlayfield)
 			}
 		})
 	}
@@ -152,14 +152,14 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 func TestTetrimino_MoveRight(t *testing.T) {
 	tt := []struct {
 		name              string
-		startingPlayfield Playfield
+		startingPlayfield Matrix
 		startingTet       Tetrimino
-		expectedPlayfield Playfield
+		expectedPlayfield Matrix
 		expectsErr        bool
 	}{
 		{
-			name: "can, empty playfield",
-			startingPlayfield: Playfield{
+			name: "can, empty matrix",
+			startingPlayfield: Matrix{
 				{'T', 'T', 'T'},
 				{0, 'T', 0},
 			},
@@ -171,7 +171,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{0, 'T', 'T', 'T'},
 				{0, 0, 'T', 0},
 			},
@@ -179,7 +179,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 		},
 		{
 			name: "can, perfect fit",
-			startingPlayfield: Playfield{
+			startingPlayfield: Matrix{
 				{'T', 'T', 'T', 0, '#'},
 				{0, 'T', 0, '#'},
 			},
@@ -191,7 +191,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{0, 'T', 'T', 'T', '#'},
 				{0, 0, 'T', '#'},
 			},
@@ -199,7 +199,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 		},
 		{
 			name: "can, ghost cells",
-			startingPlayfield: Playfield{
+			startingPlayfield: Matrix{
 				{'T', 'T', 'T', 'G', '#'},
 				{0, 'T', 'G', '#'},
 			},
@@ -211,7 +211,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{0, 'T', 'T', 'T', '#'},
 				{0, 0, 'T', '#'},
 			},
@@ -219,7 +219,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 		},
 		{
 			name: "cannot, blocking tetrimino",
-			startingPlayfield: Playfield{
+			startingPlayfield: Matrix{
 				{'T', 'T', 'T', '#'},
 				{0, 'T', '#'},
 			},
@@ -231,15 +231,15 @@ func TestTetrimino_MoveRight(t *testing.T) {
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{'T', 'T', 'T', '#'},
 				{0, 'T', '#'},
 			},
 			expectsErr: false,
 		},
 		{
-			name: "cannot, end of playfield",
-			startingPlayfield: Playfield{
+			name: "cannot, end of matrix",
+			startingPlayfield: Matrix{
 				{0, 0, 0, 0, 0, 0, 0, 'T', 'T', 'T'},
 				{0, 0, 0, 0, 0, 0, 0, 0, 'T', 0},
 			},
@@ -251,7 +251,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 				},
 				Pos: Coordinate{X: 7, Y: 0},
 			},
-			expectedPlayfield: Playfield{
+			expectedPlayfield: Matrix{
 				{0, 0, 0, 0, 0, 0, 0, 'T', 'T', 'T'},
 				{0, 0, 0, 0, 0, 0, 0, 0, 'T', 0},
 			},
@@ -259,7 +259,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 		},
 		{
 			name: "error, wrong value",
-			startingPlayfield: Playfield{
+			startingPlayfield: Matrix{
 				{'X', 'X', 'X'},
 				{0, 'X', 0},
 			},
@@ -271,7 +271,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Playfield{},
+			expectedPlayfield: Matrix{},
 			expectsErr:        true,
 		},
 	}
@@ -287,7 +287,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 			}
 
 			if err == nil && tc.startingPlayfield != tc.expectedPlayfield {
-				t.Errorf("expected playfield %v, got %v", tc.expectedPlayfield, tc.startingPlayfield)
+				t.Errorf("expected matrix %v, got %v", tc.expectedPlayfield, tc.startingPlayfield)
 			}
 		})
 	}
@@ -444,17 +444,17 @@ func TestTranspose(t *testing.T) {
 }
 
 func TestCanRotate(t *testing.T) {
-	playfield := &Playfield{}
+	matrix := &Matrix{}
 
 	tt := []struct {
-		name      string
-		playfield *Playfield
-		rotated   *Tetrimino
-		expects   bool
+		name    string
+		matrix  *Matrix
+		rotated *Tetrimino
+		expects bool
 	}{
 		{
 			"can rotate, empty board & starting position",
-			playfield,
+			matrix,
 			&Tetrimino{
 				Value: 'T',
 				Cells: [][]bool{
@@ -472,7 +472,7 @@ func TestCanRotate(t *testing.T) {
 		},
 		{
 			"can rotate, perfect fit",
-			&Playfield{
+			&Matrix{
 				{0, 0, 0, 'X'},
 				{'X', 0, 'X'},
 				{'X', 'X', 'X'},
@@ -494,7 +494,7 @@ func TestCanRotate(t *testing.T) {
 		},
 		{
 			"cannot rotate, blocking cell",
-			&Playfield{
+			&Matrix{
 				{'X'},
 			},
 			&Tetrimino{
@@ -514,7 +514,7 @@ func TestCanRotate(t *testing.T) {
 		},
 		{
 			"cannot rotate, out of bounds left",
-			playfield,
+			matrix,
 			&Tetrimino{
 				Value: 'T',
 				Cells: [][]bool{
@@ -532,7 +532,7 @@ func TestCanRotate(t *testing.T) {
 		},
 		{
 			"cannot rotate, out of bounds right",
-			playfield,
+			matrix,
 			&Tetrimino{
 				Value: 'T',
 				Cells: [][]bool{
@@ -540,7 +540,7 @@ func TestCanRotate(t *testing.T) {
 					{false, true, false},
 				},
 				Pos: Coordinate{
-					X: len(playfield[0]) - 2,
+					X: len(matrix[0]) - 2,
 					Y: 0,
 				},
 				CurrentRotation: 2,
@@ -550,7 +550,7 @@ func TestCanRotate(t *testing.T) {
 		},
 		{
 			"cannot rotate, out of bounds up",
-			playfield,
+			matrix,
 			&Tetrimino{
 				Value: 'T',
 				Cells: [][]bool{
@@ -568,7 +568,7 @@ func TestCanRotate(t *testing.T) {
 		},
 		{
 			"cannot rotate, out of bounds down",
-			playfield,
+			matrix,
 			&Tetrimino{
 				Value: 'T',
 				Cells: [][]bool{
@@ -577,7 +577,7 @@ func TestCanRotate(t *testing.T) {
 				},
 				Pos: Coordinate{
 					X: 0,
-					Y: len(playfield) - 1,
+					Y: len(matrix) - 1,
 				},
 				CurrentRotation: 2,
 				RotationCoords:  RotationCoords['6'],
@@ -588,7 +588,7 @@ func TestCanRotate(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.rotated.canRotate(tc.playfield)
+			result := tc.rotated.canRotate(tc.matrix)
 
 			if result != tc.expects {
 				t.Errorf("got %v, want %v", result, tc.expects)
@@ -598,7 +598,7 @@ func TestCanRotate(t *testing.T) {
 }
 
 func TestIsOutOfBoundsHorizontally(t *testing.T) {
-	playfield := &Playfield{}
+	matrix := &Matrix{}
 
 	tt := []struct {
 		name    string
@@ -622,7 +622,7 @@ func TestIsOutOfBoundsHorizontally(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := isOutOfBoundsHorizontally(tc.tetPosX, tc.cellCol, playfield)
+			result := isOutOfBoundsHorizontally(tc.tetPosX, tc.cellCol, matrix)
 
 			if result != tc.expects {
 				t.Errorf("got %v, want %v", result, tc.expects)
@@ -632,7 +632,7 @@ func TestIsOutOfBoundsHorizontally(t *testing.T) {
 }
 
 func TestIsOutOfBoundsVertically(t *testing.T) {
-	playfield := &Playfield{}
+	matrix := &Matrix{}
 
 	tt := []struct {
 		name    string
@@ -656,7 +656,7 @@ func TestIsOutOfBoundsVertically(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := isOutOfBoundsVertically(tc.tetPosY, tc.cellRow, playfield)
+			result := isOutOfBoundsVertically(tc.tetPosY, tc.cellRow, matrix)
 
 			if result != tc.expects {
 				t.Errorf("got %v, want %v", result, tc.expects)

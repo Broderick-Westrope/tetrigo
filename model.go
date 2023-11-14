@@ -12,7 +12,7 @@ import (
 )
 
 type Model struct {
-	playfield  tetris.Playfield
+	matrix     tetris.Matrix
 	styles     *Styles
 	help       help.Model
 	keys       *KeyMap
@@ -26,11 +26,11 @@ type Model struct {
 
 func InitialModel() *Model {
 	m := &Model{
-		playfield: tetris.Playfield{},
-		styles:    DefaultStyles(),
-		help:      help.New(),
-		keys:      DefaultKeyMap(),
-		scoring:   tetris.NewScoring(1),
+		matrix:  tetris.Matrix{},
+		styles:  DefaultStyles(),
+		help:    help.New(),
+		keys:    DefaultKeyMap(),
+		scoring: tetris.NewScoring(1),
 		holdTet: &tetris.Tetrimino{
 			Cells: [][]bool{
 				{false, false, false},
@@ -41,12 +41,12 @@ func InitialModel() *Model {
 		},
 		canHold: true,
 	}
-	m.bag = tetris.NewBag(len(m.playfield))
+	m.bag = tetris.NewBag(len(m.matrix))
 	m.fall = defaultFall(m.scoring.Level())
 	m.currentTet = m.bag.Next()
-	err := m.playfield.AddTetrimino(m.currentTet)
+	err := m.matrix.AddTetrimino(m.currentTet)
 	if err != nil {
-		panic(fmt.Errorf("failed to add tetrimino to playfield: %w", err))
+		panic(fmt.Errorf("failed to add tetrimino to matrix: %w", err))
 	}
 	return m
 }
@@ -64,22 +64,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keys.Left):
-			err := m.currentTet.MoveLeft(&m.playfield)
+			err := m.currentTet.MoveLeft(&m.matrix)
 			if err != nil {
 				panic(fmt.Errorf("failed to move tetrimino left: %w", err))
 			}
 		case key.Matches(msg, m.keys.Right):
-			err := m.currentTet.MoveRight(&m.playfield)
+			err := m.currentTet.MoveRight(&m.matrix)
 			if err != nil {
 				panic(fmt.Errorf("failed to move tetrimino right: %w", err))
 			}
 		case key.Matches(msg, m.keys.Clockwise):
-			err := m.currentTet.Rotate(&m.playfield, true)
+			err := m.currentTet.Rotate(&m.matrix, true)
 			if err != nil {
 				panic(fmt.Errorf("failed to rotate tetrimino clockwise: %w", err))
 			}
 		case key.Matches(msg, m.keys.CounterClockwise):
-			err := m.currentTet.Rotate(&m.playfield, false)
+			err := m.currentTet.Rotate(&m.matrix, false)
 			if err != nil {
 				panic(fmt.Errorf("failed to rotate tetrimino counter-clockwise: %w", err))
 			}
@@ -117,20 +117,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	var output = lipgloss.JoinHorizontal(lipgloss.Top,
 		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView()),
-		m.playfieldView(),
+		m.matrixView(),
 		m.bagView(),
 	)
 
 	return output + "\n" + m.help.View(m.keys)
 }
 
-func (m *Model) playfieldView() string {
+func (m *Model) matrixView() string {
 	var output string
-	for row := (len(m.playfield) - 20); row < len(m.playfield); row++ {
-		for col := range m.playfield[row] {
-			output += m.renderCell(m.playfield[row][col])
+	for row := (len(m.matrix) - 20); row < len(m.matrix); row++ {
+		for col := range m.matrix[row] {
+			output += m.renderCell(m.matrix[row][col])
 		}
-		if row < len(m.playfield)-1 {
+		if row < len(m.matrix)-1 {
 			output += "\n"
 		}
 	}
@@ -208,14 +208,14 @@ func (m *Model) holdTetrimino() error {
 		m.holdTet, m.currentTet = m.currentTet, m.holdTet
 	}
 
-	m.playfield.RemoveTetrimino(m.holdTet)
+	m.matrix.RemoveTetrimino(m.holdTet)
 
 	// Reset the position of the hold tetrimino
 	var found bool
 	for _, t := range tetris.Tetriminos {
 		if t.Value == m.holdTet.Value {
 			m.holdTet.Pos = t.Pos
-			m.holdTet.Pos.Y += (len(m.playfield) - 20)
+			m.holdTet.Pos.Y += (len(m.matrix) - 20)
 			found = true
 			break
 		}
@@ -224,10 +224,10 @@ func (m *Model) holdTetrimino() error {
 		return fmt.Errorf("failed to find tetrimino with value '%v'", m.currentTet.Value)
 	}
 
-	// Add the current tetrimino to the playfield
-	err := m.playfield.AddTetrimino(m.currentTet)
+	// Add the current tetrimino to the matrix
+	err := m.matrix.AddTetrimino(m.currentTet)
 	if err != nil {
-		return fmt.Errorf("failed to add tetrimino to playfield: %w", err)
+		return fmt.Errorf("failed to add tetrimino to matrix: %w", err)
 	}
 
 	m.canHold = false
@@ -235,19 +235,19 @@ func (m *Model) holdTetrimino() error {
 }
 
 func (m *Model) lowerTetrimino() (bool, error) {
-	if !m.currentTet.CanMoveDown(m.playfield) {
-		action := m.playfield.RemoveCompletedLines(m.currentTet)
+	if !m.currentTet.CanMoveDown(m.matrix) {
+		action := m.matrix.RemoveCompletedLines(m.currentTet)
 		m.scoring.ProcessAction(action)
 		m.currentTet = m.bag.Next()
-		err := m.playfield.AddTetrimino(m.currentTet)
+		err := m.matrix.AddTetrimino(m.currentTet)
 		if err != nil {
-			return false, fmt.Errorf("failed to add tetrimino to playfield: %w", err)
+			return false, fmt.Errorf("failed to add tetrimino to matrix: %w", err)
 		}
 		m.canHold = true
 		return true, nil
 	}
 
-	err := m.currentTet.MoveDown(&m.playfield)
+	err := m.currentTet.MoveDown(&m.matrix)
 	if err != nil {
 		return false, fmt.Errorf("failed to move tetrimino down: %w", err)
 	}

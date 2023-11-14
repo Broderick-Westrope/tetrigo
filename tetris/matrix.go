@@ -2,9 +2,9 @@ package tetris
 
 import "fmt"
 
-type Playfield [40][10]byte
+type Matrix [40][10]byte
 
-func (p *Playfield) isLineComplete(row int) bool {
+func (p *Matrix) isLineComplete(row int) bool {
 	for _, cell := range p[row] {
 		if isCellEmpty(cell) {
 			return false
@@ -13,14 +13,14 @@ func (p *Playfield) isLineComplete(row int) bool {
 	return true
 }
 
-func (p *Playfield) removeLine(row int) {
+func (p *Matrix) removeLine(row int) {
 	p[0] = [10]byte{}
 	for i := row; i > 0; i-- {
 		p[i] = p[i-1]
 	}
 }
 
-func (p *Playfield) RemoveTetrimino(tetrimino *Tetrimino) error {
+func (p *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
@@ -34,7 +34,7 @@ func (p *Playfield) RemoveTetrimino(tetrimino *Tetrimino) error {
 	return nil
 }
 
-func (p *Playfield) AddTetrimino(tetrimino *Tetrimino) error {
+func (p *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
@@ -48,7 +48,7 @@ func (p *Playfield) AddTetrimino(tetrimino *Tetrimino) error {
 	return nil
 }
 
-func (p *Playfield) RemoveCompletedLines(tet *Tetrimino) action {
+func (p *Matrix) RemoveCompletedLines(tet *Tetrimino) action {
 	lines := 0
 	for row := range tet.Cells {
 		if p.isLineComplete(tet.Pos.Y + row) {

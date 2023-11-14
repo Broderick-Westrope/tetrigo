@@ -109,14 +109,14 @@ type Tetrimino struct {
 }
 
 // MoveDown moves the tetrimino down one row.
-// If the tetrimino cannot move down, it will be added to the playfield and a new tetrimino will be returned.
-func (t *Tetrimino) MoveDown(playfield *Playfield) error {
-	err := playfield.RemoveTetrimino(t)
+// If the tetrimino cannot move down, it will be added to the matrix and a new tetrimino will be returned.
+func (t *Tetrimino) MoveDown(matrix *Matrix) error {
+	err := matrix.RemoveTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.Pos.Y++
-	err = playfield.AddTetrimino(t)
+	err = matrix.AddTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
 	}
@@ -125,16 +125,16 @@ func (t *Tetrimino) MoveDown(playfield *Playfield) error {
 
 // MoveLeft moves the tetrimino left one column.
 // If the tetrimino cannot move left, it will not move.
-func (t *Tetrimino) MoveLeft(playfield *Playfield) error {
-	if !t.canMoveLeft(*playfield) {
+func (t *Tetrimino) MoveLeft(matrix *Matrix) error {
+	if !t.canMoveLeft(*matrix) {
 		return nil
 	}
-	err := playfield.RemoveTetrimino(t)
+	err := matrix.RemoveTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.Pos.X--
-	err = playfield.AddTetrimino(t)
+	err = matrix.AddTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
 	}
@@ -143,30 +143,30 @@ func (t *Tetrimino) MoveLeft(playfield *Playfield) error {
 
 // MoveRight moves the tetrimino right one column.
 // If the tetrimino cannot move right, it will not move.
-func (t *Tetrimino) MoveRight(playfield *Playfield) error {
-	if !t.canMoveRight(*playfield) {
+func (t *Tetrimino) MoveRight(matrix *Matrix) error {
+	if !t.canMoveRight(*matrix) {
 		return nil
 	}
-	err := playfield.RemoveTetrimino(t)
+	err := matrix.RemoveTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.Pos.X++
-	err = playfield.AddTetrimino(t)
+	err = matrix.AddTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
 	}
 	return nil
 }
 
-func (t *Tetrimino) CanMoveDown(playfield Playfield) bool {
+func (t *Tetrimino) CanMoveDown(matrix Matrix) bool {
 	bottomRow := len(t.Cells) - 1
 	for col := range t.Cells[bottomRow] {
 		if t.Cells[bottomRow][col] {
-			if bottomRow+t.Pos.Y+1 >= len(playfield) {
+			if bottomRow+t.Pos.Y+1 >= len(matrix) {
 				return false
 			}
-			if !isCellEmpty(playfield[bottomRow+t.Pos.Y+1][col+t.Pos.X]) {
+			if !isCellEmpty(matrix[bottomRow+t.Pos.Y+1][col+t.Pos.X]) {
 				return false
 			}
 		}
@@ -174,14 +174,14 @@ func (t *Tetrimino) CanMoveDown(playfield Playfield) bool {
 	return true
 }
 
-func (t *Tetrimino) canMoveLeft(playfield Playfield) bool {
+func (t *Tetrimino) canMoveLeft(matrix Matrix) bool {
 	leftCol := 0
 	for row := range t.Cells {
 		if t.Cells[row][leftCol] {
 			if leftCol+t.Pos.X-1 < 0 {
 				return false
 			}
-			if !isCellEmpty(playfield[row+t.Pos.Y][leftCol+t.Pos.X-1]) {
+			if !isCellEmpty(matrix[row+t.Pos.Y][leftCol+t.Pos.X-1]) {
 				return false
 			}
 		}
@@ -189,14 +189,14 @@ func (t *Tetrimino) canMoveLeft(playfield Playfield) bool {
 	return true
 }
 
-func (t *Tetrimino) canMoveRight(playfield Playfield) bool {
+func (t *Tetrimino) canMoveRight(matrix Matrix) bool {
 	rightCol := len(t.Cells[0]) - 1
 	for row := range t.Cells {
 		if t.Cells[row][rightCol] {
-			if rightCol+t.Pos.X+1 >= len(playfield[0]) {
+			if rightCol+t.Pos.X+1 >= len(matrix[0]) {
 				return false
 			}
-			if !isCellEmpty(playfield[row+t.Pos.Y][rightCol+t.Pos.X+1]) {
+			if !isCellEmpty(matrix[row+t.Pos.Y][rightCol+t.Pos.X+1]) {
 				return false
 			}
 		}
@@ -204,7 +204,7 @@ func (t *Tetrimino) canMoveRight(playfield Playfield) bool {
 	return true
 }
 
-func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
+func (t *Tetrimino) Rotate(matrix *Matrix, clockwise bool) error {
 	if t.Value == 'O' {
 		return nil
 	}
@@ -220,16 +220,16 @@ func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
 		return fmt.Errorf("failed to rotate tetrimino: %w", err)
 	}
 
-	err = playfield.RemoveTetrimino(t)
+	err = matrix.RemoveTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 
-	if rotated.canRotate(playfield) {
+	if rotated.canRotate(matrix) {
 		t.Cells = rotated.Cells
 	}
 
-	err = playfield.AddTetrimino(t)
+	err = matrix.AddTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
 	}
@@ -297,17 +297,17 @@ func (t *Tetrimino) transpose() {
 	t.Cells = result
 }
 
-func (t *Tetrimino) canRotate(playfield *Playfield) bool {
+func (t *Tetrimino) canRotate(matrix *Matrix) bool {
 	for cellRow := range t.Cells {
 		for cellCol := range t.Cells[cellRow] {
 			if t.Cells[cellRow][cellCol] {
-				if isOutOfBoundsHorizontally(t.Pos.X, cellCol, playfield) {
+				if isOutOfBoundsHorizontally(t.Pos.X, cellCol, matrix) {
 					return false
 				}
-				if isOutOfBoundsVertically(t.Pos.Y, cellRow, playfield) {
+				if isOutOfBoundsVertically(t.Pos.Y, cellRow, matrix) {
 					return false
 				}
-				if !isCellEmpty(playfield[t.Pos.Y+cellRow][t.Pos.X+cellCol]) {
+				if !isCellEmpty(matrix[t.Pos.Y+cellRow][t.Pos.X+cellCol]) {
 					return false
 				}
 			}
@@ -316,13 +316,13 @@ func (t *Tetrimino) canRotate(playfield *Playfield) bool {
 	return true
 }
 
-func isOutOfBoundsHorizontally(tetPosX, cellCol int, playfield *Playfield) bool {
+func isOutOfBoundsHorizontally(tetPosX, cellCol int, matrix *Matrix) bool {
 	tetPosX += cellCol
-	return tetPosX < 0 || tetPosX >= len(playfield[0])
+	return tetPosX < 0 || tetPosX >= len(matrix[0])
 }
-func isOutOfBoundsVertically(tetPosY, cellRow int, playfield *Playfield) bool {
+func isOutOfBoundsVertically(tetPosY, cellRow int, matrix *Matrix) bool {
 	tetPosY += cellRow
-	return tetPosY < 0 || tetPosY >= len(playfield)
+	return tetPosY < 0 || tetPosY >= len(matrix)
 }
 
 func positiveMod(dividend, divisor int) (int, error) {
