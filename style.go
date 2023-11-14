@@ -9,6 +9,7 @@ type Styles struct {
 	Hold            lipgloss.Style
 	Information     lipgloss.Style
 	RowIndicator    lipgloss.Style
+	Bag             lipgloss.Style
 }
 
 func DefaultStyles() *Styles {
@@ -27,6 +28,7 @@ func DefaultStyles() *Styles {
 		Hold:         lipgloss.NewStyle().Width(10).Height(5).Border(lipgloss.RoundedBorder(), true, false, true, true).Align(lipgloss.Center, lipgloss.Center),
 		Information:  lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
 		RowIndicator: lipgloss.NewStyle().Foreground(lipgloss.Color("#444049")).Align(lipgloss.Left).Padding(0, 1, 0),
+		Bag:          lipgloss.NewStyle().PaddingTop(1),
 	}
 	return &s
 }

@@ -149,12 +149,13 @@ func (m Model) View() string {
 	var output = lipgloss.JoinHorizontal(lipgloss.Top,
 		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView()),
 		m.playfieldView(),
+		m.bagView(),
 	)
 
 	return output + "\n" + m.help.View(m.keys)
 }
 
-func (m Model) playfieldView() string {
+func (m *Model) playfieldView() string {
 	var output string
 	for row := (len(m.playfield) - 20); row < len(m.playfield); row++ {
 		for col := range m.playfield[row] {
@@ -172,30 +173,45 @@ func (m Model) playfieldView() string {
 	return lipgloss.JoinHorizontal(lipgloss.Center, m.styles.Playfield.Render(output), m.styles.RowIndicator.Render(rowIndicator))
 }
 
-func (m Model) informationView() string {
+func (m *Model) informationView() string {
 	var output string
 	output += fmt.Sprintln("Score: ", m.scoring.total)
 	output += fmt.Sprintln("Level: ", m.scoring.level)
 	return m.styles.Information.Render(output)
 }
 
-func (m Model) holdView() string {
+func (m *Model) holdView() string {
+	output := "Hold:\n" + m.renderTetrimino(m.holdTet)
+	return m.styles.Hold.Render(output)
+}
+
+func (m *Model) bagView() string {
+	output := "Next:\n"
+	for i, t := range m.bag.Elements {
+		if i > 5 {
+			break
+		}
+		output += "\n" + m.renderTetrimino(&t)
+	}
+	return m.styles.Bag.Render(output)
+}
+
+func (m *Model) renderTetrimino(t *Tetrimino) string {
 	var output string
-	output += "Hold:\n"
-	for row := range m.holdTet.Cells {
-		for col := range m.holdTet.Cells[row] {
-			if m.holdTet.Cells[row][col] {
-				output += m.renderCell(m.holdTet.Value)
+	for row := range t.Cells {
+		for col := range t.Cells[row] {
+			if t.Cells[row][col] {
+				output += m.renderCell(t.Value)
 			} else {
 				output += m.renderCell(0)
 			}
 		}
 		output += "\n"
 	}
-	return m.styles.Hold.Render(output)
+	return output
 }
 
-func (m Model) renderCell(cell byte) string {
+func (m *Model) renderCell(cell byte) string {
 	switch cell {
 	case 0:
 		return m.styles.ColIndicator.Render("▕ ")
