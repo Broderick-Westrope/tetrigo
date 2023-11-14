@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  build:
+    cmds:
+      - go build -v -o ./bin/ ./...
+  test:
+    cmds:
+      - go test -cover ./...
+  run:
+    cmds:
+      - go run ./...
