@@ -68,7 +68,18 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.mode == modeGame {
-		return m.game.Update(msg)
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			switch {
+			case key.Matches(msg, m.keys.Quit):
+				m.mode = modeMenu
+				m.game = nil
+				return m, nil
+			}
+		}
+		var cmd tea.Cmd
+		m.game, cmd = m.game.Update(msg)
+		return m, cmd
 	}
 
 	switch msg := msg.(type) {
@@ -97,7 +108,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.settings[m.settingIndex].index = 0
 			}
 		case key.Matches(msg, m.keys.Start):
-			return m, m.startGame()
+			cmd, err := m.startGame()
+			if err != nil {
+				panic(fmt.Errorf("failed to start game: %w", err))
+			}
+			return m, cmd
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		}
@@ -107,6 +122,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	if m.mode == modeGame {
+		return m.game.View()
+	}
+
 	settings := make([]string, len(m.settings))
 	for i := range m.settings {
 		settings[i] = m.renderSetting(i, i == m.settingIndex)
@@ -146,7 +165,7 @@ func (m *Model) renderSetting(index int, isSelected bool) string {
 	return m.styles.settingUnselected.Render(output)
 }
 
-func (m *Model) startGame() tea.Cmd {
+func (m *Model) startGame() (tea.Cmd, error) {
 	var level uint
 	var mode string
 	// var players uint
@@ -166,7 +185,7 @@ func (m *Model) startGame() tea.Cmd {
 	case "Marathon":
 		m.mode = modeGame
 		m.game = marathon.InitialModel(level)
-		return m.game.Init()
+		return m.game.Init(), nil
 	}
-	return nil
+	return nil, fmt.Errorf("invalid mode: %v", mode)
 }
