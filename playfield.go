@@ -39,7 +39,7 @@ func (p *Playfield) AddTetrimino(tetrimino *Tetrimino) error {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
 				if !isCellEmpty(p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]) {
-					return fmt.Errorf("cell at row %d, col %d is not empty or a ghost", row+tetrimino.Pos.Y, col+tetrimino.Pos.X)
+					return fmt.Errorf("cell at row %d, col %d is '%v' not empty or a ghost", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X])
 				}
 				p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = tetrimino.Value
 			}

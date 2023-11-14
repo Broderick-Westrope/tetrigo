@@ -176,7 +176,12 @@ func (m Model) playfieldView() string {
 			output += "\n"
 		}
 	}
-	return m.styles.Playfield.Render(output)
+
+	var rowIndicator string
+	for i := 1; i <= 20; i++ {
+		rowIndicator += fmt.Sprintf("%d\n", i)
+	}
+	return lipgloss.JoinHorizontal(lipgloss.Center, m.styles.Playfield.Render(output), m.styles.RowIndicator.Render(rowIndicator))
 }
 
 func (m Model) informationView() string {

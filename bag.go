@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -98,13 +97,13 @@ var tetriminos = []Tetrimino{
 }
 
 type bag struct {
-	elements        []*Tetrimino
+	Elements        []Tetrimino
 	playfieldHeight int
 }
 
 func defaultBag(playfieldHeight int) *bag {
 	b := bag{
-		elements:        make([]*Tetrimino, 0, 14),
+		Elements:        make([]Tetrimino, 0, 14),
 		playfieldHeight: playfieldHeight,
 	}
 	b.fillBag()
@@ -113,39 +112,23 @@ func defaultBag(playfieldHeight int) *bag {
 }
 
 func (b *bag) next() *Tetrimino {
-	tet := b.elements[0]
-	b.elements = b.elements[1:]
+	tet := b.Elements[0]
+	b.Elements = b.Elements[1:]
 
-	if len(b.elements) <= 7 {
+	if len(b.Elements) <= 7 {
 		b.fillBag()
 	}
 
 	tet.Pos.Y += b.playfieldHeight - 20
-	return tet
+	return &tet
 }
 
 func (b *bag) fillBag() {
 	perm := rand.Perm(len(tetriminos))
 	for _, i := range perm {
-		if len(b.elements) == 14 {
+		if len(b.Elements) == 14 {
 			return
 		}
-		b.enqueue(&tetriminos[i])
+		b.Elements = append(b.Elements, tetriminos[i])
 	}
-}
-
-// Adds an item to the end of the queue
-func (b *bag) enqueue(value *Tetrimino) {
-	b.elements = append(b.elements, value)
-}
-
-// Removes an item from the front of the queue and returns it
-// If the queue is empty, returns 0 and an error
-func (b *bag) dequeue() (*Tetrimino, error) {
-	if len(b.elements) == 0 {
-		return nil, fmt.Errorf("queue is empty")
-	}
-	element := b.elements[0]    // Get the first element
-	b.elements = b.elements[1:] // Remove it from the queue
-	return element, nil
 }
