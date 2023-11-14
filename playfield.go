@@ -34,7 +34,7 @@ func (p *Playfield) removeCells(tetrimino *Tetrimino) error {
 	return nil
 }
 
-func (p *Playfield) addCells(tetrimino *Tetrimino) error {
+func (p *Playfield) AddTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
@@ -46,12 +46,6 @@ func (p *Playfield) addCells(tetrimino *Tetrimino) error {
 		}
 	}
 	return nil
-}
-
-func (p *Playfield) NewTetrimino() *Tetrimino {
-	tet := RandomTetrimino(len(p))
-	p.addCells(tet)
-	return tet
 }
 
 func (p *Playfield) removeCompletedLines(tet *Tetrimino) action {

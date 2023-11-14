@@ -21,6 +21,7 @@ type Model struct {
 	holdTet    *Tetrimino
 	fall       *Fall
 	scoring    *scoring
+	bag        *bag
 }
 
 type Fall struct {
@@ -69,8 +70,13 @@ func InitialModel() *Model {
 			Value: 0,
 		},
 	}
+	m.bag = defaultBag(len(m.playfield))
 	m.fall = defaultFall(m.scoring.level)
-	m.currentTet = m.playfield.NewTetrimino()
+	m.currentTet = m.bag.next()
+	err := m.playfield.AddTetrimino(m.currentTet)
+	if err != nil {
+		panic(fmt.Errorf("failed to add tetrimino to playfield: %w", err))
+	}
 	return m
 }
 
@@ -112,7 +118,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if !m.currentTet.canMoveDown(m.playfield) {
 					action := m.playfield.removeCompletedLines(m.currentTet)
 					m.scoring.processAction(action)
-					m.currentTet = m.playfield.NewTetrimino()
+					m.currentTet = m.bag.next()
+					err := m.playfield.AddTetrimino(m.currentTet)
+					if err != nil {
+						panic(fmt.Errorf("failed to add tetrimino to playfield: %w", err))
+					}
 					break
 				}
 
@@ -128,7 +138,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if !m.currentTet.canMoveDown(m.playfield) {
 			action := m.playfield.removeCompletedLines(m.currentTet)
 			m.scoring.processAction(action)
-			m.currentTet = m.playfield.NewTetrimino()
+			m.currentTet = m.bag.next()
+			err := m.playfield.AddTetrimino(m.currentTet)
+			if err != nil {
+				panic(fmt.Errorf("failed to add tetrimino to playfield: %w", err))
+			}
 			break
 		}
 		err := m.currentTet.MoveDown(&m.playfield)

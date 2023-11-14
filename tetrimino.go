@@ -2,100 +2,7 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 )
-
-var RotationCoords = map[byte][]Coordinate{
-	'I': {
-		{X: -1, Y: -1},
-		{X: 2, Y: 1},
-		{X: -2, Y: -2},
-		{X: 1, Y: 2},
-	},
-	'O': {
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
-	},
-	'6': { // All tetriminos with 6 cells (T, S, Z, J, L)
-		{X: 0, Y: 0},
-		{X: 1, Y: 0},
-		{X: -1, Y: -1},
-		{X: 0, Y: 1},
-	},
-}
-
-var startingPositions = map[byte]Coordinate{
-	'I': {X: 3, Y: -1},
-	'O': {X: 4, Y: -2},
-	'6': {X: 3, Y: -2},
-}
-
-var tetriminos = []Tetrimino{
-	{
-		Value: 'I',
-		Cells: [][]bool{
-			{true, true, true, true},
-		},
-		Pos:            startingPositions['I'],
-		RotationCoords: RotationCoords['I'],
-	},
-	{
-		Value: 'O',
-		Cells: [][]bool{
-			{true, true},
-			{true, true},
-		},
-		Pos:            startingPositions['O'],
-		RotationCoords: RotationCoords['O'],
-	},
-	{
-		Value: 'T',
-		Cells: [][]bool{
-			{false, true, false},
-			{true, true, true},
-		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
-	},
-	{
-		Value: 'S',
-		Cells: [][]bool{
-			{false, true, true},
-			{true, true, false},
-		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
-	},
-	{
-		Value: 'Z',
-		Cells: [][]bool{
-			{true, true, false},
-			{false, true, true},
-		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
-	},
-	{
-		Value: 'J',
-		Cells: [][]bool{
-			{true, false, false},
-			{true, true, true},
-		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
-	},
-	{
-		Value: 'L',
-		Cells: [][]bool{
-			{false, false, true},
-			{true, true, true},
-		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
-	},
-}
 
 type Coordinate struct {
 	X, Y int
@@ -109,15 +16,6 @@ type Tetrimino struct {
 	RotationCoords  []Coordinate
 }
 
-// TODO: update to be private. Change tests to be on NewTetrimino instead.
-// randomTetrimino returns a random tetrimino.
-// The tetrimino will be positioned just above the playfield.
-func RandomTetrimino(playfieldHeight int) *Tetrimino {
-	t := tetriminos[rand.Intn(len(tetriminos))]
-	t.Pos.Y += playfieldHeight - 20
-	return &t
-}
-
 // MoveDown moves the tetrimino down one row.
 // If the tetrimino cannot move down, it will be added to the playfield and a new tetrimino will be returned.
 func (t *Tetrimino) MoveDown(playfield *Playfield) error {
@@ -126,7 +24,7 @@ func (t *Tetrimino) MoveDown(playfield *Playfield) error {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.Pos.Y++
-	err = playfield.addCells(t)
+	err = playfield.AddTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
 	}
@@ -144,7 +42,7 @@ func (t *Tetrimino) MoveLeft(playfield *Playfield) error {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.Pos.X--
-	err = playfield.addCells(t)
+	err = playfield.AddTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
 	}
@@ -162,7 +60,7 @@ func (t *Tetrimino) MoveRight(playfield *Playfield) error {
 		return fmt.Errorf("failed to remove cells: %w", err)
 	}
 	t.Pos.X++
-	err = playfield.addCells(t)
+	err = playfield.AddTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
 	}
@@ -239,7 +137,7 @@ func (t *Tetrimino) Rotate(playfield *Playfield, clockwise bool) error {
 		t.Cells = rotated.Cells
 	}
 
-	err = playfield.addCells(t)
+	err = playfield.AddTetrimino(t)
 	if err != nil {
 		return fmt.Errorf("failed to add cells: %w", err)
 	}
