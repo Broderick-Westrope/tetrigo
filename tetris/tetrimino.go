@@ -350,13 +350,25 @@ func isCellEmpty(cell byte) bool {
 }
 
 func (t *Tetrimino) Copy() *Tetrimino {
-	cells := make([][]bool, len(t.Cells))
-	for i := range t.Cells {
-		cells[i] = make([]bool, len(t.Cells[i]))
-		copy(cells[i], t.Cells[i])
+	var cells [][]bool
+	if t.Cells == nil {
+		cells = nil
+	} else {
+		cells := make([][]bool, len(t.Cells))
+		for i := range t.Cells {
+			cells[i] = make([]bool, len(t.Cells[i]))
+			copy(cells[i], t.Cells[i])
+		}
 	}
-	rotationCoords := make([]Coordinate, len(t.RotationCoords))
-	copy(rotationCoords, t.RotationCoords)
+
+	var rotationCoords []Coordinate
+	if t.RotationCoords == nil {
+		rotationCoords = nil
+	} else {
+		rotationCoords := make([]Coordinate, len(t.RotationCoords))
+		copy(rotationCoords, t.RotationCoords)
+	}
+
 	return &Tetrimino{
 		Value:           t.Value,
 		Cells:           cells,
