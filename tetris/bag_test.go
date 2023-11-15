@@ -5,6 +5,44 @@ import (
 	"testing"
 )
 
+func TestNewBag(t *testing.T) {
+	tt := []struct {
+		name         string
+		matrixHeight int
+	}{
+		{
+			"matrix height 20",
+			20,
+		},
+		{
+			"matrix height 40",
+			40,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			b := NewBag(tc.matrixHeight)
+
+			if len(b.Elements) != 14 {
+				t.Errorf("Length: want 14, got %d", len(b.Elements))
+			}
+
+			for _, e := range b.Elements {
+				for _, tet := range Tetriminos {
+					if tet.Value != e.Value {
+						continue
+					}
+
+					if e.Pos.Y != tet.Pos.Y {
+						t.Errorf("Y position: want %d, got %d", tet.Pos.Y, e.Pos.Y)
+					}
+				}
+			}
+		})
+	}
+}
+
 // Checks:
 //   - that the tetrimino returned is the first element of the bag.
 //   - that the first element of the bag is removed.
