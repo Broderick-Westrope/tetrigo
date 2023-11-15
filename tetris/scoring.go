@@ -26,9 +26,7 @@ const (
 
 func NewScoring(level uint) *Scoring {
 	return &Scoring{
-		level:      level,
-		total:      0,
-		backToBack: false,
+		level: level,
 	}
 }
 
