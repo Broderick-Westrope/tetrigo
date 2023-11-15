@@ -24,8 +24,9 @@ func (p *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
-				if v := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]; v != tetrimino.Value {
-					return fmt.Errorf("cell at row %d, col %d is '%v' not the expected value", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, v)
+				cellValue := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]
+				if cellValue != tetrimino.Value {
+					return fmt.Errorf("cell at row %d, col %d is '%v' not the expected value", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, cellValue)
 				}
 				p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = 0
 			}
@@ -38,8 +39,9 @@ func (p *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
-				if v := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]; !isCellEmpty(v) {
-					return fmt.Errorf("cell at row %d, col %d is '%v' not empty or a ghost", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, v)
+				cellValue := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]
+				if !isCellEmpty(cellValue) {
+					return fmt.Errorf("cell at row %d, col %d is '%v' not empty or a ghost", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, cellValue)
 				}
 				p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = tetrimino.Value
 			}
