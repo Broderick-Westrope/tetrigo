@@ -67,6 +67,40 @@ func TestMatrix_RemoveLine(t *testing.T) {
 	}
 }
 
+func TestMatrix_RemoveTetrimino(t *testing.T) {
+	matrixRows := []int{0, 10, 20, 30, 39}
+	matrixCols := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+	for _, tet := range Tetriminos {
+		for _, mRow := range matrixRows {
+			for _, mCol := range matrixCols {
+				t.Run(fmt.Sprintf("Tetrimino %s, row %d, col %d", string(tet.Value), mRow, mCol), func(t *testing.T) {
+					m := Matrix{}
+					tet.Pos = Coordinate{mCol, mRow}
+
+					err := m.AddTetrimino(&tet)
+					if err != nil {
+						return
+					}
+
+					err = m.RemoveTetrimino(&tet)
+					if err != nil {
+						t.Errorf("expected no error, got %v", err)
+					}
+
+					for row := range tet.Cells {
+						for col := range tet.Cells[row] {
+							if m[row+tet.Pos.Y][col+tet.Pos.X] != 0 {
+								t.Errorf("expected 0, got %v", m[row+tet.Pos.Y][col+tet.Pos.X])
+							}
+						}
+					}
+				})
+			}
+		}
+	}
+}
+
 func TestMatrix_AddTetrimino(t *testing.T) {
 	errorCases := []bool{true, false}
 
