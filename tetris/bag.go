@@ -32,6 +32,10 @@ func (b *Bag) Next() *Tetrimino {
 }
 
 func (b *Bag) fillBag() {
+	if cap(b.Elements)-len(b.Elements) < 7 {
+		return
+	}
+
 	perm := rand.Perm(len(Tetriminos))
 	for _, i := range perm {
 		if len(b.Elements) == 14 {
