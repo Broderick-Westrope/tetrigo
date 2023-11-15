@@ -1,6 +1,8 @@
 package tetris
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestNewScoring(t *testing.T) {
 	tt := []struct {
@@ -121,6 +123,74 @@ func TestScoring_Lines(t *testing.T) {
 	}
 }
 
+func TestScoring_AddSoftDrop(t *testing.T) {
+	tt := []struct {
+		name  string
+		lines uint
+	}{
+		{
+			"0 lines",
+			0,
+		},
+		{
+			"10 lines",
+			10,
+		},
+		{
+			"123 lines",
+			123,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &Scoring{
+				total: 0,
+			}
+
+			s.AddSoftDrop(tc.lines)
+
+			if s.total != tc.lines {
+				t.Errorf("Total: expected %d, got %d", tc.lines, s.total)
+			}
+		})
+	}
+}
+
+func TestScoring_AddHardDrop(t *testing.T) {
+	tt := []struct {
+		name  string
+		lines uint
+	}{
+		{
+			"0 lines",
+			0,
+		},
+		{
+			"10 lines",
+			10,
+		},
+		{
+			"123 lines",
+			123,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &Scoring{
+				total: 0,
+			}
+
+			s.AddHardDrop(tc.lines)
+
+			expectedTotal := tc.lines * 2
+			if s.total != expectedTotal {
+				t.Errorf("Total: expected %d, got %d", expectedTotal, s.total)
+			}
+		})
+	}
+}
 func TestScoring_ProcessAction(t *testing.T) {
 	// Each action should have 2 test cases: one with back-to-back enabled, and one without.
 	tt := []struct {
