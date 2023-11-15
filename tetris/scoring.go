@@ -42,6 +42,14 @@ func (s *Scoring) Lines() uint {
 	return s.lines
 }
 
+func (s *Scoring) AddSoftDrop(lines uint) {
+	s.total += lines
+}
+
+func (s *Scoring) AddHardDrop(lines uint) {
+	s.total += lines * 2
+}
+
 func (s *Scoring) ProcessAction(a action) {
 	if a == actionNone {
 		return
