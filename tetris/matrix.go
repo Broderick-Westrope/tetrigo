@@ -24,6 +24,13 @@ func (p *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
+				if row+tetrimino.Pos.Y >= len(p) || row+tetrimino.Pos.Y < 0 {
+					return fmt.Errorf("row %d is out of bounds", row+tetrimino.Pos.Y)
+				}
+				if col+tetrimino.Pos.X >= len(p[row]) || col+tetrimino.Pos.X < 0 {
+					return fmt.Errorf("col %d is out of bounds", col+tetrimino.Pos.X)
+				}
+
 				cellValue := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]
 				if cellValue != tetrimino.Value {
 					return fmt.Errorf("cell at row %d, col %d is '%v' not the expected value", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, cellValue)
@@ -39,6 +46,13 @@ func (p *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
+				if row+tetrimino.Pos.Y >= len(p) || row+tetrimino.Pos.Y < 0 {
+					return fmt.Errorf("row %d is out of bounds", row+tetrimino.Pos.Y)
+				}
+				if col+tetrimino.Pos.X >= len(p[row]) || col+tetrimino.Pos.X < 0 {
+					return fmt.Errorf("col %d is out of bounds", col+tetrimino.Pos.X)
+				}
+
 				cellValue := p[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]
 				if !isCellEmpty(cellValue) {
 					return fmt.Errorf("cell at row %d, col %d is '%v' not empty or a ghost", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, cellValue)
