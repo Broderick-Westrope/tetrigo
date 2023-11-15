@@ -2,6 +2,7 @@ package tetris
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -132,5 +133,136 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestMatrix_RemoveCompletedLines(t *testing.T) {
+	tt := []struct {
+		name           string
+		matrix         *Matrix
+		posY           int
+		cells          [][]bool
+		expectedAction action
+		expectedMatrix *Matrix
+	}{
+		{
+			"0 lines, height 1",
+			&Matrix{
+				{},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+			0,
+			[][]bool{{}},
+			actionNone,
+			&Matrix{
+				{},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+		},
+		{
+			"1 line, height 1",
+			&Matrix{
+				{},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+			1,
+			[][]bool{{}},
+			actionSingle,
+			&Matrix{},
+		},
+		{
+			"1 line, height 1",
+			&Matrix{
+				{},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+			0,
+			[][]bool{{}, {}},
+			actionSingle,
+			&Matrix{},
+		},
+		{
+			"2 lines, height 2",
+			&Matrix{
+				{},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+			1,
+			[][]bool{{}, {}},
+			actionDouble,
+			&Matrix{},
+		},
+		{
+			"2 lines, height 4",
+			&Matrix{
+				{},
+				{},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+			0,
+			[][]bool{{}, {}, {}, {}},
+			actionDouble,
+			&Matrix{},
+		},
+		{
+			"3 lines",
+			&Matrix{
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+			0,
+			[][]bool{{}, {}, {}},
+			actionTriple,
+			&Matrix{},
+		},
+		{
+			"4 lines",
+			&Matrix{
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+			0,
+			[][]bool{{}, {}, {}, {}},
+			actionTetris,
+			&Matrix{},
+		},
+		{
+			"5 lines (unknown action)",
+			&Matrix{
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
+			},
+			0,
+			[][]bool{{}, {}, {}, {}, {}},
+			actionNone,
+			&Matrix{},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			tet := Tetrimino{
+				Pos:   Coordinate{0, tc.posY},
+				Cells: tc.cells,
+			}
+
+			actualAction := tc.matrix.RemoveCompletedLines(&tet)
+
+			if actualAction != tc.expectedAction {
+				t.Errorf("expected action %v, got %v", tc.expectedAction, actualAction)
+			}
+
+			if !reflect.DeepEqual(tc.matrix, tc.expectedMatrix) {
+				t.Errorf("expected matrix %v, got %v", tc.expectedMatrix, tc.matrix)
+			}
+		})
 	}
 }
