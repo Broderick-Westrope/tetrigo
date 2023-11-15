@@ -348,3 +348,20 @@ func deepCopyCells(cells [][]bool) [][]bool {
 func isCellEmpty(cell byte) bool {
 	return cell == 0 || cell == 'G'
 }
+
+func (t *Tetrimino) Copy() *Tetrimino {
+	cells := make([][]bool, len(t.Cells))
+	for i := range t.Cells {
+		cells[i] = make([]bool, len(t.Cells[i]))
+		copy(cells[i], t.Cells[i])
+	}
+	rotationCoords := make([]Coordinate, len(t.RotationCoords))
+	copy(rotationCoords, t.RotationCoords)
+	return &Tetrimino{
+		Value:           t.Value,
+		Cells:           cells,
+		Pos:             t.Pos,
+		CurrentRotation: t.CurrentRotation,
+		RotationCoords:  rotationCoords,
+	}
+}
