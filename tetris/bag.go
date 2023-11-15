@@ -14,8 +14,8 @@ func NewBag(matrixHeight int) *Bag {
 		Elements:     make([]Tetrimino, 0, 14),
 		matrixHeight: matrixHeight,
 	}
-	b.fillBag()
-	b.fillBag()
+	b.fill()
+	b.fill()
 	return &b
 }
 
@@ -24,14 +24,14 @@ func (b *Bag) Next() *Tetrimino {
 	b.Elements = b.Elements[1:]
 
 	if len(b.Elements) <= 7 {
-		b.fillBag()
+		b.fill()
 	}
 
 	tet.Pos.Y += b.matrixHeight - 20
 	return &tet
 }
 
-func (b *Bag) fillBag() {
+func (b *Bag) fill() {
 	if cap(b.Elements)-len(b.Elements) < 7 {
 		return
 	}
