@@ -109,7 +109,7 @@ func (s *Scoring) ProcessAction(a action) {
 	s.total += uint(points+backToBack) * s.level
 	s.lines += uint((points + backToBack) / 100)
 
-	if s.lines >= s.level*5 {
+	for s.lines >= s.level*5 {
 		s.level++
 	}
 }
