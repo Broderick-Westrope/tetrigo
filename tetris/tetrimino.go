@@ -112,7 +112,7 @@ type Tetrimino struct {
 	Cells           [][]bool     // A 2D slice of cells that make up the tetrimino. True means the cell is occupied by the tetrimino.
 	Pos             Coordinate   // The top left cell of the tetrimino.
 	CurrentRotation int          // The index of the current rotation in the RotationCoords slice.
-	RotationCoords  []Coordinate // The coordinates used for rotation to control the axis.
+	RotationCoords  []Coordinate // The coordinates used during rotation to control the axis.
 }
 
 // MoveDown moves the tetrimino down one row.
