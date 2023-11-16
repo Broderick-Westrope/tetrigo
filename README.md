@@ -2,7 +2,7 @@
 
 *teh·tree·go*
 
-![app demo](./docs/assets/demo1.png)
+![app demo](./docs/assets/readme-demo.gif)
 
 A Golang implementation of Tetris, attempting to follow the official [2009 Tetris Design Guideline](https://github.com/Broderick-Westrope/tetrigo/tree/main/docs/2009-Tetris-Design-Guideline.pdf).
 
