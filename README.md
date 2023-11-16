@@ -18,12 +18,7 @@ Please feel free to open issues with suggestions, bugs, etc.
     - Ultra 
 - Multiplayer
 - Ghost piece
-- Configuration file
-    - Number of Tetriminos seen in queue
-    - Enable/Disable ghost piece
-    - Lock Down modes (5.6-5.9 in Introduction)
-    - Color/theme
-    - Max level (not endless)
+- ~~Configuration file~~
 - Check for lockdown 0.5s after landing on a surface
     - Also on soft drop, but not on hard drop
     - This resets after each movement & rotation, for a total of 15 movements/rotations.
