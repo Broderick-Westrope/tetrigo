@@ -45,3 +45,5 @@ go.work
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/go,visualstudiocode
+
+config.toml
