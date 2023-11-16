@@ -50,7 +50,7 @@ func (s *Scoring) AddHardDrop(lines uint) {
 	s.total += lines * 2
 }
 
-func (s *Scoring) ProcessAction(a action) {
+func (s *Scoring) ProcessAction(a action, maxLevel uint) {
 	if a == actionNone {
 		return
 	}
@@ -117,7 +117,15 @@ func (s *Scoring) ProcessAction(a action) {
 	s.total += uint(points+backToBack) * s.level
 	s.lines += uint((points + backToBack) / 100)
 
+	if maxLevel > 0 && s.level >= maxLevel {
+		return
+	}
+
 	for s.lines >= s.level*5 {
 		s.level++
+		if s.level >= maxLevel {
+			s.level = maxLevel
+			return
+		}
 	}
 }

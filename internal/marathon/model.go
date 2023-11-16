@@ -52,11 +52,19 @@ func InitialModel(level uint) *Model {
 	if err != nil {
 		panic(fmt.Errorf("failed to add tetrimino to matrix: %w", err))
 	}
+
+	cfg, err := config.GetConfig("config.toml")
+	if err != nil {
+		panic(fmt.Errorf("failed to load config: %w", err))
+	}
+	m.styles = CreateStyles(&cfg.Theme)
+	m.cfg = cfg
+
 	return m
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init(), configCmd("config.toml"))
+	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -113,12 +121,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
-	case configMsg:
-		if msg.err != nil {
-			panic(fmt.Errorf("failed to load config: %w", msg.err))
-		}
-		m.styles = CreateStyles(&msg.cfg.Theme)
-		m.cfg = msg.cfg
 	}
 
 	var cmd tea.Cmd
@@ -191,7 +193,7 @@ func (m *Model) holdView() string {
 func (m *Model) bagView() string {
 	output := "Next:\n"
 	for i, t := range m.bag.Elements {
-		if i > 5 {
+		if i >= m.cfg.QueueLength {
 			break
 		}
 		output += "\n" + m.renderTetrimino(&t, 1)
@@ -217,15 +219,15 @@ func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 func (m *Model) renderCell(cell byte) string {
 	switch cell {
 	case 0:
-		return m.styles.ColIndicator.Render("▕ ")
+		return m.styles.ColIndicator.Render(m.cfg.Theme.Characters.EmptyCell)
 	case 1:
 		return "  "
 	case 'G':
-		return m.styles.GhostCell.Render("░░")
+		return m.styles.GhostCell.Render(m.cfg.Theme.Characters.GhostCell)
 	default:
 		cellStyle, ok := m.styles.TetriminoStyles[cell]
 		if ok {
-			return cellStyle.Render("██")
+			return cellStyle.Render(m.cfg.Theme.Characters.Tetriminos)
 		}
 	}
 	return "??"
@@ -273,7 +275,7 @@ func (m *Model) holdTetrimino() error {
 func (m *Model) lowerTetrimino() (bool, error) {
 	if !m.currentTet.CanMoveDown(m.matrix) {
 		action := m.matrix.RemoveCompletedLines(m.currentTet)
-		m.scoring.ProcessAction(action)
+		m.scoring.ProcessAction(action, m.cfg.MaxLevel)
 		m.currentTet = m.bag.Next()
 		err := m.matrix.AddTetrimino(m.currentTet)
 		if err != nil {
@@ -289,19 +291,4 @@ func (m *Model) lowerTetrimino() (bool, error) {
 	}
 
 	return false, nil
-}
-
-type configMsg struct {
-	err error
-	cfg *config.Config
-}
-
-func configCmd(path string) tea.Cmd {
-	return func() tea.Msg {
-		cfg, err := config.GetConfig(path)
-		return configMsg{
-			err: err,
-			cfg: cfg,
-		}
-	}
 }
