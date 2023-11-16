@@ -13,10 +13,10 @@ type Coordinate struct {
 // These are added (clockwise) or subtracted (counter-clockwise) from the tetrimino's position when rotating to ensure it rotates around the correct axis.
 var RotationCoords = map[byte][]Coordinate{
 	'I': {
-		{X: -1, Y: -1},
-		{X: 2, Y: 1},
-		{X: -2, Y: -2},
-		{X: 1, Y: 2},
+		{X: -1, Y: 1},
+		{X: 2, Y: -1},
+		{X: -2, Y: 2},
+		{X: 1, Y: -2},
 	},
 	'O': {
 		{X: 0, Y: 0},
@@ -27,8 +27,8 @@ var RotationCoords = map[byte][]Coordinate{
 	'6': { // All tetriminos with 6 cells (T, S, Z, J, L)
 		{X: 0, Y: 0},
 		{X: 1, Y: 0},
-		{X: -1, Y: -1},
-		{X: 0, Y: 1},
+		{X: -1, Y: 1},
+		{X: 0, Y: -1},
 	},
 }
 
