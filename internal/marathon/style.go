@@ -6,10 +6,16 @@ type Styles struct {
 	Playfield       lipgloss.Style
 	ColIndicator    lipgloss.Style
 	TetriminoStyles map[byte]lipgloss.Style
-	Hold            lipgloss.Style
+	Hold            holdStyles
 	Information     lipgloss.Style
 	RowIndicator    lipgloss.Style
 	Bag             lipgloss.Style
+}
+
+type holdStyles struct {
+	View  lipgloss.Style
+	Label lipgloss.Style
+	Item  lipgloss.Style
 }
 
 func DefaultStyles() *Styles {
@@ -25,7 +31,11 @@ func DefaultStyles() *Styles {
 			'J': lipgloss.NewStyle().Foreground(lipgloss.Color("#5C65A8")),
 			'L': lipgloss.NewStyle().Foreground(lipgloss.Color("#E07F3A")),
 		},
-		Hold:         lipgloss.NewStyle().Width(10).Height(5).Border(lipgloss.RoundedBorder(), true, false, true, true).Align(lipgloss.Center, lipgloss.Center),
+		Hold: holdStyles{
+			View:  lipgloss.NewStyle().Width(10).Height(5).Border(lipgloss.RoundedBorder(), true, false, true, true).Align(lipgloss.Center, lipgloss.Center),
+			Label: lipgloss.NewStyle().Width(10).PaddingLeft(1).PaddingBottom(1),
+			Item:  lipgloss.NewStyle().Width(10).Height(2).Align(lipgloss.Center, lipgloss.Center),
+		},
 		Information:  lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
 		RowIndicator: lipgloss.NewStyle().Foreground(lipgloss.Color("#444049")).Align(lipgloss.Left).Padding(0, 1, 0),
 		Bag:          lipgloss.NewStyle().PaddingTop(1),

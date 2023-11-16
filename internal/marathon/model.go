@@ -37,7 +37,6 @@ func InitialModel(level uint) *Model {
 			Cells: [][]bool{
 				{false, false, false},
 				{false, false, false},
-				{false, false, false},
 			},
 			Value: 0,
 		},
@@ -175,8 +174,10 @@ func (m *Model) informationView() string {
 }
 
 func (m *Model) holdView() string {
-	output := "Hold:\n" + m.renderTetrimino(m.holdTet, 1)
-	return m.styles.Hold.Render(output)
+	label := m.styles.Hold.Label.Render("Hold:")
+	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.holdTet, 1))
+	output := lipgloss.JoinVertical(lipgloss.Top, label, item)
+	return m.styles.Hold.View.Render(output)
 }
 
 func (m *Model) bagView() string {
