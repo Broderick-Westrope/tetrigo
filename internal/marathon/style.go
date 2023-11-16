@@ -18,7 +18,7 @@ type holdStyles struct {
 	Item  lipgloss.Style
 }
 
-func DefaultStyles() *Styles {
+func defaultStyles() *Styles {
 	s := Styles{
 		Playfield:    lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0),
 		ColIndicator: lipgloss.NewStyle().Foreground(lipgloss.Color("#303040")),

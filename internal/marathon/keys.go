@@ -2,7 +2,7 @@ package marathon
 
 import "github.com/charmbracelet/bubbles/key"
 
-type KeyMap struct {
+type keyMap struct {
 	Quit             key.Binding
 	Help             key.Binding
 	Left             key.Binding
@@ -14,8 +14,8 @@ type KeyMap struct {
 	Hold             key.Binding
 }
 
-func DefaultKeyMap() *KeyMap {
-	return &KeyMap{
+func defaultKeyMap() *keyMap {
+	return &keyMap{
 		Quit:             key.NewBinding(key.WithKeys("esc", "ctrl+c"), key.WithHelp("esc", "quit")),
 		Help:             key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")),
 		Left:             key.NewBinding(key.WithKeys("j", "a"), key.WithHelp("a, j", "move left")),
@@ -28,14 +28,14 @@ func DefaultKeyMap() *KeyMap {
 	}
 }
 
-func (k *KeyMap) ShortHelp() []key.Binding {
+func (k *keyMap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		k.Quit,
 		k.Help,
 	}
 }
 
-func (k *KeyMap) FullHelp() [][]key.Binding {
+func (k *keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{
 			k.Quit,

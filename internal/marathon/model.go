@@ -16,11 +16,11 @@ type Model struct {
 	matrix     tetris.Matrix
 	styles     *Styles
 	help       help.Model
-	keys       *KeyMap
+	keys       *keyMap
 	currentTet *tetris.Tetrimino
 	holdTet    *tetris.Tetrimino
 	canHold    bool
-	fall       *Fall
+	fall       *fall
 	scoring    *tetris.Scoring
 	bag        *tetris.Bag
 	timer      stopwatch.Model
@@ -29,9 +29,9 @@ type Model struct {
 func InitialModel(level uint) *Model {
 	m := &Model{
 		matrix:  tetris.Matrix{},
-		styles:  DefaultStyles(),
+		styles:  defaultStyles(),
 		help:    help.New(),
-		keys:    DefaultKeyMap(),
+		keys:    defaultKeyMap(),
 		scoring: tetris.NewScoring(level),
 		holdTet: &tetris.Tetrimino{
 			Cells: [][]bool{

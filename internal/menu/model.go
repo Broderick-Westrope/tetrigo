@@ -29,8 +29,8 @@ type Model struct {
 	game         tea.Model
 	mode         int
 
-	keys   *KeyMap
-	styles *Styles
+	keys   *keyMap
+	styles *styles
 	help   help.Model
 }
 
@@ -54,8 +54,8 @@ func InitialModel() *Model {
 			},
 		},
 		settingIndex: 0,
-		keys:         DefaultKeyMap(),
-		styles:       DefaultStyles(),
+		keys:         defaultKeyMap(),
+		styles:       defaultStyles(),
 		mode:         modeMenu,
 		help:         help.New(),
 	}
