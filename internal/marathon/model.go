@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/tetris"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -24,6 +25,7 @@ type Model struct {
 	scoring    *tetris.Scoring
 	bag        *tetris.Bag
 	timer      stopwatch.Model
+	cfg        *config.Config
 }
 
 func InitialModel(level uint) *Model {
@@ -54,7 +56,7 @@ func InitialModel(level uint) *Model {
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init())
+	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init(), configCmd("config.toml"))
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -111,6 +113,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
+	case configMsg:
+		if msg.err != nil {
+			panic(fmt.Errorf("failed to load config: %w", msg.err))
+		}
+		m.styles = CreateStyles(&msg.cfg.Theme)
+		m.cfg = msg.cfg
 	}
 
 	var cmd tea.Cmd
@@ -281,4 +289,19 @@ func (m *Model) lowerTetrimino() (bool, error) {
 	}
 
 	return false, nil
+}
+
+type configMsg struct {
+	err error
+	cfg *config.Config
+}
+
+func configCmd(path string) tea.Cmd {
+	return func() tea.Msg {
+		cfg, err := config.GetConfig(path)
+		return configMsg{
+			err: err,
+			cfg: cfg,
+		}
+	}
 }

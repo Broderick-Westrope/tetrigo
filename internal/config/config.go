@@ -15,29 +15,31 @@ type Config struct {
 	GameEnds     bool   // Whether or not the game ends when the max level is reached
 
 	// The styling for the game in all modes
-	Theme struct {
-		Colours struct {
-			TetriminoCells struct {
-				I string
-				O string
-				T string
-				S string
-				Z string
-				J string
-				L string
-			}
-			EmptyCell string
-			GhostCell string
+	Theme Theme
+}
+
+type Theme struct {
+	Colours struct {
+		TetriminoCells struct {
+			I string
+			O string
+			T string
+			S string
+			Z string
+			J string
+			L string
 		}
-		Characters struct {
-			Tetriminos string
-			EmptyCell  string
-			GhostCell  string
-		}
+		EmptyCell string
+		GhostCell string
+	}
+	Characters struct {
+		Tetriminos string
+		EmptyCell  string
+		GhostCell  string
 	}
 }
 
-func GetConfig() (*Config, error) {
+func GetConfig(path string) (*Config, error) {
 	var c Config
 
 	c.QueueLength = 5
@@ -60,7 +62,7 @@ func GetConfig() (*Config, error) {
 	c.Theme.Characters.EmptyCell = "▕ "
 	c.Theme.Characters.GhostCell = "░░"
 
-	_, err := toml.DecodeFile("config.toml", &c)
+	_, err := toml.DecodeFile(path, &c)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return &c, nil
