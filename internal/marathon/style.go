@@ -6,6 +6,7 @@ type Styles struct {
 	Playfield       lipgloss.Style
 	ColIndicator    lipgloss.Style
 	TetriminoStyles map[byte]lipgloss.Style
+	GhostCell       lipgloss.Style
 	Hold            holdStyles
 	Information     lipgloss.Style
 	RowIndicator    lipgloss.Style
@@ -31,6 +32,7 @@ func defaultStyles() *Styles {
 			'J': lipgloss.NewStyle().Foreground(lipgloss.Color("#5C65A8")),
 			'L': lipgloss.NewStyle().Foreground(lipgloss.Color("#E07F3A")),
 		},
+		GhostCell: lipgloss.NewStyle().Foreground(lipgloss.Color("white")),
 		Hold: holdStyles{
 			View:  lipgloss.NewStyle().Width(10).Height(5).Border(lipgloss.RoundedBorder(), true, false, true, true).Align(lipgloss.Center, lipgloss.Center),
 			Label: lipgloss.NewStyle().Width(10).PaddingLeft(1).PaddingBottom(1),

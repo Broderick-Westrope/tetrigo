@@ -211,9 +211,9 @@ func (m *Model) renderCell(cell byte) string {
 	case 0:
 		return m.styles.ColIndicator.Render("▕ ")
 	case 1:
-		return m.styles.TetriminoStyles[cell].Render("  ")
+		return "  "
 	case 'G':
-		return "░░"
+		return m.styles.GhostCell.Render("░░")
 	default:
 		cellStyle, ok := m.styles.TetriminoStyles[cell]
 		if ok {
