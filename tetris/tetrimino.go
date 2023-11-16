@@ -8,6 +8,9 @@ type Coordinate struct {
 	X, Y int
 }
 
+// A map of tetrimino values to the coordinates used for rotation.
+// Each slice should contain a coordinate for north, east, south, and west in that order.
+// These are added (clockwise) or subtracted (counter-clockwise) from the tetrimino's position when rotating to ensure it rotates around the correct axis.
 var RotationCoords = map[byte][]Coordinate{
 	'I': {
 		{X: -1, Y: -1},
@@ -29,12 +32,15 @@ var RotationCoords = map[byte][]Coordinate{
 	},
 }
 
+// A map of tetrimino values to the starting position of the tetrimino.
+// The starting position is the top left cell of the tetrimino when it spawns.
 var startingPositions = map[byte]Coordinate{
 	'I': {X: 3, Y: -1},
 	'O': {X: 4, Y: -2},
 	'6': {X: 3, Y: -2},
 }
 
+// All possible tetriminos.
 var Tetriminos = []Tetrimino{
 	{
 		Value: 'I',
@@ -100,12 +106,13 @@ var Tetriminos = []Tetrimino{
 	},
 }
 
+// A tetrimino is a game piece in Tetris.
 type Tetrimino struct {
-	Value           byte
-	Cells           [][]bool
-	Pos             Coordinate // the top left cell of the tetrimino
-	CurrentRotation int
-	RotationCoords  []Coordinate
+	Value           byte         // The value of the tetrimino. This is the character that will be used to represent the tetrimino in the matrix.
+	Cells           [][]bool     // A 2D slice of cells that make up the tetrimino. True means the cell is occupied by the tetrimino.
+	Pos             Coordinate   // The top left cell of the tetrimino.
+	CurrentRotation int          // The index of the current rotation in the RotationCoords slice.
+	RotationCoords  []Coordinate // The coordinates used for rotation to control the axis.
 }
 
 // MoveDown moves the tetrimino down one row.
