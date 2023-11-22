@@ -10,3 +10,7 @@ tasks:
   run:
     cmds:
       - go run . {{.CLI_ARGS}}
+  cover:
+    cmds:
+      - go test -coverprofile=cover.out {{.CLI_ARGS}} ./...
+      - go tool cover -html=cover.out
