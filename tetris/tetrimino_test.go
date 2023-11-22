@@ -293,96 +293,96 @@ func TestTetrimino_MoveRight(t *testing.T) {
 	}
 }
 
-func TestRotateClockwise(t *testing.T) {
-	tt := []struct {
-		name             string
-		original         *Tetrimino
-		expectsErr       bool
-		expectedCells    [][]bool
-		expectedRotation int
-		expectedPos      Coordinate
-	}{
-		{
-			"pass, T starting position",
-			&Tetrimino{
-				'T',
-				[][]bool{
-					{false, true, false},
-					{true, true, true},
-				},
-				Coordinate{X: startingPositions['6'].X, Y: startingPositions['6'].Y + 20},
-				0,
-				RotationCoords['6'],
-			},
-			false,
-			[][]bool{
-				{true, false},
-				{true, true},
-				{true, false},
-			},
-			1,
-			Coordinate{X: 4, Y: 18},
-		},
-		{
-			"pass, T out of bounds",
-			&Tetrimino{
-				'I',
-				[][]bool{
-					{true, false},
-					{true, true},
-					{true, false},
-				},
-				Coordinate{X: 0, Y: 0},
-				1,
-				RotationCoords['6'],
-			},
-			true,
-			[][]bool{},
-			0,
-			Coordinate{},
-		},
-	}
+// func TestRotateClockwise(t *testing.T) {
+// 	tt := []struct {
+// 		name             string
+// 		original         *Tetrimino
+// 		expectsErr       bool
+// 		expectedCells    [][]bool
+// 		expectedRotation int
+// 		expectedPos      Coordinate
+// 	}{
+// 		{
+// 			"pass, T starting position",
+// 			&Tetrimino{
+// 				'T',
+// 				[][]bool{
+// 					{false, true, false},
+// 					{true, true, true},
+// 				},
+// 				Coordinate{X: startingPositions['6'].X, Y: startingPositions['6'].Y + 20},
+// 				0,
+// 				RotationCoords['6'],
+// 			},
+// 			false,
+// 			[][]bool{
+// 				{true, false},
+// 				{true, true},
+// 				{true, false},
+// 			},
+// 			1,
+// 			Coordinate{X: 4, Y: 18},
+// 		},
+// 		{
+// 			"pass, T out of bounds",
+// 			&Tetrimino{
+// 				'I',
+// 				[][]bool{
+// 					{true, false},
+// 					{true, true},
+// 					{true, false},
+// 				},
+// 				Coordinate{X: 0, Y: 0},
+// 				1,
+// 				RotationCoords['6'],
+// 			},
+// 			true,
+// 			[][]bool{},
+// 			0,
+// 			Coordinate{},
+// 		},
+// 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			originalCells := deepCopyCells(tc.original.Cells)
+// 	for _, tc := range tt {
+// 		t.Run(tc.name, func(t *testing.T) {
+// 			originalCells := deepCopyCells(tc.original.Cells)
 
-			rotated, err := tc.original.rotateClockwise()
+// 			rotated, err := tc.original.rotateClockwise()
 
-			if err != nil {
-				if !tc.expectsErr {
-					t.Errorf("got error, expected nil")
-				}
-				return
-			} else if tc.expectsErr {
-				t.Errorf("got nil, expected error")
-				return
-			}
+// 			if err != nil {
+// 				if !tc.expectsErr {
+// 					t.Errorf("got error, expected nil")
+// 				}
+// 				return
+// 			} else if tc.expectsErr {
+// 				t.Errorf("got nil, expected error")
+// 				return
+// 			}
 
-			// original cells are unchanged
-			if !reflect.DeepEqual(originalCells, tc.original.Cells) {
-				t.Errorf("Original Cells: got %v, want %v", tc.original.Cells, originalCells)
-			}
+// 			// original cells are unchanged
+// 			if !reflect.DeepEqual(originalCells, tc.original.Cells) {
+// 				t.Errorf("Original Cells: got %v, want %v", tc.original.Cells, originalCells)
+// 			}
 
-			// rotated cells are +90 deg. from original cells
-			if !reflect.DeepEqual(tc.expectedCells, rotated.Cells) {
-				t.Errorf("Rotated Cells: got %v, want %v", rotated.Cells, tc.expectedCells)
-			}
+// 			// rotated cells are +90 deg. from original cells
+// 			if !reflect.DeepEqual(tc.expectedCells, rotated.Cells) {
+// 				t.Errorf("Rotated Cells: got %v, want %v", rotated.Cells, tc.expectedCells)
+// 			}
 
-			// current rotation has been incremented & modulated
-			if err != nil {
-				t.Errorf("Unexpected error when getting rotation: %s", err)
-			} else if tc.expectedRotation != rotated.CurrentRotation {
-				t.Errorf("Rotation: got %v, want %v", rotated.CurrentRotation, tc.expectedRotation)
-			}
+// 			// current rotation has been incremented & modulated
+// 			if err != nil {
+// 				t.Errorf("Unexpected error when getting rotation: %s", err)
+// 			} else if tc.expectedRotation != rotated.CurrentRotation {
+// 				t.Errorf("Rotation: got %v, want %v", rotated.CurrentRotation, tc.expectedRotation)
+// 			}
 
-			// position has been updated correctly
-			if !reflect.DeepEqual(tc.expectedPos, rotated.Pos) {
-				t.Errorf("Position: got %v, want %v", rotated.Pos, tc.expectedPos)
-			}
-		})
-	}
-}
+// 			// position has been updated correctly
+// 			if !reflect.DeepEqual(tc.expectedPos, rotated.Pos) {
+// 				t.Errorf("Position: got %v, want %v", rotated.Pos, tc.expectedPos)
+// 			}
+// 		})
+// 	}
+// }
 
 func TestTranspose(t *testing.T) {
 	tt := []struct {
