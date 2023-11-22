@@ -808,3 +808,62 @@ func TestIsCellEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestTetrimino_Copy(t *testing.T) {
+	// Create a tetrimino
+	tetValue := byte('T')
+	tetCells := [][]bool{
+		{false, true, false},
+		{true, true, true},
+	}
+	tetPosX := 0
+	tetPosY := 0
+	tetCurrentRotation := 0
+	tetRotationCoords := []Coordinate{
+		{0, 0},
+	}
+
+	tet := Tetrimino{
+		Value:           tetValue,
+		Cells:           tetCells,
+		Pos:             Coordinate{tetPosX, tetPosY},
+		CurrentRotation: tetCurrentRotation,
+		RotationCoords:  tetRotationCoords,
+	}
+
+	// Create a copy manually
+	manualCopy := Tetrimino{
+		Value:           tetValue,
+		Cells:           deepCopyCells(tetCells),
+		Pos:             Coordinate{tetPosX, tetPosY},
+		CurrentRotation: tetCurrentRotation,
+	}
+	manualCopy.RotationCoords = make([]Coordinate, len(tetRotationCoords))
+	copy(manualCopy.RotationCoords, tet.RotationCoords)
+
+	// Create a copy with the function
+	easyCopy := tet.Copy()
+
+	// Check that the copy is the same as the original and the manual copy
+	if !reflect.DeepEqual(easyCopy, &tet) {
+		t.Errorf("easy copy doesn't match original: easy %v, original %v", easyCopy, &tet)
+	} else if !reflect.DeepEqual(easyCopy, &manualCopy) {
+		t.Errorf("easy copy doesn't match manual copy: easy %v, manual %v", easyCopy, &manualCopy)
+	}
+
+	// Modify the original
+	tet.Value = 'I'
+	tet.Cells = [][]bool{
+		{true, true, true, true},
+	}
+	tet.Pos = Coordinate{1, 1}
+	tet.CurrentRotation = 1
+	tet.RotationCoords = []Coordinate{
+		{1, 1},
+	}
+
+	// Check that the copy is still the same as the manual copy
+	if !reflect.DeepEqual(easyCopy, &manualCopy) {
+		t.Errorf("easy copy was modified: easy %v, manual %v", easyCopy, &manualCopy)
+	}
+}
