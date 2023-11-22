@@ -24,6 +24,7 @@ func (p *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Cells {
 		for col := range tetrimino.Cells[row] {
 			if tetrimino.Cells[row][col] {
+				// The following bounds checks should never be reached as long as tetriminos are added with the dedicated function
 				if row+tetrimino.Pos.Y >= len(p) || row+tetrimino.Pos.Y < 0 {
 					return fmt.Errorf("row %d is out of bounds", row+tetrimino.Pos.Y)
 				}
