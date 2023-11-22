@@ -361,7 +361,7 @@ func (t *Tetrimino) Copy() *Tetrimino {
 	if t.Cells == nil {
 		cells = nil
 	} else {
-		cells := make([][]bool, len(t.Cells))
+		cells = make([][]bool, len(t.Cells))
 		for i := range t.Cells {
 			cells[i] = make([]bool, len(t.Cells[i]))
 			copy(cells[i], t.Cells[i])
@@ -372,7 +372,7 @@ func (t *Tetrimino) Copy() *Tetrimino {
 	if t.RotationCoords == nil {
 		rotationCoords = nil
 	} else {
-		rotationCoords := make([]Coordinate, len(t.RotationCoords))
+		rotationCoords = make([]Coordinate, len(t.RotationCoords))
 		copy(rotationCoords, t.RotationCoords)
 	}
 
