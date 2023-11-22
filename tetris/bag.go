@@ -32,7 +32,7 @@ func (b *Bag) Next() *Tetrimino {
 }
 
 func (b *Bag) fill() {
-	if cap(b.Elements)-len(b.Elements) < 7 {
+	if len(b.Elements) > 7 {
 		return
 	}
 
