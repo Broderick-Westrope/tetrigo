@@ -46,4 +46,8 @@ go.work
 
 # End of https://www.toptal.com/developers/gitignore/api/go,visualstudiocode
 
+
+# Application configuration file (may be created during testing)
 config.toml
+# Go test coverage
+cover.out
