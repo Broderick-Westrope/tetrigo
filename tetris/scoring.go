@@ -117,13 +117,9 @@ func (s *Scoring) ProcessAction(a action, maxLevel uint) {
 	s.total += uint(points+backToBack) * s.level
 	s.lines += uint((points + backToBack) / 100)
 
-	if maxLevel > 0 && s.level >= maxLevel {
-		return
-	}
-
 	for s.lines >= s.level*5 {
 		s.level++
-		if s.level >= maxLevel {
+		if maxLevel > 0 && s.level >= maxLevel {
 			s.level = maxLevel
 			return
 		}
