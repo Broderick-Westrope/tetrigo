@@ -1,9 +1,37 @@
 package tetris
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
+
+func TestTetrimino_MoveDown(t *testing.T) {
+	rows := []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
+	cols := []int{0, 1, 2, 3, 4, 5, 6, 7}
+	for _, row := range rows {
+		for _, col := range cols {
+			coord := Coordinate{X: col, Y: row}
+			for _, tet := range Tetriminos {
+				t.Run(fmt.Sprintf("value: %s, coord: %v", string(tet.Value), coord), func(t *testing.T) {
+					m := &Matrix{}
+					tet.Pos = coord
+					m.AddTetrimino(&tet)
+
+					tet.MoveDown(m)
+
+					if tet.Pos.Y == coord.Y+1 {
+						return
+					}
+					if tet.Pos.Y+len(tet.Cells)-1 == coord.Y {
+						return
+					}
+					t.Errorf("got %v, want %v", tet.Pos.Y, coord.Y+1)
+				})
+			}
+		}
+	}
+}
 
 func TestTetrimino_MoveLeft(t *testing.T) {
 	tt := []struct {
