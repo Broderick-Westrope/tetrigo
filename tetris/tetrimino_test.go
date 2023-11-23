@@ -701,6 +701,10 @@ func TestPositiveMod(t *testing.T) {
 			"-4 mod -5",
 			-4, -5, -4, false,
 		},
+		{
+			"-4 mod 5",
+			-4, 5, 1, false,
+		},
 	}
 
 	for _, tc := range tt {
