@@ -48,6 +48,8 @@ func InitialModel(level uint) *Model {
 	m.bag = tetris.NewBag(len(m.matrix))
 	m.fall = defaultFall(level)
 	m.currentTet = m.bag.Next()
+	// TODO: Check if the game is over at the starting position
+	m.currentTet.Pos.Y++
 	err := m.matrix.AddTetrimino(m.currentTet)
 	if err != nil {
 		panic(fmt.Errorf("failed to add tetrimino to matrix: %w", err))
@@ -68,6 +70,8 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -102,6 +106,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					panic(fmt.Errorf("failed to lower tetrimino (hard drop): %w", err))
 				}
 				if finished {
+					cmds = append(cmds, m.fall.stopwatch.Reset())
 					break
 				}
 			}
@@ -124,7 +129,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	var cmd tea.Cmd
-	var cmds []tea.Cmd
 
 	m.timer, cmd = m.timer.Update(msg)
 	cmds = append(cmds, cmd)
@@ -277,6 +281,8 @@ func (m *Model) lowerTetrimino() (bool, error) {
 		action := m.matrix.RemoveCompletedLines(m.currentTet)
 		m.scoring.ProcessAction(action, m.cfg.MaxLevel)
 		m.currentTet = m.bag.Next()
+		// TODO: Check if the game is over at the starting position
+		m.currentTet.Pos.Y++
 		err := m.matrix.AddTetrimino(m.currentTet)
 		if err != nil {
 			return false, fmt.Errorf("failed to add tetrimino to matrix: %w", err)
