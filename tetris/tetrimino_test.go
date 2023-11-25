@@ -321,96 +321,635 @@ func TestTetrimino_MoveRight(t *testing.T) {
 	}
 }
 
-// func TestRotateClockwise(t *testing.T) {
-// 	tt := []struct {
-// 		name             string
-// 		original         *Tetrimino
-// 		expectsErr       bool
-// 		expectedCells    [][]bool
-// 		expectedRotation int
-// 		expectedPos      Coordinate
-// 	}{
-// 		{
-// 			"pass, T starting position",
-// 			&Tetrimino{
-// 				'T',
-// 				[][]bool{
-// 					{false, true, false},
-// 					{true, true, true},
-// 				},
-// 				Coordinate{X: startingPositions['6'].X, Y: startingPositions['6'].Y + 20},
-// 				0,
-// 				RotationCoords['6'],
-// 			},
-// 			false,
-// 			[][]bool{
-// 				{true, false},
-// 				{true, true},
-// 				{true, false},
-// 			},
-// 			1,
-// 			Coordinate{X: 4, Y: 18},
-// 		},
-// 		{
-// 			"pass, T out of bounds",
-// 			&Tetrimino{
-// 				'I',
-// 				[][]bool{
-// 					{true, false},
-// 					{true, true},
-// 					{true, false},
-// 				},
-// 				Coordinate{X: 0, Y: 0},
-// 				1,
-// 				RotationCoords['6'],
-// 			},
-// 			true,
-// 			[][]bool{},
-// 			0,
-// 			Coordinate{},
-// 		},
-// 	}
+func TestTetrimino_RotateClockwise(t *testing.T) {
+	tt := []struct {
+		name        string
+		tet         *Tetrimino
+		expectedTet *Tetrimino
+	}{
+		{
+			name: "I, rotation 0",
+			tet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:             Coordinate{X: 2, Y: -1},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['I'],
+			},
+		},
+		{
+			name: "I, rotation 1",
+			tet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:             Coordinate{X: -2, Y: 2},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['I'],
+			},
+		},
+		{
+			name: "I, rotation 2",
+			tet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:             Coordinate{X: 1, Y: -2},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['I'],
+			},
+		},
+		{
+			name: "I, rotation 3",
+			tet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:             Coordinate{X: -1, Y: 1},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['I'],
+			},
+		},
+		{
+			name: "O, rotation 0",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['O'],
+			},
+		},
+		{
+			name: "O, rotation 1",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['O'],
+			},
+		},
+		{
+			name: "O, rotation 2",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['O'],
+			},
+		},
+		{
+			name: "O, rotation 3",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['O'],
+			},
+		},
+		{
+			name: "T, rotation 0",
+			tet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true, false},
+					{true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, false},
+					{true, true},
+					{true, false},
+				},
+				Pos:             Coordinate{X: 1, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['6'],
+			},
+		},
+		{
+			name: "T, rotation 1",
+			tet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, false},
+					{true, true},
+					{true, false},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos:             Coordinate{X: -1, Y: 1},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+		},
+		{
+			name: "T, rotation 2",
+			tet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true},
+					{true, true},
+					{false, true},
+				},
+				Pos:             Coordinate{X: 0, Y: -1},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['6'],
+			},
+		},
+		{
+			name: "T, rotation 3",
+			tet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true},
+					{true, true},
+					{false, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true, false},
+					{true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['6'],
+			},
+		},
+	}
 
-// 	for _, tc := range tt {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			originalCells := deepCopyCells(tc.original.Cells)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			newTet, err := tc.tet.rotateClockwise()
 
-// 			rotated, err := tc.original.rotateClockwise()
+			if err != nil {
+				t.Errorf("got error, want nil")
+			}
 
-// 			if err != nil {
-// 				if !tc.expectsErr {
-// 					t.Errorf("got error, expected nil")
-// 				}
-// 				return
-// 			} else if tc.expectsErr {
-// 				t.Errorf("got nil, expected error")
-// 				return
-// 			}
+			if !reflect.DeepEqual(newTet, tc.expectedTet) {
+				t.Errorf("Tetrimino: got %v, want %v", newTet, tc.expectedTet)
+			}
+		})
+	}
+}
 
-// 			// original cells are unchanged
-// 			if !reflect.DeepEqual(originalCells, tc.original.Cells) {
-// 				t.Errorf("Original Cells: got %v, want %v", tc.original.Cells, originalCells)
-// 			}
+func TestTetrimino_RotateCounterClockwise(t *testing.T) {
+	tt := []struct {
+		name        string
+		tet         *Tetrimino
+		expectedTet *Tetrimino
+	}{
+		{
+			name: "I, rotation 0",
+			tet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:             Coordinate{X: 1, Y: -1},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['I'],
+			},
+		},
+		{
+			name: "I, rotation 1",
+			tet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:             Coordinate{X: -2, Y: 1},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['I'],
+			},
+		},
+		{
+			name: "I, rotation 2",
+			tet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:             Coordinate{X: 2, Y: -2},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['I'],
+			},
+		},
+		{
+			name: "I, rotation 3",
+			tet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Cells: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:             Coordinate{X: -1, Y: 2},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['I'],
+			},
+		},
+		{
+			name: "O, rotation 0",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['O'],
+			},
+		},
+		{
+			name: "O, rotation 1",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['O'],
+			},
+		},
+		{
+			name: "O, rotation 2",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['O'],
+			},
+		},
+		{
+			name: "O, rotation 3",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['O'],
+			},
+		},
+		{
+			name: "T, rotation 0",
+			tet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true, false},
+					{true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true},
+					{true, true},
+					{false, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['6'],
+			},
+		},
+		{
+			name: "T, rotation 1",
+			tet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, false},
+					{true, true},
+					{true, false},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true, false},
+					{true, true, true},
+				},
+				Pos:             Coordinate{X: -1, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['6'],
+			},
+		},
+		{
+			name: "T, rotation 2",
+			tet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, false},
+					{true, true},
+					{true, false},
+				},
+				Pos:             Coordinate{X: 1, Y: -1},
+				CurrentRotation: 1,
+				RotationCoords:  RotationCoords['6'],
+			},
+		},
+		{
+			name: "T, rotation 3",
+			tet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{false, true},
+					{true, true},
+					{false, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Cells: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos:             Coordinate{X: 0, Y: 1},
+				CurrentRotation: 2,
+				RotationCoords:  RotationCoords['6'],
+			},
+		},
+	}
 
-// 			// rotated cells are +90 deg. from original cells
-// 			if !reflect.DeepEqual(tc.expectedCells, rotated.Cells) {
-// 				t.Errorf("Rotated Cells: got %v, want %v", rotated.Cells, tc.expectedCells)
-// 			}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			newTet, err := tc.tet.rotateCounterClockwise()
 
-// 			// current rotation has been incremented & modulated
-// 			if err != nil {
-// 				t.Errorf("Unexpected error when getting rotation: %s", err)
-// 			} else if tc.expectedRotation != rotated.CurrentRotation {
-// 				t.Errorf("Rotation: got %v, want %v", rotated.CurrentRotation, tc.expectedRotation)
-// 			}
+			if err != nil {
+				t.Errorf("got error, want nil")
+			}
 
-// 			// position has been updated correctly
-// 			if !reflect.DeepEqual(tc.expectedPos, rotated.Pos) {
-// 				t.Errorf("Position: got %v, want %v", rotated.Pos, tc.expectedPos)
-// 			}
-// 		})
-// 	}
-// }
+			if !reflect.DeepEqual(newTet, tc.expectedTet) {
+				t.Errorf("Tetrimino: got %v, want %v", newTet, tc.expectedTet)
+
+				if newTet.Value != tc.expectedTet.Value {
+					t.Errorf("Tetrimino.Value: got %v, want %v", newTet.Value, tc.expectedTet.Value)
+				}
+				if !reflect.DeepEqual(newTet.Cells, tc.expectedTet.Cells) {
+					t.Errorf("Tetrimino.Cells: got %v, want %v", newTet.Cells, tc.expectedTet.Cells)
+				}
+				if newTet.Pos != tc.expectedTet.Pos {
+					t.Errorf("Tetrimino.Pos: got %v, want %v", newTet.Pos, tc.expectedTet.Pos)
+				}
+				if newTet.CurrentRotation != tc.expectedTet.CurrentRotation {
+					t.Errorf("Tetrimino.CurrentRotation: got %v, want %v", newTet.CurrentRotation, tc.expectedTet.CurrentRotation)
+				}
+				if !reflect.DeepEqual(newTet.RotationCoords, tc.expectedTet.RotationCoords) {
+					t.Errorf("Tetrimino.RotationCoords: got %v, want %v", newTet.RotationCoords, tc.expectedTet.RotationCoords)
+				}
+			}
+		})
+	}
+}
 
 func TestTranspose(t *testing.T) {
 	tt := []struct {
@@ -616,6 +1155,7 @@ func TestCanRotate(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+
 			result := tc.rotated.canRotate(tc.matrix)
 
 			if result != tc.expects {

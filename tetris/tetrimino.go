@@ -277,14 +277,14 @@ func (t Tetrimino) rotateCounterClockwise() (*Tetrimino, error) {
 
 	t.transpose()
 
+	t.Pos.X -= t.RotationCoords[t.CurrentRotation].X
+	t.Pos.Y -= t.RotationCoords[t.CurrentRotation].Y
+
 	var err error
 	t.CurrentRotation, err = positiveMod(t.CurrentRotation-1, len(t.RotationCoords))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get positive mod: %w", err)
 	}
-
-	t.Pos.X -= t.RotationCoords[t.CurrentRotation].X
-	t.Pos.Y -= t.RotationCoords[t.CurrentRotation].Y
 
 	return &t, nil
 }
