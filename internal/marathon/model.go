@@ -13,6 +13,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type FullscreenInfo struct {
+	Width  int
+	Height int
+}
+
 type Model struct {
 	matrix     tetris.Matrix
 	styles     *Styles
@@ -26,9 +31,10 @@ type Model struct {
 	bag        *tetris.Bag
 	timer      stopwatch.Model
 	cfg        *config.Config
+	fullscreen *FullscreenInfo
 }
 
-func InitialModel(level uint) *Model {
+func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
 	m := &Model{
 		matrix:  tetris.Matrix{},
 		styles:  defaultStyles(),
@@ -61,6 +67,11 @@ func InitialModel(level uint) *Model {
 	}
 	m.styles = CreateStyles(&cfg.Theme)
 	m.cfg = cfg
+
+	if fullscreen != nil {
+		m.fullscreen = fullscreen
+		m.styles.ProgramFullscreen.Width(fullscreen.Width).Height(fullscreen.Height)
+	}
 
 	return m
 }
@@ -126,6 +137,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
+	case tea.WindowSizeMsg:
+		m.styles.ProgramFullscreen.Width(msg.Width).Height(msg.Height)
 	}
 
 	var cmd tea.Cmd
@@ -146,7 +159,12 @@ func (m Model) View() string {
 		m.bagView(),
 	)
 
-	return output + "\n" + m.help.View(m.keys)
+	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
+
+	if m.fullscreen != nil {
+		return m.styles.ProgramFullscreen.Render(output)
+	}
+	return output
 }
 
 func (m *Model) matrixView() string {

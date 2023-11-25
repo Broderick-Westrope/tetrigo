@@ -32,9 +32,11 @@ type Model struct {
 	keys   *keyMap
 	styles *styles
 	help   help.Model
+
+	isFullscreen bool
 }
 
-func InitialModel() *Model {
+func InitialModel(isFullscreen bool) *Model {
 	m := Model{
 		settings: []setting{
 			{
@@ -58,6 +60,7 @@ func InitialModel() *Model {
 		styles:       defaultStyles(),
 		mode:         modeMenu,
 		help:         help.New(),
+		isFullscreen: isFullscreen,
 	}
 	return &m
 }
@@ -116,6 +119,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		}
+	case tea.WindowSizeMsg:
+		m.styles.programFullscreen.Width(msg.Width).Height(msg.Height)
 	}
 
 	return m, nil
@@ -130,10 +135,16 @@ func (m Model) View() string {
 	for i := range m.settings {
 		settings[i] = m.renderSetting(i, i == m.settingIndex)
 	}
-	return lipgloss.JoinVertical(lipgloss.Center,
+
+	output := lipgloss.JoinVertical(lipgloss.Center,
 		renderTitle(),
 		lipgloss.JoinHorizontal(lipgloss.Top, settings...),
 	) + "\n" + m.help.View(m.keys)
+
+	if m.isFullscreen {
+		return m.styles.programFullscreen.Render(output)
+	}
+	return output
 }
 
 func renderTitle() string {
@@ -184,7 +195,16 @@ func (m *Model) startGame() (tea.Cmd, error) {
 	switch mode {
 	case "Marathon":
 		m.mode = modeGame
-		m.game = marathon.InitialModel(level)
+
+		var fullscreen *marathon.FullscreenInfo
+		if m.isFullscreen {
+			fullscreen = &marathon.FullscreenInfo{
+				Width:  m.styles.programFullscreen.GetWidth(),
+				Height: m.styles.programFullscreen.GetHeight(),
+			}
+		}
+
+		m.game = marathon.InitialModel(level, fullscreen)
 		return m.game.Init(), nil
 	}
 	return nil, fmt.Errorf("invalid mode: %v", mode)
