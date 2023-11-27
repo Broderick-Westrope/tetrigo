@@ -14,7 +14,7 @@ Enter
 Set TypingSpeed 100ms
 Show
 
-Type "./tetrigo"
+Type "./tetrigo menu --fullscreen=false"
 Enter
 
 Sleep 2s
