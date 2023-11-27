@@ -329,7 +329,7 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 		expected bool
 	}{
 		{
-			name: "I, can, start of matrix",
+			name: "I, can, top of matrix",
 			tet: &Tetrimino{
 				Value:           'I',
 				Cells:           [][]bool{{true}, {true}, {true}, {true}},
@@ -373,6 +373,96 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 			expected: false,
 		},
 		{
+			name: "O, cannot, bottom of matrix",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 38},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['O'],
+			},
+			matrix:   &Matrix{},
+			expected: false,
+		},
+		{
+			name: "GitHub Issue #1",
+			tet: &Tetrimino{
+				Value: 'J',
+				Cells: [][]bool{
+					{true, true},
+					{false, true},
+					{false, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['J'],
+			},
+			matrix: &Matrix{
+				{}, {'X'},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.matrix.AddTetrimino(tc.tet)
+			if err != nil {
+				t.Errorf("Failed to add tetrimino: got error, want nil")
+			}
+
+			result := tc.tet.CanMoveDown(*tc.matrix)
+
+			if result != tc.expected {
+				t.Errorf("got %v, want %v", result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestTetrimino_CanMoveLeft(t *testing.T) {
+	tt := []struct {
+		name     string
+		tet      *Tetrimino
+		matrix   *Matrix
+		expected bool
+	}{
+		{
+			name: "Z, can, starting position",
+			tet: &Tetrimino{
+				Value: 'Z',
+				Cells: [][]bool{
+					{true, true, false},
+					{false, true, true},
+				},
+				Pos:             Coordinate{X: 3, Y: 18},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['6'],
+			},
+			matrix:   &Matrix{},
+			expected: true,
+		},
+		{
+			name: "O, cannot, blocking tetrimino",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 1, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['O'],
+			},
+			matrix: &Matrix{
+				{'X'},
+			},
+			expected: false,
+		},
+		{
 			name: "O, cannot, end of matrix",
 			tet: &Tetrimino{
 				Value: 'O',
@@ -387,6 +477,23 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 			matrix:   &Matrix{},
 			expected: false,
 		},
+		{
+			name: "GitHub Issue #1",
+			tet: &Tetrimino{
+				Value: 'L',
+				Cells: [][]bool{
+					{false, false, true},
+					{true, true, true},
+				},
+				Pos:             Coordinate{X: 1, Y: 0},
+				CurrentRotation: 3,
+				RotationCoords:  RotationCoords['J'],
+			},
+			matrix: &Matrix{
+				{'X', 'X', 'X'},
+			},
+			expected: false,
+		},
 	}
 
 	for _, tc := range tt {
@@ -396,7 +503,96 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 				t.Errorf("Failed to add tetrimino: got error, want nil")
 			}
 
-			result := tc.tet.CanMoveDown(*tc.matrix)
+			result := tc.tet.canMoveLeft(*tc.matrix)
+
+			if result != tc.expected {
+				t.Errorf("got %v, want %v", result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestTetrimino_CanMoveRight(t *testing.T) {
+	tt := []struct {
+		name     string
+		tet      *Tetrimino
+		matrix   *Matrix
+		expected bool
+	}{
+		{
+			name: "Z, can, starting position",
+			tet: &Tetrimino{
+				Value: 'Z',
+				Cells: [][]bool{
+					{true, true, false},
+					{false, true, true},
+				},
+				Pos:             Coordinate{X: 3, Y: 18},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['6'],
+			},
+			matrix:   &Matrix{},
+			expected: true,
+		},
+		{
+			name: "O, cannot, blocking tetrimino",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['O'],
+			},
+			matrix: &Matrix{
+				{0, 0, 'X'},
+			},
+			expected: false,
+		},
+		{
+			name: "O, cannot, end of matrix",
+			tet: &Tetrimino{
+				Value: 'O',
+				Cells: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:             Coordinate{X: 8, Y: 38},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['O'],
+			},
+			matrix:   &Matrix{},
+			expected: false,
+		},
+		{
+			name: "GitHub Issue #1",
+			tet: &Tetrimino{
+				Value: 'J',
+				Cells: [][]bool{
+					{true, false, false},
+					{true, true, true},
+				},
+				Pos:             Coordinate{X: 0, Y: 0},
+				CurrentRotation: 0,
+				RotationCoords:  RotationCoords['J'],
+			},
+			matrix: &Matrix{
+				{0, 'X', 'X', 'X'},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.matrix.AddTetrimino(tc.tet)
+			if err != nil {
+				t.Errorf("Failed to add tetrimino: got error, want nil")
+			}
+
+			result := tc.tet.canMoveRight(*tc.matrix)
 
 			if result != tc.expected {
 				t.Errorf("got %v, want %v", result, tc.expected)
