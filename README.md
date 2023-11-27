@@ -12,19 +12,21 @@ Please feel free to open issues with suggestions, bugs, etc.
 
 ## TODO
 
-- High Score system
+Tasks marked with "MVP" are required for the "Minimum Viable Product". These are the tasks I want to complete before the next round of refactoring, thorough testing, etc.
+
+- (MVP) Game over conditions
+    - Game over screen
+- (MVP) High Score system
+- (MVP) Ghost piece
 - More game modes
     - Sprint
     - Ultra 
 - Multiplayer
-- Ghost piece
 - ~~Configuration file~~
 - Check for lockdown 0.5s after landing on a surface
     - Also on soft drop, but not on hard drop
     - This resets after each movement & rotation, for a total of 15 movements/rotations.
     - See "Extended Placement Lock Down"
-- Game over conditions
-    - Game over screen
 - ~~Drop one row immediately if nothing is blocking~~
 - ~~Pause ('P' key?)~~
 - ~~Fix Tetrimino rotation axis~~
