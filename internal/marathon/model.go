@@ -167,9 +167,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-			err := m.nextTetrimino()
+			gameOver, err := m.nextTetrimino()
 			if err != nil {
 				panic(fmt.Errorf("failed to get next tetrimino (tick): %w", err))
+			}
+			// TODO: Handle game over
+			if gameOver {
+				return m, func() tea.Msg {
+					return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("p")}
+				}
 			}
 		}
 	}
@@ -339,13 +345,26 @@ func (m *Model) lowerTetrimino() (bool, error) {
 	return false, nil
 }
 
-func (m *Model) nextTetrimino() error {
+func (m *Model) nextTetrimino() (bool, error) {
 	m.currentTet = m.bag.Next()
-	// TODO: Check if the game is over at the starting position
-	m.currentTet.Pos.Y++
+
+	// Block Out
+	if m.currentTet.IsOverlapping(&m.matrix) {
+		return true, nil
+	}
+
+	if m.currentTet.CanMoveDown(m.matrix) {
+		m.currentTet.Pos.Y++
+	} else {
+		// Lock Out
+		if m.currentTet.IsAbovePlayfield(len(m.matrix)) {
+			return true, nil
+		}
+	}
+
 	err := m.matrix.AddTetrimino(m.currentTet)
 	if err != nil {
-		return fmt.Errorf("failed to add tetrimino to matrix: %w", err)
+		return false, fmt.Errorf("failed to add tetrimino to matrix: %w", err)
 	}
 	m.canHold = true
 
@@ -353,10 +372,10 @@ func (m *Model) nextTetrimino() error {
 		m.startLine = m.currentTet.Pos.Y
 	}
 
-	return nil
+	return false, nil
 }
 
-func (m *Model) hardDrop() {
+func (m *Model) hardDrop() bool {
 	m.startLine = m.currentTet.Pos.Y
 	for {
 		finished, err := m.lowerTetrimino()
@@ -373,10 +392,11 @@ func (m *Model) hardDrop() {
 	}
 	m.startLine = len(m.matrix)
 
-	err := m.nextTetrimino()
+	gameOver, err := m.nextTetrimino()
 	if err != nil {
 		panic(fmt.Errorf("failed to get next tetrimino (hard drop): %w", err))
 	}
+	return gameOver
 }
 
 func (m *Model) toggleSoftDrop() {

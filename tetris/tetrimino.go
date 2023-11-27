@@ -394,3 +394,32 @@ func (t *Tetrimino) Copy() *Tetrimino {
 		RotationCoords:  rotationCoords,
 	}
 }
+
+func (t *Tetrimino) IsAbovePlayfield(matrixLength int) bool {
+	bufferZoneBottom := matrixLength - 21
+	for col := range t.Cells[0] {
+		for row := len(t.Cells) - 1; row >= 0; row-- {
+			if t.Cells[row][col] {
+				if t.Pos.Y+row > bufferZoneBottom {
+					return false
+				}
+				break
+			}
+		}
+	}
+	return true
+}
+
+func (t *Tetrimino) IsOverlapping(matrix *Matrix) bool {
+	for col := range t.Cells[0] {
+		for row := range t.Cells {
+			if t.Cells[row][col] {
+				if !isCellEmpty(matrix[row+t.Pos.Y][col+t.Pos.X]) {
+					return true
+				}
+				break
+			}
+		}
+	}
+	return false
+}
