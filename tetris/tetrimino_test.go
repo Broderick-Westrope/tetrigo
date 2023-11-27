@@ -1719,3 +1719,102 @@ func TestTetrimino_Copy(t *testing.T) {
 		t.Errorf("easy copy was modified: easy %v, manual %v", easyCopy, &manualCopy)
 	}
 }
+
+func TestTetrimino_IsAbovePlayfield(t *testing.T) {
+	tt := []struct {
+		name         string
+		matrixLength int
+		tet          *Tetrimino
+		expected     bool
+	}{
+		{
+			name:         "true, length 30",
+			matrixLength: 30,
+			tet: &Tetrimino{
+				Pos:   Coordinate{X: 0, Y: 9},
+				Cells: [][]bool{{true, true, true, true}},
+			},
+			expected: true,
+		},
+		{
+			name:         "true, length 40",
+			matrixLength: 40,
+			tet: &Tetrimino{
+				Pos:   Coordinate{X: 0, Y: 19},
+				Cells: [][]bool{{true, true, true, true}},
+			},
+			expected: true,
+		},
+		{
+			name:         "false, length 30",
+			matrixLength: 30,
+			tet: &Tetrimino{
+				Pos:   Coordinate{X: 0, Y: 10},
+				Cells: [][]bool{{true, true, true, true}},
+			},
+			expected: false,
+		},
+		{
+			name:         "false, length 40",
+			matrixLength: 40,
+			tet: &Tetrimino{
+				Pos:   Coordinate{X: 0, Y: 20},
+				Cells: [][]bool{{true, true, true, true}},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.tet.IsAbovePlayfield(tc.matrixLength)
+
+			if result != tc.expected {
+				t.Errorf("got %v, want %v", result, tc.expected)
+			}
+		})
+	}
+}
+
+func TestTetrimino_IsOverlapping(t *testing.T) {
+	tt := []struct {
+		name     string
+		tet      *Tetrimino
+		matrix   *Matrix
+		expected bool
+	}{
+		{
+			name: "true",
+			tet: &Tetrimino{
+				Pos:   Coordinate{X: 0, Y: 0},
+				Cells: [][]bool{{true, true, true, true}},
+			},
+			matrix: &Matrix{
+				{0, 'X'},
+			},
+			expected: true,
+		},
+		{
+			name: "false",
+			tet: &Tetrimino{
+				Pos:   Coordinate{X: 0, Y: 0},
+				Cells: [][]bool{{true, true, true, true}},
+			},
+			matrix: &Matrix{
+				{0, 0, 0, 0, 'X'},
+				{'X', 'X', 'X', 'X', 'X'},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := tc.tet.IsOverlapping(tc.matrix)
+
+			if result != tc.expected {
+				t.Errorf("got %v, want %v", result, tc.expected)
+			}
+		})
+	}
+}
