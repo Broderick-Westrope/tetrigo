@@ -166,6 +166,8 @@ func (t *Tetrimino) MoveRight(matrix *Matrix) error {
 	return nil
 }
 
+// Returns true if the tetrimino can move down one row.
+// This checks if the bottom row of the tetrimino is at the bottom of the matrix or if the cells below the bottom row are occupied.
 func (t *Tetrimino) CanMoveDown(matrix Matrix) bool {
 	bottomRow := len(t.Cells) - 1
 	for col := range t.Cells[bottomRow] {
@@ -233,7 +235,9 @@ func (t *Tetrimino) Rotate(matrix *Matrix, clockwise bool) error {
 	}
 
 	if rotated.canRotate(matrix) {
+		t.Pos = rotated.Pos
 		t.Cells = rotated.Cells
+		t.CurrentRotation = rotated.CurrentRotation
 	}
 
 	err = matrix.AddTetrimino(t)
