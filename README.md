@@ -25,9 +25,9 @@ Please feel free to open issues with suggestions, bugs, etc.
     - See "Extended Placement Lock Down"
 - Game over conditions
     - Game over screen
-- Drop one row immediately if nothing is blocking
+- ~~Drop one row immediately if nothing is blocking~~
 - Pause ('P' key?)
-- Fix 'I' Tetrimino rotation axis
+- ~~Fix Tetrimino rotation axis~~
 - Implement SRS (Super Rotation System)
 - Score points from soft & hard drops
 - T-Spins
