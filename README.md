@@ -26,8 +26,8 @@ Please feel free to open issues with suggestions, bugs, etc.
 - Game over conditions
     - Game over screen
 - ~~Drop one row immediately if nothing is blocking~~
-- Pause ('P' key?)
+- ~~Pause ('P' key?)~~
 - ~~Fix Tetrimino rotation axis~~
 - Implement SRS (Super Rotation System)
-- Score points from soft & hard drops
+- ~~Score points from soft & hard drops~~
 - T-Spins

@@ -21,15 +21,6 @@ func (f *fall) calculateFallSpeeds(level uint) {
 	f.softDropTime = time.Microsecond * time.Duration(speed/10)
 }
 
-func (f *fall) toggleSoftDrop() {
-	f.isSoftDrop = !f.isSoftDrop
-	if f.isSoftDrop {
-		f.stopwatch.Interval = f.softDropTime
-		return
-	}
-	f.stopwatch.Interval = f.defaultTime
-}
-
 func defaultFall(level uint) *fall {
 	f := fall{}
 	f.calculateFallSpeeds(level)

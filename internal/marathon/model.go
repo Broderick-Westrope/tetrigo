@@ -32,6 +32,8 @@ type Model struct {
 	timer      stopwatch.Model
 	cfg        *config.Config
 	fullscreen *FullscreenInfo
+	paused     bool
+	startLine  int
 }
 
 func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
@@ -50,6 +52,7 @@ func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
 		},
 		canHold: true,
 		timer:   stopwatch.NewWithInterval(time.Millisecond),
+		paused:  false,
 	}
 	m.bag = tetris.NewBag(len(m.matrix))
 	m.fall = defaultFall(level)
@@ -73,6 +76,8 @@ func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
 		m.styles.ProgramFullscreen.Width(fullscreen.Width).Height(fullscreen.Height)
 	}
 
+	m.startLine = len(m.matrix)
+
 	return m
 }
 
@@ -81,15 +86,40 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
+	m.timer, cmd = m.timer.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.fall.stopwatch, cmd = m.fall.stopwatch.Update(msg)
+	cmds = append(cmds, cmd)
+
+	// Operations that can be performed all the time
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
+		case key.Matches(msg, m.keys.Pause):
+			m.paused = !m.paused
+			cmds = append(cmds, m.timer.Toggle())
+			cmds = append(cmds, m.fall.stopwatch.Toggle())
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
+		}
+	case tea.WindowSizeMsg:
+		m.styles.ProgramFullscreen.Width(msg.Width).Height(msg.Height)
+	}
+
+	if m.paused {
+		return m, tea.Batch(cmds...)
+	}
+
+	// Operations that can be performed when the game is not paused
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
 		case key.Matches(msg, m.keys.Left):
 			err := m.currentTet.MoveLeft(&m.matrix)
 			if err != nil {
@@ -111,18 +141,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				panic(fmt.Errorf("failed to rotate tetrimino counter-clockwise: %w", err))
 			}
 		case key.Matches(msg, m.keys.HardDrop):
-			for {
-				finished, err := m.lowerTetrimino()
-				if err != nil {
-					panic(fmt.Errorf("failed to lower tetrimino (hard drop): %w", err))
-				}
-				if finished {
-					cmds = append(cmds, m.fall.stopwatch.Reset())
-					break
-				}
-			}
+			m.hardDrop()
+			cmds = append(cmds, m.fall.stopwatch.Reset())
 		case key.Matches(msg, m.keys.SoftDrop):
-			m.fall.toggleSoftDrop()
+			m.toggleSoftDrop()
 		case key.Matches(msg, m.keys.Hold):
 			err := m.holdTetrimino()
 			if err != nil {
@@ -133,21 +155,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.fall.stopwatch.ID() != msg.ID {
 			break
 		}
-		_, err := m.lowerTetrimino()
+		finished, err := m.lowerTetrimino()
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
-	case tea.WindowSizeMsg:
-		m.styles.ProgramFullscreen.Width(msg.Width).Height(msg.Height)
+		if finished {
+			if m.fall.isSoftDrop {
+				linesCleared := m.currentTet.Pos.Y - m.startLine
+				if linesCleared > 0 {
+					m.scoring.AddSoftDrop(uint(linesCleared))
+				}
+			}
+
+			err := m.nextTetrimino()
+			if err != nil {
+				panic(fmt.Errorf("failed to get next tetrimino (tick): %w", err))
+			}
+		}
 	}
-
-	var cmd tea.Cmd
-
-	m.timer, cmd = m.timer.Update(msg)
-	cmds = append(cmds, cmd)
-
-	m.fall.stopwatch, cmd = m.fall.stopwatch.Update(msg)
-	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
 }
@@ -186,6 +211,11 @@ func (m *Model) matrixView() string {
 }
 
 func (m *Model) informationView() string {
+	header := ""
+	if m.paused {
+		header = lipgloss.NewStyle().Bold(true).Render("** PAUSED **")
+	}
+
 	var output string
 	output += fmt.Sprintln("Score: ", m.scoring.Total())
 	output += fmt.Sprintln("Level: ", m.scoring.Level())
@@ -202,7 +232,7 @@ func (m *Model) informationView() string {
 		output += fmt.Sprintf("%06.3f\n", elapsed)
 	}
 
-	return m.styles.Information.Render(output)
+	return m.styles.Information.Render(lipgloss.JoinVertical(lipgloss.Left, header, output))
 }
 
 func (m *Model) holdView() string {
@@ -298,14 +328,6 @@ func (m *Model) lowerTetrimino() (bool, error) {
 	if !m.currentTet.CanMoveDown(m.matrix) {
 		action := m.matrix.RemoveCompletedLines(m.currentTet)
 		m.scoring.ProcessAction(action, m.cfg.MaxLevel)
-		m.currentTet = m.bag.Next()
-		// TODO: Check if the game is over at the starting position
-		m.currentTet.Pos.Y++
-		err := m.matrix.AddTetrimino(m.currentTet)
-		if err != nil {
-			return false, fmt.Errorf("failed to add tetrimino to matrix: %w", err)
-		}
-		m.canHold = true
 		return true, nil
 	}
 
@@ -315,4 +337,59 @@ func (m *Model) lowerTetrimino() (bool, error) {
 	}
 
 	return false, nil
+}
+
+func (m *Model) nextTetrimino() error {
+	m.currentTet = m.bag.Next()
+	// TODO: Check if the game is over at the starting position
+	m.currentTet.Pos.Y++
+	err := m.matrix.AddTetrimino(m.currentTet)
+	if err != nil {
+		return fmt.Errorf("failed to add tetrimino to matrix: %w", err)
+	}
+	m.canHold = true
+
+	if m.fall.isSoftDrop {
+		m.startLine = m.currentTet.Pos.Y
+	}
+
+	return nil
+}
+
+func (m *Model) hardDrop() {
+	m.startLine = m.currentTet.Pos.Y
+	for {
+		finished, err := m.lowerTetrimino()
+		if err != nil {
+			panic(fmt.Errorf("failed to lower tetrimino (hard drop): %w", err))
+		}
+		if finished {
+			break
+		}
+	}
+	linesCleared := m.currentTet.Pos.Y - m.startLine
+	if linesCleared > 0 {
+		m.scoring.AddHardDrop(uint(m.currentTet.Pos.Y - m.startLine))
+	}
+	m.startLine = len(m.matrix)
+
+	err := m.nextTetrimino()
+	if err != nil {
+		panic(fmt.Errorf("failed to get next tetrimino (hard drop): %w", err))
+	}
+}
+
+func (m *Model) toggleSoftDrop() {
+	m.fall.isSoftDrop = !m.fall.isSoftDrop
+	if m.fall.isSoftDrop {
+		m.fall.stopwatch.Interval = m.fall.softDropTime
+		m.startLine = m.currentTet.Pos.Y
+		return
+	}
+	m.fall.stopwatch.Interval = m.fall.defaultTime
+	linesCleared := m.currentTet.Pos.Y - m.startLine
+	if linesCleared > 0 {
+		m.scoring.AddSoftDrop(uint(linesCleared))
+	}
+	m.startLine = len(m.matrix)
 }

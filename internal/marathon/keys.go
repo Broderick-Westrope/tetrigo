@@ -12,6 +12,7 @@ type keyMap struct {
 	SoftDrop         key.Binding
 	HardDrop         key.Binding
 	Hold             key.Binding
+	Pause            key.Binding
 }
 
 func defaultKeyMap() *keyMap {
@@ -25,6 +26,7 @@ func defaultKeyMap() *keyMap {
 		SoftDrop:         key.NewBinding(key.WithKeys("s", "k"), key.WithHelp("s, k", "toggle soft drop")),
 		HardDrop:         key.NewBinding(key.WithKeys("w", "i"), key.WithHelp("w, i", "hard drop")),
 		Hold:             key.NewBinding(key.WithKeys(" "), key.WithHelp("space", "hold")),
+		Pause:            key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "pause")),
 	}
 }
 
