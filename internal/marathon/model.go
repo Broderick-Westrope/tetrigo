@@ -19,21 +19,23 @@ type FullscreenInfo struct {
 }
 
 type Model struct {
-	matrix     tetris.Matrix
-	styles     *Styles
-	help       help.Model
-	keys       *keyMap
-	currentTet *tetris.Tetrimino
-	holdTet    *tetris.Tetrimino
-	canHold    bool
-	fall       *fall
-	scoring    *tetris.Scoring
-	bag        *tetris.Bag
-	timer      stopwatch.Model
-	cfg        *config.Config
-	fullscreen *FullscreenInfo
-	paused     bool
-	startLine  int
+	matrix            tetris.Matrix
+	styles            *Styles
+	help              help.Model
+	keys              *keyMap
+	currentTet        *tetris.Tetrimino
+	holdTet           *tetris.Tetrimino
+	canHold           bool
+	fall              *fall
+	scoring           *tetris.Scoring
+	bag               *tetris.Bag
+	timer             stopwatch.Model
+	cfg               *config.Config
+	fullscreen        *FullscreenInfo
+	paused            bool
+	startLine         int
+	gameOver          bool
+	gameOverStopwatch stopwatch.Model
 }
 
 func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
@@ -50,9 +52,10 @@ func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
 			},
 			Value: 0,
 		},
-		canHold: true,
-		timer:   stopwatch.NewWithInterval(time.Millisecond),
-		paused:  false,
+		canHold:  true,
+		timer:    stopwatch.NewWithInterval(time.Millisecond),
+		paused:   false,
+		gameOver: false,
 	}
 	m.bag = tetris.NewBag(len(m.matrix))
 	m.fall = defaultFall(level)
@@ -102,6 +105,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Pause):
+			if m.gameOver {
+				break
+			}
 			m.paused = !m.paused
 			cmds = append(cmds, m.timer.Toggle())
 			cmds = append(cmds, m.fall.stopwatch.Toggle())
@@ -110,9 +116,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		m.styles.ProgramFullscreen.Width(msg.Width).Height(msg.Height)
+	case stopwatch.TickMsg:
+		if m.gameOverStopwatch.ID() != msg.ID {
+			break
+		}
+		// TODO: Redirect to game over / leaderboard screen
+		return m, tea.Quit
 	}
 
-	if m.paused {
+	if m.paused || m.gameOver {
 		return m, tea.Batch(cmds...)
 	}
 
@@ -171,11 +183,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				panic(fmt.Errorf("failed to get next tetrimino (tick): %w", err))
 			}
-			// TODO: Handle game over
+
 			if gameOver {
-				return m, func() tea.Msg {
-					return tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("p")}
-				}
+				m.gameOver = true
+				cmds = append(cmds, m.timer.Toggle())
+				cmds = append(cmds, m.fall.stopwatch.Toggle())
+				m.gameOverStopwatch = stopwatch.NewWithInterval(time.Second * 5)
+				cmds = append(cmds, m.gameOverStopwatch.Start())
 			}
 		}
 	}
@@ -217,9 +231,14 @@ func (m *Model) matrixView() string {
 }
 
 func (m *Model) informationView() string {
-	header := ""
-	if m.paused {
-		header = lipgloss.NewStyle().Bold(true).Render("** PAUSED **")
+	var header string
+	headerStyle := lipgloss.NewStyle().Width(m.styles.Information.GetWidth()).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
+	if m.gameOver {
+		header = headerStyle.Render("GAME OVER")
+	} else if m.paused {
+		header = headerStyle.Render("PAUSED")
+	} else {
+		header = headerStyle.Render("RUNNING")
 	}
 
 	var output string
