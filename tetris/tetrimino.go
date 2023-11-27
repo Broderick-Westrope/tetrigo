@@ -167,16 +167,18 @@ func (t *Tetrimino) MoveRight(matrix *Matrix) error {
 }
 
 // Returns true if the tetrimino can move down one row.
-// This checks if the bottom row of the tetrimino is at the bottom of the matrix or if the cells below the bottom row are occupied.
+// This gets the lowest cell in each column of the tetrimino, and checks if it is at the bottom of the matrix or if the cell below is occupied.
 func (t *Tetrimino) CanMoveDown(matrix Matrix) bool {
-	bottomRow := len(t.Cells) - 1
-	for col := range t.Cells[bottomRow] {
-		if t.Cells[bottomRow][col] {
-			if bottomRow+t.Pos.Y+1 >= len(matrix) {
-				return false
-			}
-			if !isCellEmpty(matrix[bottomRow+t.Pos.Y+1][col+t.Pos.X]) {
-				return false
+	for col := range t.Cells[0] {
+		for row := len(t.Cells) - 1; row >= 0; row-- {
+			if t.Cells[row][col] {
+				if row+t.Pos.Y+1 >= len(matrix) {
+					return false
+				}
+				if !isCellEmpty(matrix[row+t.Pos.Y+1][col+t.Pos.X]) {
+					return false
+				}
+				break
 			}
 		}
 	}
@@ -184,14 +186,16 @@ func (t *Tetrimino) CanMoveDown(matrix Matrix) bool {
 }
 
 func (t *Tetrimino) canMoveLeft(matrix Matrix) bool {
-	leftCol := 0
 	for row := range t.Cells {
-		if t.Cells[row][leftCol] {
-			if leftCol+t.Pos.X-1 < 0 {
-				return false
-			}
-			if !isCellEmpty(matrix[row+t.Pos.Y][leftCol+t.Pos.X-1]) {
-				return false
+		for col := range t.Cells[row] {
+			if t.Cells[row][col] {
+				if col+t.Pos.X-1 < 0 {
+					return false
+				}
+				if !isCellEmpty(matrix[row+t.Pos.Y][col+t.Pos.X-1]) {
+					return false
+				}
+				break
 			}
 		}
 	}
@@ -199,14 +203,16 @@ func (t *Tetrimino) canMoveLeft(matrix Matrix) bool {
 }
 
 func (t *Tetrimino) canMoveRight(matrix Matrix) bool {
-	rightCol := len(t.Cells[0]) - 1
 	for row := range t.Cells {
-		if t.Cells[row][rightCol] {
-			if rightCol+t.Pos.X+1 >= len(matrix[0]) {
-				return false
-			}
-			if !isCellEmpty(matrix[row+t.Pos.Y][rightCol+t.Pos.X+1]) {
-				return false
+		for col := len(t.Cells[row]) - 1; col >= 0; col-- {
+			if t.Cells[row][col] {
+				if col+t.Pos.X+1 >= len(matrix[0]) {
+					return false
+				}
+				if !isCellEmpty(matrix[row+t.Pos.Y][col+t.Pos.X+1]) {
+					return false
+				}
+				break
 			}
 		}
 	}
