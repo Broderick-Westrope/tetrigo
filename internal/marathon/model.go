@@ -353,6 +353,7 @@ func (m *Model) lowerTetrimino() (bool, error) {
 	if !m.currentTet.CanMoveDown(m.matrix) {
 		action := m.matrix.RemoveCompletedLines(m.currentTet)
 		m.scoring.ProcessAction(action, m.cfg.MaxLevel)
+		m.fall.calculateFallSpeeds(m.scoring.Level())
 		return true, nil
 	}
 
