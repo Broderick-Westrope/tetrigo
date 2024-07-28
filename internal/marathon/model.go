@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
-	tetris2 "github.com/Broderick-Westrope/tetrigo/pkg/tetris"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
@@ -19,16 +19,16 @@ type FullscreenInfo struct {
 }
 
 type Model struct {
-	matrix            tetris2.Matrix
+	matrix            tetris.Matrix
 	styles            *Styles
 	help              help.Model
 	keys              *keyMap
-	currentTet        *tetris2.Tetrimino
-	holdTet           *tetris2.Tetrimino
+	currentTet        *tetris.Tetrimino
+	holdTet           *tetris.Tetrimino
 	canHold           bool
 	fall              *fall
-	scoring           *tetris2.Scoring
-	bag               *tetris2.Bag
+	scoring           *tetris.Scoring
+	bag               *tetris.Bag
 	timer             stopwatch.Model
 	cfg               *config.Config
 	fullscreen        *FullscreenInfo
@@ -40,12 +40,12 @@ type Model struct {
 
 func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
 	m := &Model{
-		matrix:  tetris2.Matrix{},
+		matrix:  tetris.Matrix{},
 		styles:  defaultStyles(),
 		help:    help.New(),
 		keys:    defaultKeyMap(),
-		scoring: tetris2.NewScoring(level),
-		holdTet: &tetris2.Tetrimino{
+		scoring: tetris.NewScoring(level),
+		holdTet: &tetris.Tetrimino{
 			Cells: [][]bool{
 				{false, false, false},
 				{false, false, false},
@@ -57,7 +57,7 @@ func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
 		paused:   false,
 		gameOver: false,
 	}
-	m.bag = tetris2.NewBag(len(m.matrix))
+	m.bag = tetris.NewBag(len(m.matrix))
 	m.fall = defaultFall(level)
 	m.currentTet = m.bag.Next()
 	// TODO: Check if the game is over at the starting position
@@ -84,11 +84,11 @@ func InitialModel(level uint, fullscreen *FullscreenInfo) *Model {
 	return m
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init())
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -197,7 +197,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	var output = lipgloss.JoinHorizontal(lipgloss.Top,
 		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView()),
 		m.matrixView(),
@@ -278,7 +278,7 @@ func (m *Model) bagView() string {
 	return m.styles.Bag.Render(output)
 }
 
-func (m *Model) renderTetrimino(t *tetris2.Tetrimino, background byte) string {
+func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	var output string
 	for row := range t.Cells {
 		for col := range t.Cells[row] {
@@ -327,7 +327,7 @@ func (m *Model) holdTetrimino() error {
 
 	// Reset the position of the hold tetrimino
 	var found bool
-	for _, t := range tetris2.Tetriminos {
+	for _, t := range tetris.Tetriminos {
 		if t.Value == m.holdTet.Value {
 			m.holdTet.Pos = t.Pos
 			m.holdTet.Pos.Y += (len(m.matrix) - 20)
