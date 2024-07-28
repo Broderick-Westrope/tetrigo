@@ -23,6 +23,16 @@ type setting struct {
 	index   int
 }
 
+type Input struct {
+	isFullscreen bool
+}
+
+func NewInput(isFullscreen bool) *Input {
+	return &Input{
+		isFullscreen: isFullscreen,
+	}
+}
+
 type Model struct {
 	settings     []setting
 	settingIndex int
@@ -36,7 +46,7 @@ type Model struct {
 	isFullscreen bool
 }
 
-func InitialModel(isFullscreen bool) *Model {
+func InitialModel(in *Input) *Model {
 	m := Model{
 		settings: []setting{
 			{
@@ -60,7 +70,7 @@ func InitialModel(isFullscreen bool) *Model {
 		styles:       defaultStyles(),
 		mode:         modeMenu,
 		help:         help.New(),
-		isFullscreen: isFullscreen,
+		isFullscreen: in.isFullscreen,
 	}
 	return &m
 }
@@ -195,16 +205,7 @@ func (m *Model) startGame() (tea.Cmd, error) {
 	switch mode {
 	case "Marathon":
 		m.mode = modeGame
-
-		var fullscreen *marathon.FullscreenInfo
-		if m.isFullscreen {
-			fullscreen = &marathon.FullscreenInfo{
-				Width:  m.styles.programFullscreen.GetWidth(),
-				Height: m.styles.programFullscreen.GetHeight(),
-			}
-		}
-
-		m.game = marathon.InitialModel(level, fullscreen)
+		m.game = marathon.InitialModel(marathon.NewInput(m.isFullscreen, level))
 		return m.game.Init(), nil
 	}
 	return nil, fmt.Errorf("invalid mode: %v", mode)

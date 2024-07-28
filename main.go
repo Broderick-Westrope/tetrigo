@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/marathon"
-	"github.com/Broderick-Westrope/tetrigo/internal/menu"
+	"github.com/Broderick-Westrope/tetrigo/internal/starter"
 	"github.com/alecthomas/kong"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -20,29 +20,27 @@ var cli struct {
 	} `cmd:"" help:"Play marathon mode"`
 }
 
-func main() {
-	ctx := kong.Parse(&cli)
-	switch ctx.Command() {
-	case "menu":
-		startTeaModel(menu.InitialModel(cli.Menu.Fullscreen))
-	case "marathon":
-		var fullscreen *marathon.FullscreenInfo
-		if cli.Marathon.Fullscreen {
-			fullscreen = &marathon.FullscreenInfo{
-				Width:  0,
-				Height: 0,
-			}
-		}
-
-		startTeaModel(marathon.InitialModel(cli.Marathon.Level, fullscreen))
-	default:
-		panic(ctx.Command())
-	}
+var subcommandToStarterMode = map[string]starter.Mode{
+	"menu":     starter.MODE_MENU,
+	"marathon": starter.MODE_MARATHON,
 }
 
-func startTeaModel(m tea.Model) {
-	p := tea.NewProgram(m, tea.WithAltScreen())
-	if _, err := p.Run(); err != nil {
+func main() {
+	ctx := kong.Parse(&cli)
+
+	starterMode, ok := subcommandToStarterMode[ctx.Command()]
+	if !ok {
+		fmt.Printf("Invalid command: %s\n", ctx.Command())
+	}
+
+	model, err := starter.InitialModel(
+		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level))
+	if err != nil {
+		log.Printf("error creating starter model: %v", err)
+		os.Exit(1)
+	}
+
+	if _, err = tea.NewProgram(model, tea.WithAltScreen()).Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	}

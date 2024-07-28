@@ -14,13 +14,15 @@ import (
 )
 
 type Input struct {
-	fullscreenInfo *FullscreenInfo
-	level          uint
+	isFullscreen bool
+	level        uint
 }
 
-type FullscreenInfo struct {
-	Width  int
-	Height int
+func NewInput(isFullscreen bool, level uint) *Input {
+	return &Input{
+		isFullscreen: isFullscreen,
+		level:        level,
+	}
 }
 
 type Model struct {
@@ -36,7 +38,7 @@ type Model struct {
 	bag               *tetris.Bag
 	timer             stopwatch.Model
 	cfg               *config.Config
-	fullscreen        *FullscreenInfo
+	isFullscreen      bool
 	paused            bool
 	startLine         int
 	gameOver          bool
@@ -57,10 +59,11 @@ func InitialModel(in *Input) *Model {
 			},
 			Value: 0,
 		},
-		canHold:  true,
-		timer:    stopwatch.NewWithInterval(time.Millisecond),
-		paused:   false,
-		gameOver: false,
+		canHold:      true,
+		timer:        stopwatch.NewWithInterval(time.Millisecond),
+		paused:       false,
+		gameOver:     false,
+		isFullscreen: in.isFullscreen,
 	}
 	m.bag = tetris.NewBag(len(m.matrix))
 	m.fall = defaultFall(in.level)
@@ -79,9 +82,8 @@ func InitialModel(in *Input) *Model {
 	m.styles = CreateStyles(&cfg.Theme)
 	m.cfg = cfg
 
-	if fullscreen := in.fullscreenInfo; fullscreen != nil {
-		m.fullscreen = fullscreen
-		m.styles.ProgramFullscreen.Width(fullscreen.Width).Height(fullscreen.Height)
+	if in.isFullscreen {
+		m.styles.ProgramFullscreen.Width(0).Height(0)
 	}
 
 	m.startLine = len(m.matrix)
@@ -173,7 +175,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.fall.stopwatch.ID() != msg.ID {
 			break
 		}
-		m, finished, err := m.lowerTetrimino()
+		newModel, finished, err := m.lowerTetrimino()
+		m = newModel
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
@@ -212,7 +215,7 @@ func (m Model) View() string {
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
 
-	if m.fullscreen != nil {
+	if m.isFullscreen {
 		return m.styles.ProgramFullscreen.Render(output)
 	}
 	return output
