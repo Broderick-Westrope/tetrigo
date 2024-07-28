@@ -2,15 +2,19 @@ version: '3'
 
 tasks:
   build:
+    desc: Build the binary
     cmds:
       - go build -v -o ./bin/ {{.CLI_ARGS}} ./...
   test:
+    desc: Run tests
     cmds:
       - go test -cover {{.CLI_ARGS}} ./...
   run:
+    desc: Run the Go project
     cmds:
       - go run . {{.CLI_ARGS}}
   cover:
+    desc: Run tests with coverage
     cmds:
       - go test -coverprofile=cover.out {{.CLI_ARGS}} ./...
       - go tool cover -html=cover.out
