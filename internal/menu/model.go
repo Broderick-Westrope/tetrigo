@@ -29,6 +29,8 @@ func NewInput(isFullscreen bool) *Input {
 	}
 }
 
+var _ tea.Model = Model{}
+
 type Model struct {
 	settings     []setting
 	settingIndex int

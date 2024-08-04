@@ -24,6 +24,8 @@ func NewInput(isFullscreen bool, level uint) *Input {
 	}
 }
 
+var _ tea.Model = Model{}
+
 type Model struct {
 	matrix            tetris.Matrix
 	styles            *Styles

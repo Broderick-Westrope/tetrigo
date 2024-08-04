@@ -5,6 +5,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+var _ tea.Model = Model{}
+
 type Model struct {
 	input *Input
 	child tea.Model
@@ -25,7 +27,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case internal.SwitchModeMsg:
 		m.child = m.input.getChild(msg.Target)
-		return m, nil
+		return m, m.child.Init()
 	}
 
 	var cmd tea.Cmd
