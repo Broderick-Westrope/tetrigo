@@ -5,7 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-var _ tea.Model = Model{}
+var _ tea.Model = &Model{}
 
 type Model struct {
 	input *Input
@@ -19,11 +19,11 @@ func InitialModel(in *Input) (*Model, error) {
 	}, nil
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return m.child.Init()
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case internal.SwitchModeMsg:
 		m.child = m.input.getChild(msg.Target)
@@ -35,6 +35,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	return m.child.View()
 }

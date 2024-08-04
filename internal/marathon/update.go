@@ -11,7 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -80,13 +80,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				panic(fmt.Errorf("failed to rotate tetrimino counter-clockwise: %w", err))
 			}
 		case key.Matches(msg, m.keys.HardDrop):
-			m.hardDrop()
+			// TODO: handle hard drop game over
+			_, err := m.hardDrop()
+			if err != nil {
+				panic(fmt.Errorf("failed to hard drop: %w", err))
+			}
 			cmds = append(cmds, m.fall.stopwatch.Reset())
 		case key.Matches(msg, m.keys.SoftDrop):
 			m.toggleSoftDrop()
 		case key.Matches(msg, m.keys.Hold):
-			newModel, err := m.holdTetrimino()
-			m = newModel
+			err := m.holdTetrimino()
 			if err != nil {
 				panic(fmt.Errorf("failed to hold tetrimino: %w", err))
 			}
@@ -95,8 +98,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.fall.stopwatch.ID() != msg.ID {
 			break
 		}
-		newModel, finished, err := m.lowerTetrimino()
-		m = newModel
+		finished, err := m.lowerTetrimino()
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
@@ -108,7 +110,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-			m, gameOver, err := m.nextTetrimino()
+			gameOver, err := m.nextTetrimino()
 			if err != nil {
 				panic(fmt.Errorf("failed to get next tetrimino (tick): %w", err))
 			}
@@ -126,9 +128,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) holdTetrimino() (Model, error) {
+func (m *Model) holdTetrimino() error {
 	if !m.canHold {
-		return m, nil
+		return nil
 	}
 
 	// Swap the current tetrimino with the hold tetrimino
@@ -139,7 +141,9 @@ func (m Model) holdTetrimino() (Model, error) {
 		m.holdTet, m.currentTet = m.currentTet, m.holdTet
 	}
 
-	m.matrix.RemoveTetrimino(m.holdTet)
+	if err := m.matrix.RemoveTetrimino(m.holdTet); err != nil {
+		return fmt.Errorf("failed to remove hold tetrimino from matrix: %w", err)
+	}
 
 	// Reset the position of the hold tetrimino
 	var found bool
@@ -152,41 +156,41 @@ func (m Model) holdTetrimino() (Model, error) {
 		}
 	}
 	if !found {
-		return m, fmt.Errorf("failed to find tetrimino with value '%v'", m.currentTet.Value)
+		return fmt.Errorf("failed to find tetrimino with value '%v'", m.currentTet.Value)
 	}
 
 	// Add the current tetrimino to the matrix
 	err := m.matrix.AddTetrimino(m.currentTet)
 	if err != nil {
-		return m, fmt.Errorf("failed to add tetrimino to matrix: %w", err)
+		return fmt.Errorf("failed to add tetrimino to matrix: %w", err)
 	}
 
 	m.canHold = false
-	return m, nil
+	return nil
 }
 
-func (m Model) lowerTetrimino() (Model, bool, error) {
+func (m *Model) lowerTetrimino() (bool, error) {
 	if !m.currentTet.CanMoveDown(m.matrix) {
 		action := m.matrix.RemoveCompletedLines(m.currentTet)
 		m.scoring.ProcessAction(action, m.cfg.MaxLevel)
 		m.fall.calculateFallSpeeds(m.scoring.Level())
-		return m, true, nil
+		return true, nil
 	}
 
 	err := m.currentTet.MoveDown(&m.matrix)
 	if err != nil {
-		return m, false, fmt.Errorf("failed to move tetrimino down: %w", err)
+		return false, fmt.Errorf("failed to move tetrimino down: %w", err)
 	}
 
-	return m, false, nil
+	return false, nil
 }
 
-func (m Model) nextTetrimino() (Model, bool, error) {
+func (m *Model) nextTetrimino() (bool, error) {
 	m.currentTet = m.bag.Next()
 
 	// Block Out
 	if m.currentTet.IsOverlapping(&m.matrix) {
-		return m, true, nil
+		return true, nil
 	}
 
 	if m.currentTet.CanMoveDown(m.matrix) {
@@ -194,12 +198,12 @@ func (m Model) nextTetrimino() (Model, bool, error) {
 	} else {
 		// Lock Out
 		if m.currentTet.IsAbovePlayfield(len(m.matrix)) {
-			return m, true, nil
+			return true, nil
 		}
 	}
 
 	if err := m.matrix.AddTetrimino(m.currentTet); err != nil {
-		return m, false, fmt.Errorf("failed to add tetrimino to matrix: %w", err)
+		return false, fmt.Errorf("failed to add tetrimino to matrix: %w", err)
 	}
 	m.canHold = true
 
@@ -207,16 +211,15 @@ func (m Model) nextTetrimino() (Model, bool, error) {
 		m.startLine = m.currentTet.Pos.Y
 	}
 
-	return m, false, nil
+	return false, nil
 }
 
-func (m Model) hardDrop() (Model, bool) {
+func (m *Model) hardDrop() (bool, error) {
 	m.startLine = m.currentTet.Pos.Y
 	for {
-		newModel, finished, err := m.lowerTetrimino()
-		m = newModel
+		finished, err := m.lowerTetrimino()
 		if err != nil {
-			panic(fmt.Errorf("failed to lower tetrimino (hard drop): %w", err))
+			return false, fmt.Errorf("failed to lower tetrimino (hard drop): %w", err)
 		}
 		if finished {
 			break
@@ -228,14 +231,14 @@ func (m Model) hardDrop() (Model, bool) {
 	}
 	m.startLine = len(m.matrix)
 
-	m, gameOver, err := m.nextTetrimino()
+	gameOver, err := m.nextTetrimino()
 	if err != nil {
-		panic(fmt.Errorf("failed to get next tetrimino (hard drop): %w", err))
+		return gameOver, fmt.Errorf("failed to get next tetrimino (hard drop): %w", err)
 	}
-	return m, gameOver
+	return gameOver, nil
 }
 
-func (m Model) toggleSoftDrop() {
+func (m *Model) toggleSoftDrop() {
 	m.fall.isSoftDrop = !m.fall.isSoftDrop
 	if m.fall.isSoftDrop {
 		m.fall.stopwatch.Interval = m.fall.softDropTime

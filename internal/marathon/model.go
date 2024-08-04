@@ -24,7 +24,7 @@ func NewInput(isFullscreen bool, level uint) *Input {
 	}
 }
 
-var _ tea.Model = Model{}
+var _ tea.Model = &Model{}
 
 type Model struct {
 	matrix            tetris.Matrix
@@ -92,11 +92,11 @@ func InitialModel(in *Input) *Model {
 	return m
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init())
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	var output = lipgloss.JoinHorizontal(lipgloss.Top,
 		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView()),
 		m.matrixView(),
@@ -111,7 +111,7 @@ func (m Model) View() string {
 	return output
 }
 
-func (m Model) matrixView() string {
+func (m *Model) matrixView() string {
 	var output string
 	for row := (len(m.matrix) - 20); row < len(m.matrix); row++ {
 		for col := range m.matrix[row] {
@@ -129,7 +129,7 @@ func (m Model) matrixView() string {
 	return lipgloss.JoinHorizontal(lipgloss.Center, m.styles.Playfield.Render(output), m.styles.RowIndicator.Render(rowIndicator))
 }
 
-func (m Model) informationView() string {
+func (m *Model) informationView() string {
 	var header string
 	headerStyle := lipgloss.NewStyle().Width(m.styles.Information.GetWidth()).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
 	if m.gameOver {
@@ -159,14 +159,14 @@ func (m Model) informationView() string {
 	return m.styles.Information.Render(lipgloss.JoinVertical(lipgloss.Left, header, output))
 }
 
-func (m Model) holdView() string {
+func (m *Model) holdView() string {
 	label := m.styles.Hold.Label.Render("Hold:")
 	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.holdTet, 1))
 	output := lipgloss.JoinVertical(lipgloss.Top, label, item)
 	return m.styles.Hold.View.Render(output)
 }
 
-func (m Model) bagView() string {
+func (m *Model) bagView() string {
 	output := "Next:\n"
 	for i, t := range m.bag.Elements {
 		if i >= m.cfg.QueueLength {
@@ -177,7 +177,7 @@ func (m Model) bagView() string {
 	return m.styles.Bag.Render(output)
 }
 
-func (m Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
+func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	var output string
 	for row := range t.Cells {
 		for col := range t.Cells[row] {
@@ -192,7 +192,7 @@ func (m Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	return output
 }
 
-func (m Model) renderCell(cell byte) string {
+func (m *Model) renderCell(cell byte) string {
 	switch cell {
 	case 0:
 		return m.styles.ColIndicator.Render(m.cfg.Theme.Characters.EmptyCell)
