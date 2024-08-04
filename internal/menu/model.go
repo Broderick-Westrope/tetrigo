@@ -142,7 +142,7 @@ func renderTitle() string {
 	return output
 }
 
-func (m *Model) renderSetting(index int, isSelected bool) string {
+func (m Model) renderSetting(index int, isSelected bool) string {
 	output := fmt.Sprintf("%v:\n", m.settings[index].name)
 	for i, option := range m.settings[index].options {
 		if i == m.settings[index].index {
@@ -161,7 +161,7 @@ func (m *Model) renderSetting(index int, isSelected bool) string {
 	return m.styles.settingUnselected.Render(output)
 }
 
-func (m *Model) startGame() (tea.Cmd, error) {
+func (m Model) startGame() (tea.Cmd, error) {
 	var level uint
 	var mode string
 	// var players uint

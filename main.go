@@ -35,7 +35,8 @@ func main() {
 	}
 
 	model, err := starter.InitialModel(
-		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level))
+		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level),
+	)
 	if err != nil {
 		log.Printf("error creating starter model: %v", err)
 		os.Exit(1)

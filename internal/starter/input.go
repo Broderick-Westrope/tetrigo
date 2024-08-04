@@ -4,6 +4,7 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal"
 	"github.com/Broderick-Westrope/tetrigo/internal/marathon"
 	"github.com/Broderick-Westrope/tetrigo/internal/menu"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Input struct {
@@ -26,4 +27,15 @@ func (in *Input) ToMarathonInput() *marathon.Input {
 
 func (in *Input) ToMenuInput() *menu.Input {
 	return menu.NewInput(in.isFullscreen)
+}
+
+func (in *Input) getChild(mode internal.Mode) tea.Model {
+	switch mode {
+	case internal.MODE_MENU:
+		return menu.InitialModel(in.ToMenuInput())
+	case internal.MODE_MARATHON:
+		return marathon.InitialModel(in.ToMarathonInput())
+	default:
+		panic("invalid mode")
+	}
 }
