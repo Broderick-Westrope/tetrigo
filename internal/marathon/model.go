@@ -46,7 +46,7 @@ type Model struct {
 	gameOverStopwatch stopwatch.Model
 }
 
-func InitialModel(in *Input) *Model {
+func NewModel(in *Input) *Model {
 	m := &Model{
 		matrix:  tetris.Matrix{},
 		styles:  defaultStyles(),

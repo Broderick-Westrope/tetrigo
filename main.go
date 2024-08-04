@@ -34,7 +34,7 @@ func main() {
 		fmt.Printf("Invalid command: %s\n", ctx.Command())
 	}
 
-	model, err := starter.InitialModel(
+	model, err := starter.NewModel(
 		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level),
 	)
 	if err != nil {

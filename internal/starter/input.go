@@ -32,9 +32,9 @@ func (in *Input) ToMenuInput() *menu.Input {
 func (in *Input) getChild(mode internal.Mode) tea.Model {
 	switch mode {
 	case internal.MODE_MENU:
-		return menu.InitialModel(in.ToMenuInput())
+		return menu.NewModel(in.ToMenuInput())
 	case internal.MODE_MARATHON:
-		return marathon.InitialModel(in.ToMarathonInput())
+		return marathon.NewModel(in.ToMarathonInput())
 	default:
 		panic("invalid mode")
 	}

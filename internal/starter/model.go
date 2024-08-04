@@ -12,7 +12,7 @@ type Model struct {
 	child tea.Model
 }
 
-func InitialModel(in *Input) (*Model, error) {
+func NewModel(in *Input) (*Model, error) {
 	return &Model{
 		input: in,
 		child: in.getChild(in.mode),

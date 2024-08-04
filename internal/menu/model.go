@@ -43,12 +43,12 @@ type Model struct {
 	isFullscreen bool
 }
 
-func InitialModel(in *Input) *Model {
+func NewModel(in *Input) *Model {
 	m := Model{
 		settings: []setting{
 			{
 				name:    "Level",
-				options: []option{1, 5, 10, 15},
+				options: []option{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 				index:   0,
 			},
 			{
