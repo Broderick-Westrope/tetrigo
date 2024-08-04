@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Broderick-Westrope/tetrigo/internal"
 	"github.com/Broderick-Westrope/tetrigo/internal/starter"
 	"github.com/alecthomas/kong"
 	tea "github.com/charmbracelet/bubbletea"
@@ -20,9 +21,9 @@ var cli struct {
 	} `cmd:"" help:"Play marathon mode"`
 }
 
-var subcommandToStarterMode = map[string]starter.Mode{
-	"menu":     starter.MODE_MENU,
-	"marathon": starter.MODE_MARATHON,
+var subcommandToStarterMode = map[string]internal.Mode{
+	"menu":     internal.MODE_MENU,
+	"marathon": internal.MODE_MARATHON,
 }
 
 func main() {

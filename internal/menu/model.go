@@ -3,16 +3,12 @@ package menu
 import (
 	"fmt"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/marathon"
+	"github.com/Broderick-Westrope/tetrigo/internal"
+	//"github.com/Broderick-Westrope/tetrigo/internal/starter"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-)
-
-const (
-	modeMenu = iota
-	modeGame
 )
 
 type option interface{}
@@ -37,7 +33,6 @@ type Model struct {
 	settings     []setting
 	settingIndex int
 	game         tea.Model
-	mode         int
 
 	keys   *keyMap
 	styles *styles
@@ -68,7 +63,6 @@ func InitialModel(in *Input) *Model {
 		settingIndex: 0,
 		keys:         defaultKeyMap(),
 		styles:       defaultStyles(),
-		mode:         modeMenu,
 		help:         help.New(),
 		isFullscreen: in.isFullscreen,
 	}
@@ -80,21 +74,6 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.mode == modeGame {
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			switch {
-			case key.Matches(msg, m.keys.Quit):
-				m.mode = modeMenu
-				m.game = nil
-				return m, nil
-			}
-		}
-		var cmd tea.Cmd
-		m.game, cmd = m.game.Update(msg)
-		return m, cmd
-	}
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -137,10 +116,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	if m.mode == modeGame {
-		return m.game.View()
-	}
-
 	settings := make([]string, len(m.settings))
 	for i := range m.settings {
 		settings[i] = m.renderSetting(i, i == m.settingIndex)
@@ -190,23 +165,22 @@ func (m *Model) startGame() (tea.Cmd, error) {
 	var level uint
 	var mode string
 	// var players uint
-	for _, setting := range m.settings {
-		switch setting.name {
+	for _, s := range m.settings {
+		switch s.name {
 		case "Level":
-			intLevel := setting.options[setting.index].(int)
+			intLevel := s.options[s.index].(int)
 			level = uint(intLevel)
 		// case "Players":
 		// 	players = setting.options[setting.index].(uint)
 		case "Mode":
-			mode = setting.options[setting.index].(string)
+			mode = s.options[s.index].(string)
 		}
 	}
 
 	switch mode {
 	case "Marathon":
-		m.mode = modeGame
-		m.game = marathon.InitialModel(marathon.NewInput(m.isFullscreen, level))
-		return m.game.Init(), nil
+		return internal.SwitchModeCmd(internal.MODE_MARATHON, level), nil
+	default:
+		return nil, fmt.Errorf("invalid mode: %v", mode)
 	}
-	return nil, fmt.Errorf("invalid mode: %v", mode)
 }

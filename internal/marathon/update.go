@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Broderick-Westrope/tetrigo/internal"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
@@ -44,6 +45,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		// TODO: Redirect to game over / leaderboard screen
 		return m, tea.Quit
+	case internal.SwitchModeMsg:
+		if msg.Target == internal.MODE_MENU {
+			return m, tea.Quit
+		}
 	}
 
 	if m.paused || m.gameOver {

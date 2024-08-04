@@ -3,6 +3,7 @@ package starter
 import (
 	"errors"
 
+	"github.com/Broderick-Westrope/tetrigo/internal"
 	"github.com/Broderick-Westrope/tetrigo/internal/marathon"
 	"github.com/Broderick-Westrope/tetrigo/internal/menu"
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,9 +17,9 @@ type Model struct {
 func InitialModel(in *Input) (*Model, error) {
 	var child tea.Model
 	switch in.mode {
-	case MODE_MENU:
+	case internal.MODE_MENU:
 		child = menu.InitialModel(in.ToMenuInput())
-	case MODE_MARATHON:
+	case internal.MODE_MARATHON:
 		child = marathon.InitialModel(in.ToMarathonInput())
 	default:
 		return nil, errors.New("invalid starter mode")
@@ -36,11 +37,11 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case switchModeMsg:
-		switch msg.target {
-		case MODE_MENU:
+	case internal.SwitchModeMsg:
+		switch msg.Target {
+		case internal.MODE_MENU:
 			m.child = menu.InitialModel(m.input.ToMenuInput())
-		case MODE_MARATHON:
+		case internal.MODE_MARATHON:
 			m.child = marathon.InitialModel(m.input.ToMarathonInput())
 		}
 	}

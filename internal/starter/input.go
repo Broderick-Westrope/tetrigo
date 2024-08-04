@@ -1,6 +1,7 @@
 package starter
 
 import (
+	"github.com/Broderick-Westrope/tetrigo/internal"
 	"github.com/Broderick-Westrope/tetrigo/internal/marathon"
 	"github.com/Broderick-Westrope/tetrigo/internal/menu"
 )
@@ -8,10 +9,10 @@ import (
 type Input struct {
 	isFullscreen bool
 	level        uint
-	mode         Mode
+	mode         internal.Mode
 }
 
-func NewInput(mode Mode, isFullscreen bool, level uint) *Input {
+func NewInput(mode internal.Mode, isFullscreen bool, level uint) *Input {
 	return &Input{
 		mode:         mode,
 		isFullscreen: isFullscreen,
