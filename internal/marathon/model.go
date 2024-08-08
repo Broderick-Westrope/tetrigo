@@ -6,6 +6,7 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/marathon"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/stopwatch"
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,70 +16,52 @@ import (
 type Input struct {
 	isFullscreen bool
 	level        uint
+	maxLevel     uint
 }
 
-func NewInput(isFullscreen bool, level uint) *Input {
+func NewInput(isFullscreen bool, level, maxLevel uint) *Input {
 	return &Input{
 		isFullscreen: isFullscreen,
 		level:        level,
+		maxLevel:     maxLevel,
 	}
 }
 
 var _ tea.Model = &Model{}
 
 type Model struct {
-	matrix            tetris.Matrix
 	styles            *Styles
 	help              help.Model
 	keys              *keyMap
-	currentTet        *tetris.Tetrimino
-	holdTet           *tetris.Tetrimino
-	canHold           bool
-	fall              *fall
-	scoring           *tetris.Scoring
-	bag               *tetris.Bag
 	timer             stopwatch.Model
 	cfg               *config.Config
 	isFullscreen      bool
 	paused            bool
-	startLine         int
-	gameOver          bool
+	fallStopwatch     stopwatch.Model
 	gameOverStopwatch stopwatch.Model
+	game              *marathon.Game
 }
 
-func NewModel(in *Input) *Model {
+func NewModel(in *Input) (*Model, error) {
+	game, err := marathon.NewGame(in.level, in.maxLevel)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create marathon game: %w", err)
+	}
+
 	m := &Model{
-		matrix:  tetris.Matrix{},
-		styles:  defaultStyles(),
-		help:    help.New(),
-		keys:    defaultKeyMap(),
-		scoring: tetris.NewScoring(in.level),
-		holdTet: &tetris.Tetrimino{
-			Cells: [][]bool{
-				{false, false, false},
-				{false, false, false},
-			},
-			Value: 0,
-		},
-		canHold:      true,
+		styles:       defaultStyles(),
+		help:         help.New(),
+		keys:         defaultKeyMap(),
 		timer:        stopwatch.NewWithInterval(time.Millisecond),
 		paused:       false,
-		gameOver:     false,
 		isFullscreen: in.isFullscreen,
+		game:         game,
 	}
-	m.bag = tetris.NewBag(len(m.matrix))
-	m.fall = defaultFall(in.level)
-	m.currentTet = m.bag.Next()
-	// TODO: Check if the game is over at the starting position
-	m.currentTet.Pos.Y++
-	err := m.matrix.AddTetrimino(m.currentTet)
-	if err != nil {
-		panic(fmt.Errorf("failed to add tetrimino to matrix: %w", err))
-	}
+	m.fallStopwatch = stopwatch.NewWithInterval(m.game.Fall.DefaultTime)
 
 	cfg, err := config.GetConfig("config.toml")
 	if err != nil {
-		panic(fmt.Errorf("failed to load config: %w", err))
+		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 	m.styles = CreateStyles(&cfg.Theme)
 	m.cfg = cfg
@@ -87,13 +70,11 @@ func NewModel(in *Input) *Model {
 		m.styles.ProgramFullscreen.Width(0).Height(0)
 	}
 
-	m.startLine = len(m.matrix)
-
-	return m
+	return m, nil
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init())
+	return tea.Batch(m.fallStopwatch.Init(), m.timer.Init())
 }
 
 func (m *Model) View() string {
@@ -112,12 +93,13 @@ func (m *Model) View() string {
 }
 
 func (m *Model) matrixView() string {
+	matrix := m.game.Matrix.GetVisible()
 	var output string
-	for row := (len(m.matrix) - 20); row < len(m.matrix); row++ {
-		for col := range m.matrix[row] {
-			output += m.renderCell(m.matrix[row][col])
+	for row := range matrix {
+		for col := range matrix[row] {
+			output += m.renderCell(matrix[row][col])
 		}
-		if row < len(m.matrix)-1 {
+		if row < len(matrix)-1 {
 			output += "\n"
 		}
 	}
@@ -132,7 +114,7 @@ func (m *Model) matrixView() string {
 func (m *Model) informationView() string {
 	var header string
 	headerStyle := lipgloss.NewStyle().Width(m.styles.Information.GetWidth()).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
-	if m.gameOver {
+	if m.game.IsGameOver() {
 		header = headerStyle.Render("GAME OVER")
 	} else if m.paused {
 		header = headerStyle.Render("PAUSED")
@@ -141,9 +123,9 @@ func (m *Model) informationView() string {
 	}
 
 	var output string
-	output += fmt.Sprintln("Score: ", m.scoring.Total())
-	output += fmt.Sprintln("level: ", m.scoring.Level())
-	output += fmt.Sprintln("Cleared: ", m.scoring.Lines())
+	output += fmt.Sprintln("Score: ", m.game.Scoring.Total())
+	output += fmt.Sprintln("level: ", m.game.Scoring.Level())
+	output += fmt.Sprintln("Cleared: ", m.game.Scoring.Lines())
 
 	elapsed := m.timer.Elapsed().Seconds()
 	minutes := int(elapsed) / 60
@@ -161,14 +143,14 @@ func (m *Model) informationView() string {
 
 func (m *Model) holdView() string {
 	label := m.styles.Hold.Label.Render("Hold:")
-	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.holdTet, 1))
+	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.game.HoldTet, 1))
 	output := lipgloss.JoinVertical(lipgloss.Top, label, item)
 	return m.styles.Hold.View.Render(output)
 }
 
 func (m *Model) bagView() string {
 	output := "Next:\n"
-	for i, t := range m.bag.Elements {
+	for i, t := range m.game.Bag.GetElements() {
 		if i >= m.cfg.QueueLength {
 			break
 		}

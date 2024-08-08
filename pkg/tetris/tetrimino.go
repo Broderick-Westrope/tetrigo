@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// TODO: revisit & cleanup this file
+
 type Coordinate struct {
 	X, Y int
 }
@@ -106,6 +108,16 @@ var Tetriminos = []Tetrimino{
 	},
 }
 
+// EmptyTetrimino is a tetrimino with no cells or value. To be used for the starting (empty) hold.
+var EmptyTetrimino = &Tetrimino{
+	Cells: [][]bool{
+		{false, false, false},
+		{false, false, false},
+		{false, false, false},
+	},
+	Value: 0,
+}
+
 // A tetrimino is a game piece in Tetris.
 type Tetrimino struct {
 	Value           byte         // The value of the tetrimino. This is the character that will be used to represent the tetrimino in the matrix.
@@ -132,8 +144,8 @@ func (t *Tetrimino) MoveDown(matrix *Matrix) error {
 
 // MoveLeft moves the tetrimino left one column.
 // If the tetrimino cannot move left, it will not move.
-func (t *Tetrimino) MoveLeft(matrix *Matrix) error {
-	if !t.canMoveLeft(*matrix) {
+func (t *Tetrimino) MoveLeft(matrix Matrix) error {
+	if !t.canMoveLeft(matrix) {
 		return nil
 	}
 	err := matrix.RemoveTetrimino(t)
@@ -150,8 +162,8 @@ func (t *Tetrimino) MoveLeft(matrix *Matrix) error {
 
 // MoveRight moves the tetrimino right one column.
 // If the tetrimino cannot move right, it will not move.
-func (t *Tetrimino) MoveRight(matrix *Matrix) error {
-	if !t.canMoveRight(*matrix) {
+func (t *Tetrimino) MoveRight(matrix Matrix) error {
+	if !t.canMoveRight(matrix) {
 		return nil
 	}
 	err := matrix.RemoveTetrimino(t)
@@ -219,7 +231,7 @@ func (t *Tetrimino) canMoveRight(matrix Matrix) bool {
 	return true
 }
 
-func (t *Tetrimino) Rotate(matrix *Matrix, clockwise bool) error {
+func (t *Tetrimino) Rotate(matrix Matrix, clockwise bool) error {
 	if t.Value == 'O' {
 		return nil
 	}
@@ -314,7 +326,7 @@ func (t *Tetrimino) transpose() {
 	t.Cells = result
 }
 
-func (t *Tetrimino) canRotate(matrix *Matrix) bool {
+func (t *Tetrimino) canRotate(matrix Matrix) bool {
 	for cellRow := range t.Cells {
 		for cellCol := range t.Cells[cellRow] {
 			if t.Cells[cellRow][cellCol] {
@@ -333,11 +345,11 @@ func (t *Tetrimino) canRotate(matrix *Matrix) bool {
 	return true
 }
 
-func isOutOfBoundsHorizontally(tetPosX, cellCol int, matrix *Matrix) bool {
+func isOutOfBoundsHorizontally(tetPosX, cellCol int, matrix Matrix) bool {
 	tetPosX += cellCol
 	return tetPosX < 0 || tetPosX >= len(matrix[0])
 }
-func isOutOfBoundsVertically(tetPosY, cellRow int, matrix *Matrix) bool {
+func isOutOfBoundsVertically(tetPosY, cellRow int, matrix Matrix) bool {
 	tetPosY += cellRow
 	return tetPosY < 0 || tetPosY >= len(matrix)
 }
@@ -414,7 +426,7 @@ func (t *Tetrimino) IsOverlapping(matrix *Matrix) bool {
 	for col := range t.Cells[0] {
 		for row := range t.Cells {
 			if t.Cells[row][col] {
-				if !isCellEmpty(matrix[row+t.Pos.Y][col+t.Pos.X]) {
+				if !isCellEmpty((*matrix)[row+t.Pos.Y][col+t.Pos.X]) {
 					return true
 				}
 				break

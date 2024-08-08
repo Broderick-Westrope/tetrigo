@@ -7,6 +7,8 @@ type Scoring struct {
 	backToBack bool
 }
 
+// TODO: make action exported
+
 // Actions that score points. Defined in chapter 8 of the 2009 Guideline
 type action int8
 

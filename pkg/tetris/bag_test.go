@@ -24,11 +24,11 @@ func TestNewBag(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			b := NewBag(tc.matrixHeight)
 
-			if len(b.Elements) != 14 {
-				t.Errorf("Length: want 14, got %d", len(b.Elements))
+			if len(b.elements) != 14 {
+				t.Errorf("Length: want 14, got %d", len(b.elements))
 			}
 
-			for _, e := range b.Elements {
+			for _, e := range b.elements {
 				for _, tet := range Tetriminos {
 					if tet.Value != e.Value {
 						continue
@@ -73,16 +73,16 @@ func TestBag_Next(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			b := Bag{
-				Elements:     tc.elements,
-				matrixHeight: 40,
+				elements:  tc.elements,
+				startLine: 40,
 			}
 			expected := tc.elements[0].Copy()
-			expected.Pos.Y += b.matrixHeight - 20
+			expected.Pos.Y += b.startLine
 
 			var expectedElements []Tetrimino
 			for _, e := range tc.elements[1:] {
 				temp := e.Copy()
-				temp.Pos.Y += b.matrixHeight - 20
+				temp.Pos.Y += b.startLine
 				expectedElements = append(expectedElements, *temp)
 			}
 
@@ -91,17 +91,17 @@ func TestBag_Next(t *testing.T) {
 				t.Errorf("Tetrimino: want %v, got %v", *expected, *result)
 			}
 
-			for i := range b.Elements {
-				b.Elements[i].Pos.Y += b.matrixHeight - 20
+			for i := range b.elements {
+				b.elements[i].Pos.Y += b.startLine
 			}
 
-			if v := b.Elements[:len(expectedElements)]; !reflect.DeepEqual(v, expectedElements) {
-				t.Errorf("Elements: want %v, got %v", expectedElements, v)
+			if v := b.elements[:len(expectedElements)]; !reflect.DeepEqual(v, expectedElements) {
+				t.Errorf("elements: want %v, got %v", expectedElements, v)
 			}
 
 			expectedLength := len(expectedElements)
-			if expectedLength < 7 && len(b.Elements) != expectedLength+7 {
-				t.Errorf("Length: want %d, got %d", expectedLength+7, len(b.Elements))
+			if expectedLength < 7 && len(b.elements) != expectedLength+7 {
+				t.Errorf("Length: want %d, got %d", expectedLength+7, len(b.elements))
 			}
 		})
 	}
@@ -151,15 +151,15 @@ func TestBag_Fill(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			b := Bag{
-				Elements:     tc.elements,
-				matrixHeight: 40,
+				elements:  tc.elements,
+				startLine: 40,
 			}
 
 			for i := 0; i < tc.timesToFill; i++ {
 				b.fill()
 			}
 
-			length := len(b.Elements)
+			length := len(b.elements)
 			expectedLength := len(tc.elements) + (7 * tc.timesToFill)
 			for expectedLength > 14 {
 				expectedLength -= 7
@@ -170,11 +170,11 @@ func TestBag_Fill(t *testing.T) {
 
 			tetCount := make(map[byte]int)
 			for i := len(tc.elements); i < length; i++ {
-				tetCount[b.Elements[i].Value]++
+				tetCount[b.elements[i].Value]++
 			}
 			for value, count := range tetCount {
 				if count > tc.timesToFill {
-					t.Errorf("Duplicate tetrimino '%v' in bag: %v", value, b.Elements)
+					t.Errorf("Duplicate tetrimino '%v' in bag: %v", value, b.elements)
 				}
 			}
 		})
