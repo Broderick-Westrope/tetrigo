@@ -2,6 +2,7 @@ package tetris
 
 type Scoring struct {
 	level      uint
+	maxLevel   uint
 	total      uint
 	lines      uint
 	backToBack bool
@@ -26,9 +27,10 @@ const (
 	actionTSpinTriple
 )
 
-func NewScoring(level uint) *Scoring {
+func NewScoring(level, maxLevel uint) *Scoring {
 	return &Scoring{
-		level: level,
+		level:    level,
+		maxLevel: maxLevel,
 	}
 }
 
@@ -52,7 +54,7 @@ func (s *Scoring) AddHardDrop(lines uint) {
 	s.total += lines * 2
 }
 
-func (s *Scoring) ProcessAction(a action, maxLevel uint) {
+func (s *Scoring) ProcessAction(a action) {
 	if a == actionNone {
 		return
 	}
@@ -121,8 +123,8 @@ func (s *Scoring) ProcessAction(a action, maxLevel uint) {
 
 	for s.lines >= s.level*5 {
 		s.level++
-		if maxLevel > 0 && s.level >= maxLevel {
-			s.level = maxLevel
+		if s.maxLevel > 0 && s.level >= s.maxLevel {
+			s.level = s.maxLevel
 			return
 		}
 	}

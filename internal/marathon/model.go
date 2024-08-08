@@ -155,8 +155,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			cmds = append(cmds, m.fallStopwatch.Reset())
 		case key.Matches(msg, m.keys.SoftDrop):
-			fallInterval := m.game.ToggleSoftDrop()
-			m.fallStopwatch.Interval = fallInterval
+			m.fallStopwatch.Interval = m.game.ToggleSoftDrop()
 		case key.Matches(msg, m.keys.Hold):
 			err := m.game.Hold()
 			if err != nil {
@@ -167,7 +166,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.fallStopwatch.ID() != msg.ID {
 			break
 		}
-		lockedDown, err := m.game.Lower()
+		lockedDown, err := m.game.TickLower()
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}

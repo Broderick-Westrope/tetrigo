@@ -14,7 +14,6 @@ type Game struct {
 	HoldTet    *tetris.Tetrimino // The Tetrimino that is being held
 	canHold    bool              // Whether the player can hold the current Tetrimino
 	gameOver   bool              // Whether the game is over
-	maxLevel   uint              // The maximum level that can be reached
 	StartRow   int               // The line at which the game started
 	Scoring    *tetris.Scoring   // The Scoring system
 	Fall       *tetris.Fall      // The system for calculating the Fall speed
@@ -34,10 +33,9 @@ func NewGame(level, maxLevel uint) (*Game, error) {
 		HoldTet:    tetris.EmptyTetrimino,
 		canHold:    true,
 		gameOver:   false,
-		maxLevel:   maxLevel,
 		// TODO: is start line needed?
 		StartRow: matrix.GetHeight(),
-		Scoring:  tetris.NewScoring(level),
+		Scoring:  tetris.NewScoring(level, maxLevel),
 		Fall:     tetris.NewFall(level),
 	}
 
@@ -109,19 +107,18 @@ func (g *Game) Hold() error {
 	return nil
 }
 
-func (g *Game) Lower() (bool, error) {
-	if g.CurrentTet.CanMoveDown(g.Matrix) {
-		err := g.CurrentTet.MoveDown(&g.Matrix)
-		if err != nil {
-			return false, fmt.Errorf("failed to move tetrimino down: %w", err)
-		}
-		return false, nil
+// TickLower moves the current Tetrimino down one row. This should be triggered at a regular interval calculated using Fall.
+// If the Tetrimino cannot move down, it is locked in place and true is returned.
+// Game Over is updated if the Tetrimino is blocked out.
+func (g *Game) TickLower() (bool, error) {
+	lockedOut, err := g.lowerCurrentTet()
+	if err != nil {
+		return false, fmt.Errorf("failed to lower tetrimino: %w", err)
 	}
 
-	action := g.Matrix.RemoveCompletedLines(g.CurrentTet)
-	g.Scoring.ProcessAction(action, g.maxLevel)
-
-	g.Fall.CalculateFallSpeeds(g.Scoring.Level())
+	if !lockedOut {
+		return false, nil
+	}
 
 	if g.Fall.IsSoftDrop {
 		linesCleared := g.CurrentTet.Pos.Y - g.StartRow
@@ -138,6 +135,22 @@ func (g *Game) Lower() (bool, error) {
 	if gameOver {
 		g.gameOver = gameOver
 	}
+
+	return true, nil
+}
+
+func (g *Game) lowerCurrentTet() (bool, error) {
+	if g.CurrentTet.CanMoveDown(g.Matrix) {
+		err := g.CurrentTet.MoveDown(&g.Matrix)
+		if err != nil {
+			return false, fmt.Errorf("failed to move tetrimino down: %w", err)
+		}
+		return false, nil
+	}
+
+	action := g.Matrix.RemoveCompletedLines(g.CurrentTet)
+	g.Scoring.ProcessAction(action)
+	g.Fall.CalculateFallSpeeds(g.Scoring.Level())
 
 	return true, nil
 }
@@ -174,7 +187,7 @@ func (g *Game) Next() (bool, error) {
 func (g *Game) HardDrop() (bool, error) {
 	g.StartRow = g.CurrentTet.Pos.Y
 	for {
-		lockedDown, err := g.Lower()
+		lockedDown, err := g.lowerCurrentTet()
 		if err != nil {
 			return false, fmt.Errorf("failed to lower tetrimino (hard drop): %w", err)
 		}
@@ -195,6 +208,9 @@ func (g *Game) HardDrop() (bool, error) {
 	return gameOver, nil
 }
 
+// ToggleSoftDrop toggles the Soft Drop state of the game.
+// If Soft Drop is enabled, the game will calculate the number of lines cleared and add them to the score.
+// The time interval for the Fall system is returned.
 func (g *Game) ToggleSoftDrop() time.Duration {
 	g.Fall.ToggleSoftDrop()
 	if g.Fall.IsSoftDrop {
