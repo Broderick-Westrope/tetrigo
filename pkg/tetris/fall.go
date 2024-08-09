@@ -18,10 +18,12 @@ func NewFall(level uint) *Fall {
 }
 
 func (f *Fall) CalculateFallSpeeds(level uint) {
-	speed := math.Pow(0.8-float64(level-1)*0.007, float64(level-1)) * 1000000
+	decrementedLevel := float64(level - 1)
+	speed := math.Pow(0.8-(decrementedLevel*0.007), decrementedLevel)
+	speed *= float64(time.Second)
 
-	f.DefaultInterval = time.Microsecond * time.Duration(speed)
-	f.SoftDropInterval = time.Microsecond * time.Duration(speed/10)
+	f.DefaultInterval = time.Duration(speed)
+	f.SoftDropInterval = time.Duration(speed / 15)
 }
 
 func (f *Fall) ToggleSoftDrop() {
