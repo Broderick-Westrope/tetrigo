@@ -22,17 +22,17 @@ func NewInput(mode internal.Mode, isFullscreen bool, level uint) *Input {
 }
 
 func (in *Input) ToMarathonInput() *marathon.Input {
-	return marathon.NewInput(in.isFullscreen, in.level)
+	return marathon.NewInput(in.isFullscreen, in.level, 15)
 }
 
 func (in *Input) ToMenuInput() *menu.Input {
 	return menu.NewInput(in.isFullscreen)
 }
 
-func (in *Input) getChild(mode internal.Mode) tea.Model {
+func (in *Input) getChild(mode internal.Mode) (tea.Model, error) {
 	switch mode {
 	case internal.MODE_MENU:
-		return menu.NewModel(in.ToMenuInput())
+		return menu.NewModel(in.ToMenuInput()), nil
 	case internal.MODE_MARATHON:
 		return marathon.NewModel(in.ToMarathonInput())
 	default:

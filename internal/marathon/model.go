@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Broderick-Westrope/tetrigo/internal"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/marathon"
 	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -15,70 +18,52 @@ import (
 type Input struct {
 	isFullscreen bool
 	level        uint
+	maxLevel     uint
 }
 
-func NewInput(isFullscreen bool, level uint) *Input {
+func NewInput(isFullscreen bool, level, maxLevel uint) *Input {
 	return &Input{
 		isFullscreen: isFullscreen,
 		level:        level,
+		maxLevel:     maxLevel,
 	}
 }
 
 var _ tea.Model = &Model{}
 
 type Model struct {
-	matrix            tetris.Matrix
 	styles            *Styles
 	help              help.Model
 	keys              *keyMap
-	currentTet        *tetris.Tetrimino
-	holdTet           *tetris.Tetrimino
-	canHold           bool
-	fall              *fall
-	scoring           *tetris.Scoring
-	bag               *tetris.Bag
 	timer             stopwatch.Model
 	cfg               *config.Config
 	isFullscreen      bool
 	paused            bool
-	startLine         int
-	gameOver          bool
+	fallStopwatch     stopwatch.Model
 	gameOverStopwatch stopwatch.Model
+	game              *marathon.Game
 }
 
-func NewModel(in *Input) *Model {
+func NewModel(in *Input) (*Model, error) {
+	game, err := marathon.NewGame(in.level, in.maxLevel)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create marathon game: %w", err)
+	}
+
 	m := &Model{
-		matrix:  tetris.Matrix{},
-		styles:  defaultStyles(),
-		help:    help.New(),
-		keys:    defaultKeyMap(),
-		scoring: tetris.NewScoring(in.level),
-		holdTet: &tetris.Tetrimino{
-			Cells: [][]bool{
-				{false, false, false},
-				{false, false, false},
-			},
-			Value: 0,
-		},
-		canHold:      true,
+		styles:       defaultStyles(),
+		help:         help.New(),
+		keys:         defaultKeyMap(),
 		timer:        stopwatch.NewWithInterval(time.Millisecond),
 		paused:       false,
-		gameOver:     false,
 		isFullscreen: in.isFullscreen,
+		game:         game,
 	}
-	m.bag = tetris.NewBag(len(m.matrix))
-	m.fall = defaultFall(in.level)
-	m.currentTet = m.bag.Next()
-	// TODO: Check if the game is over at the starting position
-	m.currentTet.Pos.Y++
-	err := m.matrix.AddTetrimino(m.currentTet)
-	if err != nil {
-		panic(fmt.Errorf("failed to add tetrimino to matrix: %w", err))
-	}
+	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
 	cfg, err := config.GetConfig("config.toml")
 	if err != nil {
-		panic(fmt.Errorf("failed to load config: %w", err))
+		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 	m.styles = CreateStyles(&cfg.Theme)
 	m.cfg = cfg
@@ -87,13 +72,117 @@ func NewModel(in *Input) *Model {
 		m.styles.ProgramFullscreen.Width(0).Height(0)
 	}
 
-	m.startLine = len(m.matrix)
-
-	return m
+	return m, nil
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.fall.stopwatch.Init(), m.timer.Init())
+	return tea.Batch(m.fallStopwatch.Init(), m.timer.Init())
+}
+
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
+	m.timer, cmd = m.timer.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
+	cmds = append(cmds, cmd)
+
+	// Operations that can be performed all the time
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keys.Quit):
+			return m, tea.Quit
+		case key.Matches(msg, m.keys.Pause):
+			if m.game.IsGameOver() {
+				break
+			}
+			m.paused = !m.paused
+			cmds = append(cmds, m.timer.Toggle())
+			cmds = append(cmds, m.fallStopwatch.Toggle())
+		case key.Matches(msg, m.keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
+		}
+	case tea.WindowSizeMsg:
+		m.styles.ProgramFullscreen.Width(msg.Width).Height(msg.Height)
+	case stopwatch.TickMsg:
+		if m.gameOverStopwatch.ID() != msg.ID {
+			break
+		}
+		// TODO: Redirect to game over / leaderboard screen
+		return m, tea.Quit
+	case internal.SwitchModeMsg:
+		if msg.Target == internal.MODE_MENU {
+			return m, tea.Quit
+		}
+	}
+
+	if m.paused || m.game.IsGameOver() {
+		return m, tea.Batch(cmds...)
+	}
+
+	// Operations that can be performed when the game is not paused
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keys.Left):
+			err := m.game.MoveLeft()
+			if err != nil {
+				panic(fmt.Errorf("failed to move tetrimino left: %w", err))
+			}
+		case key.Matches(msg, m.keys.Right):
+			err := m.game.MoveRight()
+			if err != nil {
+				panic(fmt.Errorf("failed to move tetrimino right: %w", err))
+			}
+		case key.Matches(msg, m.keys.Clockwise):
+			err := m.game.Rotate(true)
+			if err != nil {
+				panic(fmt.Errorf("failed to rotate tetrimino clockwise: %w", err))
+			}
+		case key.Matches(msg, m.keys.CounterClockwise):
+			err := m.game.Rotate(false)
+			if err != nil {
+				panic(fmt.Errorf("failed to rotate tetrimino counter-clockwise: %w", err))
+			}
+		case key.Matches(msg, m.keys.HardDrop):
+			// TODO: handle hard drop game over
+			_, err := m.game.HardDrop()
+			if err != nil {
+				panic(fmt.Errorf("failed to hard drop: %w", err))
+			}
+			cmds = append(cmds, m.fallStopwatch.Reset())
+		case key.Matches(msg, m.keys.SoftDrop):
+			m.fallStopwatch.Interval = m.game.ToggleSoftDrop()
+			// TODO: find a fix for "pausing" momentarily before soft drop begins
+			//cmds = append(cmds, func() tea.Msg {
+			//	return stopwatch.TickMsg{ID: m.fallStopwatch.ID()}
+			//})
+		case key.Matches(msg, m.keys.Hold):
+			err := m.game.Hold()
+			if err != nil {
+				panic(fmt.Errorf("failed to hold tetrimino: %w", err))
+			}
+		}
+	case stopwatch.TickMsg:
+		if m.fallStopwatch.ID() != msg.ID {
+			break
+		}
+		lockedDown, err := m.game.TickLower()
+		if err != nil {
+			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
+		}
+		if lockedDown && m.game.IsGameOver() {
+			cmds = append(cmds, m.timer.Toggle())
+			cmds = append(cmds, m.fallStopwatch.Toggle())
+			m.gameOverStopwatch = stopwatch.NewWithInterval(time.Second * 5)
+			cmds = append(cmds, m.gameOverStopwatch.Start())
+		}
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m *Model) View() string {
@@ -112,12 +201,13 @@ func (m *Model) View() string {
 }
 
 func (m *Model) matrixView() string {
+	matrix := m.game.GetVisibleMatrix()
 	var output string
-	for row := (len(m.matrix) - 20); row < len(m.matrix); row++ {
-		for col := range m.matrix[row] {
-			output += m.renderCell(m.matrix[row][col])
+	for row := range matrix {
+		for col := range matrix[row] {
+			output += m.renderCell(matrix[row][col])
 		}
-		if row < len(m.matrix)-1 {
+		if row < len(matrix)-1 {
 			output += "\n"
 		}
 	}
@@ -132,7 +222,7 @@ func (m *Model) matrixView() string {
 func (m *Model) informationView() string {
 	var header string
 	headerStyle := lipgloss.NewStyle().Width(m.styles.Information.GetWidth()).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
-	if m.gameOver {
+	if m.game.IsGameOver() {
 		header = headerStyle.Render("GAME OVER")
 	} else if m.paused {
 		header = headerStyle.Render("PAUSED")
@@ -141,9 +231,9 @@ func (m *Model) informationView() string {
 	}
 
 	var output string
-	output += fmt.Sprintln("Score: ", m.scoring.Total())
-	output += fmt.Sprintln("level: ", m.scoring.Level())
-	output += fmt.Sprintln("Cleared: ", m.scoring.Lines())
+	output += fmt.Sprintln("Score: ", m.game.GetTotalScore())
+	output += fmt.Sprintln("level: ", m.game.GetLevel())
+	output += fmt.Sprintln("Cleared: ", m.game.GetLinesCleared())
 
 	elapsed := m.timer.Elapsed().Seconds()
 	minutes := int(elapsed) / 60
@@ -161,14 +251,14 @@ func (m *Model) informationView() string {
 
 func (m *Model) holdView() string {
 	label := m.styles.Hold.Label.Render("Hold:")
-	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.holdTet, 1))
+	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.game.GetHoldTetrimino(), 1))
 	output := lipgloss.JoinVertical(lipgloss.Top, label, item)
 	return m.styles.Hold.View.Render(output)
 }
 
 func (m *Model) bagView() string {
 	output := "Next:\n"
-	for i, t := range m.bag.Elements {
+	for i, t := range m.game.GetBagTetriminos() {
 		if i >= m.cfg.QueueLength {
 			break
 		}
@@ -179,9 +269,9 @@ func (m *Model) bagView() string {
 
 func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	var output string
-	for row := range t.Cells {
-		for col := range t.Cells[row] {
-			if t.Cells[row][col] {
+	for row := range t.Minos {
+		for col := range t.Minos[row] {
+			if t.Minos[row][col] {
 				output += m.renderCell(t.Value)
 			} else {
 				output += m.renderCell(background)
