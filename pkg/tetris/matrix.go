@@ -119,15 +119,15 @@ func (m *Matrix) RemoveCompletedLines(tet *Tetrimino) Action {
 
 	switch lines {
 	case 0:
-		return actionNone
+		return Actions.NONE
 	case 1:
-		return actionSingle
+		return Actions.SINGLE
 	case 2:
-		return actionDouble
+		return Actions.DOUBLE
 	case 3:
-		return actionTriple
+		return Actions.TRIPLE
 	case 4:
-		return actionTetris
+		return Actions.TETRIS
 	}
-	return actionNone
+	return Actions.UNKNOWN
 }

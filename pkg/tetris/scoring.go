@@ -8,25 +8,6 @@ type Scoring struct {
 	backToBack bool
 }
 
-// TODO: make Action exported
-
-// Actions that score points. Defined in chapter 8 of the 2009 Guideline
-type Action int8
-
-const (
-	actionNone = iota
-	actionSingle
-	actionDouble
-	actionTriple
-	actionTetris
-	actionMiniTSpin
-	actionMiniTSpinSingle
-	actionTSpin
-	actionTSpinSingle
-	actionTSpinDouble
-	actionTSpinTriple
-)
-
 func NewScoring(level, maxLevel uint) *Scoring {
 	return &Scoring{
 		level:    level,
@@ -55,63 +36,41 @@ func (s *Scoring) AddHardDrop(lines uint) {
 }
 
 func (s *Scoring) ProcessAction(a Action) {
-	if a == actionNone {
+	if a == Actions.NONE {
 		return
 	}
 
-	points := 0.0
-	switch a {
-	case actionSingle:
-		points = 100
-	case actionDouble:
-		points = 300
-	case actionTriple:
-		points = 500
-	case actionTetris:
-		points = 800
-	case actionMiniTSpin:
-		points = 100
-	case actionMiniTSpinSingle:
-		points = 200
-	case actionTSpin:
-		points = 400
-	case actionTSpinSingle:
-		points = 800
-	case actionTSpinDouble:
-		points = 1200
-	case actionTSpinTriple:
-		points = 1600
-	}
+	points := float64(a.GetPoints())
 
 	backToBack := 0.0
 	switch a {
-	case actionSingle:
+	case Actions.SINGLE:
 		s.backToBack = false
-	case actionDouble:
+	case Actions.DOUBLE:
 		s.backToBack = false
-	case actionTriple:
+	case Actions.TRIPLE:
 		s.backToBack = false
-	case actionTetris:
+	case Actions.TETRIS:
 		if s.backToBack {
 			backToBack = points * 0.5
 		}
 		s.backToBack = true
-	case actionMiniTSpinSingle:
+	case Actions.MINI_T_SPIN_SINGLE:
 		if s.backToBack {
 			backToBack = points * 0.5
 		}
 		s.backToBack = true
-	case actionTSpinSingle:
+	case Actions.T_SPIN_SINGLE:
 		if s.backToBack {
 			backToBack = points * 0.5
 		}
 		s.backToBack = true
-	case actionTSpinDouble:
+	case Actions.T_SPIN_DOUBLE:
 		if s.backToBack {
 			backToBack = points * 0.5
 		}
 		s.backToBack = true
-	case actionTSpinTriple:
+	case Actions.T_SPIN_TRIPLE:
 		if s.backToBack {
 			backToBack = points * 0.5
 		}

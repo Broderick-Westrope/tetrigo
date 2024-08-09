@@ -148,6 +148,9 @@ func (g *Game) lowerCurrentTet() (bool, error) {
 	}
 
 	action := g.matrix.RemoveCompletedLines(g.tetInPlay)
+	if !action.IsValid() {
+		return false, fmt.Errorf("invalid action received %q", action.String())
+	}
 	g.scoring.ProcessAction(action)
 	g.fall.CalculateFallSpeeds(g.scoring.Level())
 
