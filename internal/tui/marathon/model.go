@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Broderick-Westrope/tetrigo/internal"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/marathon"
 	"github.com/charmbracelet/bubbles/help"
@@ -113,8 +113,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		// TODO: Redirect to game over / leaderboard screen
 		return m, tea.Quit
-	case internal.SwitchModeMsg:
-		if msg.Target == internal.MODE_MENU {
+	case tui.SwitchModeMsg:
+		if msg.Target == tui.MODE_MENU {
 			return m, tea.Quit
 		}
 	}

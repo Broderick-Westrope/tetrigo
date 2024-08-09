@@ -3,7 +3,8 @@ package menu
 import (
 	"fmt"
 
-	"github.com/Broderick-Westrope/tetrigo/internal"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+
 	//"github.com/Broderick-Westrope/tetrigo/internal/starter"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -182,7 +183,7 @@ func (m Model) startGame() (tea.Cmd, error) {
 
 	switch mode {
 	case "Marathon":
-		return internal.SwitchModeCmd(internal.MODE_MARATHON, level), nil
+		return tui.SwitchModeCmd(tui.MODE_MARATHON, level), nil
 	default:
 		return nil, fmt.Errorf("invalid mode: %v", mode)
 	}
