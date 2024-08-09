@@ -9,7 +9,7 @@ import (
 
 type Game struct {
 	matrix     tetris.Matrix     // The Matrix of cells on which the game is played
-	bag        *tetris.Bag       // The bag of upcoming Tetriminos
+	nextQueue  *tetris.NextQueue // The queue of upcoming Tetriminos
 	currentTet *tetris.Tetrimino // The current Tetrimino in play
 	holdTet    *tetris.Tetrimino // The Tetrimino that is being held
 	canHold    bool              // Whether the player can hold the current Tetrimino
@@ -24,12 +24,12 @@ func NewGame(level, maxLevel uint) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	bag := tetris.NewBag(matrix.GetSkyline())
+	nq := tetris.NewNextQueue(matrix.GetSkyline())
 
 	game := &Game{
 		matrix:     matrix,
-		bag:        bag,
-		currentTet: bag.Next(),
+		nextQueue:  nq,
+		currentTet: nq.Next(),
 		holdTet:    tetris.EmptyTetrimino,
 		canHold:    true,
 		gameOver:   false,
@@ -72,7 +72,7 @@ func (g *Game) Hold() error {
 	// Swap the current tetrimino with the hold tetrimino
 	if g.holdTet.Value == 0 {
 		g.holdTet = g.currentTet
-		g.currentTet = g.bag.Next()
+		g.currentTet = g.nextQueue.Next()
 	} else {
 		g.holdTet, g.currentTet = g.currentTet, g.holdTet
 	}
@@ -155,7 +155,7 @@ func (g *Game) lowerCurrentTet() (bool, error) {
 }
 
 func (g *Game) next() (bool, error) {
-	g.currentTet = g.bag.Next()
+	g.currentTet = g.nextQueue.Next()
 
 	// Block Out
 	if g.currentTet.IsOverlapping(g.matrix) {

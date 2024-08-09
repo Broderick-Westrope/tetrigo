@@ -15,7 +15,7 @@ func (g *Game) GetVisibleMatrix() [][]byte {
 }
 
 func (g *Game) GetBagTetriminos() []tetris.Tetrimino {
-	return g.bag.GetElements()
+	return g.nextQueue.GetElements()
 }
 
 func (g *Game) GetHoldTetrimino() *tetris.Tetrimino {

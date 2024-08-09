@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewBag(t *testing.T) {
+func TestNewNextQueue(t *testing.T) {
 	tt := map[string]struct {
 		matrixHeight int
 	}{
@@ -20,7 +20,7 @@ func TestNewBag(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			b := NewBag(tc.matrixHeight)
+			b := NewNextQueue(tc.matrixHeight)
 
 			if len(b.elements) != 14 {
 				t.Errorf("Length: want 14, got %d", len(b.elements))
@@ -40,10 +40,10 @@ func TestNewBag(t *testing.T) {
 }
 
 // Checks:
-//   - that the tetrimino returned is the first element of the bag.
-//   - that the first element of the bag is removed.
-//   - that the bag is filled with 7 tetriminos if it has less than 7 elements.
-func TestBag_Next(t *testing.T) {
+//   - that the tetrimino returned is the first element of the queue.
+//   - that the first element of the queue is removed.
+//   - that the queue is filled with 7 tetriminos if it has less than 7 elements.
+func TestNextQueue_Next(t *testing.T) {
 	tt := map[string]struct {
 		elements []Tetrimino
 	}{
@@ -63,42 +63,42 @@ func TestBag_Next(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			b := Bag{
+			nq := NextQueue{
 				elements:  tc.elements,
 				startLine: 40,
 			}
 			expected := tc.elements[0].DeepCopy()
-			expected.Pos.Y += b.startLine
+			expected.Pos.Y += nq.startLine
 
 			var expectedElements []Tetrimino
 			for _, e := range tc.elements[1:] {
 				temp := e.DeepCopy()
-				temp.Pos.Y += b.startLine
+				temp.Pos.Y += nq.startLine
 				expectedElements = append(expectedElements, *temp)
 			}
 
-			result := b.Next()
+			result := nq.Next()
 			assert.EqualValues(t, *expected, *result)
 
-			for i := range b.elements {
-				b.elements[i].Pos.Y += b.startLine
+			for i := range nq.elements {
+				nq.elements[i].Pos.Y += nq.startLine
 			}
 
-			v := b.elements[:len(expectedElements)]
+			v := nq.elements[:len(expectedElements)]
 			assert.EqualValues(t, expectedElements, v)
 
 			expectedLength := len(expectedElements)
-			if expectedLength < 7 && len(b.elements) != expectedLength+7 {
-				t.Errorf("Length: want %d, got %d", expectedLength+7, len(b.elements))
+			if expectedLength < 7 && len(nq.elements) != expectedLength+7 {
+				t.Errorf("Length: want %d, got %d", expectedLength+7, len(nq.elements))
 			}
 		})
 	}
 }
 
 // Checks:
-//   - that the bag is filled with 7 tetriminos if it has less than 7 elements.
-//   - that the tetriminos added to the bag are not duplicates.
-func TestBag_Fill(t *testing.T) {
+//   - that the queue is filled with 7 tetriminos if it has less than 7 elements.
+//   - that the tetriminos added to the queue are not duplicates.
+func TestNextQueue_Fill(t *testing.T) {
 	tt := map[string]struct {
 		elements    []Tetrimino
 		timesToFill int
@@ -131,27 +131,27 @@ func TestBag_Fill(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			b := Bag{
+			nq := NextQueue{
 				elements:  tc.elements,
 				startLine: 40,
 			}
 
 			for i := 0; i < tc.timesToFill; i++ {
-				b.fill()
+				nq.fill()
 			}
 
 			expectedLength := len(tc.elements) + (7 * tc.timesToFill)
 			for expectedLength > 14 {
 				expectedLength -= 7
 			}
-			assert.Len(t, b.elements, expectedLength)
+			assert.Len(t, nq.elements, expectedLength)
 
 			tetCount := make(map[byte]int)
-			for i := len(tc.elements); i < len(b.elements); i++ {
-				tetCount[b.elements[i].Value]++
+			for i := len(tc.elements); i < len(nq.elements); i++ {
+				tetCount[nq.elements[i].Value]++
 			}
 			for value, count := range tetCount {
-				assert.LessOrEqualf(t, count, tc.timesToFill, "Duplicate tetrimino '%v' in bag: %v", value, b.elements)
+				assert.LessOrEqualf(t, count, tc.timesToFill, "Duplicate tetrimino '%v' in next queue: %v", value, nq.elements)
 			}
 		})
 	}
