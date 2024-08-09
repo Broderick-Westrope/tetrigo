@@ -19,7 +19,7 @@ func (g *Game) GetBagTetriminos() []tetris.Tetrimino {
 }
 
 func (g *Game) GetHoldTetrimino() *tetris.Tetrimino {
-	return g.holdTet
+	return g.holdQueue
 }
 
 func (g *Game) GetTotalScore() uint {
