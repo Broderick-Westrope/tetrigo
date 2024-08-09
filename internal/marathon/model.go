@@ -59,7 +59,7 @@ func NewModel(in *Input) (*Model, error) {
 		isFullscreen: in.isFullscreen,
 		game:         game,
 	}
-	m.fallStopwatch = stopwatch.NewWithInterval(m.game.Fall.DefaultTime)
+	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
 	cfg, err := config.GetConfig("config.toml")
 	if err != nil {
@@ -156,6 +156,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, m.fallStopwatch.Reset())
 		case key.Matches(msg, m.keys.SoftDrop):
 			m.fallStopwatch.Interval = m.game.ToggleSoftDrop()
+			// TODO: find a fix for "pausing" momentarily before soft drop begins
+			//cmds = append(cmds, func() tea.Msg {
+			//	return stopwatch.TickMsg{ID: m.fallStopwatch.ID()}
+			//})
 		case key.Matches(msg, m.keys.Hold):
 			err := m.game.Hold()
 			if err != nil {
@@ -197,7 +201,7 @@ func (m *Model) View() string {
 }
 
 func (m *Model) matrixView() string {
-	matrix := m.game.Matrix.GetVisible()
+	matrix := m.game.GetVisibleMatrix()
 	var output string
 	for row := range matrix {
 		for col := range matrix[row] {
@@ -227,9 +231,9 @@ func (m *Model) informationView() string {
 	}
 
 	var output string
-	output += fmt.Sprintln("Score: ", m.game.Scoring.Total())
-	output += fmt.Sprintln("level: ", m.game.Scoring.Level())
-	output += fmt.Sprintln("Cleared: ", m.game.Scoring.Lines())
+	output += fmt.Sprintln("Score: ", m.game.GetTotalScore())
+	output += fmt.Sprintln("level: ", m.game.GetLevel())
+	output += fmt.Sprintln("Cleared: ", m.game.GetLinesCleared())
 
 	elapsed := m.timer.Elapsed().Seconds()
 	minutes := int(elapsed) / 60
@@ -247,14 +251,14 @@ func (m *Model) informationView() string {
 
 func (m *Model) holdView() string {
 	label := m.styles.Hold.Label.Render("Hold:")
-	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.game.HoldTet, 1))
+	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.game.GetHoldTetrimino(), 1))
 	output := lipgloss.JoinVertical(lipgloss.Top, label, item)
 	return m.styles.Hold.View.Render(output)
 }
 
 func (m *Model) bagView() string {
 	output := "Next:\n"
-	for i, t := range m.game.Bag.GetElements() {
+	for i, t := range m.game.GetBagTetriminos() {
 		if i >= m.cfg.QueueLength {
 			break
 		}
@@ -265,9 +269,9 @@ func (m *Model) bagView() string {
 
 func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	var output string
-	for row := range t.Cells {
-		for col := range t.Cells[row] {
-			if t.Cells[row][col] {
+	for row := range t.Minos {
+		for col := range t.Minos[row] {
+			if t.Minos[row][col] {
 				output += m.renderCell(t.Value)
 			} else {
 				output += m.renderCell(background)

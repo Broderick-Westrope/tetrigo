@@ -89,8 +89,8 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 						t.Errorf("expected no error, got %v", err)
 					}
 
-					for row := range tet.Cells {
-						for col := range tet.Cells[row] {
+					for row := range tet.Minos {
+						for col := range tet.Minos[row] {
 							if m[row+tet.Pos.Y][col+tet.Pos.X] != 0 {
 								t.Errorf("expected 0, got %v", m[row+tet.Pos.Y][col+tet.Pos.X])
 							}
@@ -121,11 +121,11 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 				} else if !expectsErr && err != nil {
 					t.Errorf("expected no error, got %v", err)
 				} else if !expectsErr {
-					for row := range tet.Cells {
-						for col := range tet.Cells[row] {
-							if tet.Cells[row][col] {
+					for row := range tet.Minos {
+						for col := range tet.Minos[row] {
+							if tet.Minos[row][col] {
 								if m[row][col] != tet.Value {
-									t.Errorf("tet.Cells[%d][%d]: expected %v, got %v", row, col, tet.Value, m[row][col])
+									t.Errorf("tet.Minos[%d][%d]: expected %v, got %v", row, col, tet.Value, m[row][col])
 								}
 							}
 						}
@@ -251,7 +251,7 @@ func TestMatrix_RemoveCompletedLines(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tet := Tetrimino{
 				Pos:   Coordinate{0, tc.posY},
-				Cells: tc.cells,
+				Minos: tc.cells,
 			}
 
 			actualAction := tc.matrix.RemoveCompletedLines(&tet)

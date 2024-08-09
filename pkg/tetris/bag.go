@@ -47,7 +47,7 @@ func (b *Bag) fill() {
 	perm := rand.Perm(len(Tetriminos))
 	for _, i := range perm {
 		if len(b.elements) == 14 {
-			// This is impossible whilst there are only 7 tetriminos and we check that there is space for 7 in the bag
+			// This should be impossible whilst there are only 7 Tetriminos and we check that there is space for 7 in the bag
 			return
 		}
 		b.elements = append(b.elements, Tetriminos[i])

@@ -23,9 +23,8 @@ func (m *Matrix) GetHeight() int {
 	return len(*m)
 }
 
-// GetStartRow returns the line at which new Tetriminos are created.
-// This accounts for the buffer zone at the top of the Matrix.
-func (m *Matrix) GetStartRow() int {
+// GetSkyline returns the skyline; the highest row that the player can see.
+func (m *Matrix) GetSkyline() int {
 	return len(*m) - 20
 }
 
@@ -53,9 +52,9 @@ func (m *Matrix) removeLine(row int) {
 // RemoveTetrimino removes the given Tetrimino from the Matrix.
 // It returns an error if the Tetrimino is out of bounds or if the Tetrimino is not found in the Matrix.
 func (m *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
-	for row := range tetrimino.Cells {
-		for col := range tetrimino.Cells[row] {
-			if tetrimino.Cells[row][col] {
+	for row := range tetrimino.Minos {
+		for col := range tetrimino.Minos[row] {
+			if tetrimino.Minos[row][col] {
 				// The following bounds checks should never be reached as long as tetriminos are added with the dedicated function
 				if row+tetrimino.Pos.Y >= len(*m) || row+tetrimino.Pos.Y < 0 {
 					return fmt.Errorf("row %d is out of bounds", row+tetrimino.Pos.Y)
@@ -78,9 +77,9 @@ func (m *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
 // AddTetrimino adds the given Tetrimino to the Matrix.
 // It returns an error if the Tetrimino is out of bounds or if the Tetrimino overlaps with an occupied cell.
 func (m *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
-	for row := range tetrimino.Cells {
-		for col := range tetrimino.Cells[row] {
-			if tetrimino.Cells[row][col] {
+	for row := range tetrimino.Minos {
+		for col := range tetrimino.Minos[row] {
+			if tetrimino.Minos[row][col] {
 				if row+tetrimino.Pos.Y >= len(*m) || row+tetrimino.Pos.Y < 0 {
 					return fmt.Errorf("row %d is out of bounds", row+tetrimino.Pos.Y)
 				}
@@ -103,7 +102,7 @@ func (m *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 // It returns an action to be used for calculating the score.
 func (m *Matrix) RemoveCompletedLines(tet *Tetrimino) action {
 	lines := 0
-	for row := range tet.Cells {
+	for row := range tet.Minos {
 		if m.isLineComplete(tet.Pos.Y + row) {
 			m.removeLine(tet.Pos.Y + row)
 			lines++

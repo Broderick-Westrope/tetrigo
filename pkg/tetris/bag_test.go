@@ -76,12 +76,12 @@ func TestBag_Next(t *testing.T) {
 				elements:  tc.elements,
 				startLine: 40,
 			}
-			expected := tc.elements[0].Copy()
+			expected := tc.elements[0].DeepCopy()
 			expected.Pos.Y += b.startLine
 
 			var expectedElements []Tetrimino
 			for _, e := range tc.elements[1:] {
-				temp := e.Copy()
+				temp := e.DeepCopy()
 				temp.Pos.Y += b.startLine
 				expectedElements = append(expectedElements, *temp)
 			}
