@@ -1,27 +1,25 @@
 package tetris
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewBag(t *testing.T) {
-	tt := []struct {
-		name         string
+	tt := map[string]struct {
 		matrixHeight int
 	}{
-		{
-			"matrix height 20",
-			20,
+		"matrix height 20": {
+			matrixHeight: 20,
 		},
-		{
-			"matrix height 40",
-			40,
+		"matrix height 40": {
+			matrixHeight: 40,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			b := NewBag(tc.matrixHeight)
 
 			if len(b.elements) != 14 {
@@ -34,9 +32,7 @@ func TestNewBag(t *testing.T) {
 						continue
 					}
 
-					if e.Pos.Y != tet.Pos.Y {
-						t.Errorf("Y position: want %d, got %d", tet.Pos.Y, e.Pos.Y)
-					}
+					assert.Equal(t, tet.Pos.X, e.Pos.X)
 				}
 			}
 		})
@@ -48,30 +44,25 @@ func TestNewBag(t *testing.T) {
 //   - that the first element of the bag is removed.
 //   - that the bag is filled with 7 tetriminos if it has less than 7 elements.
 func TestBag_Next(t *testing.T) {
-	tt := []struct {
-		name     string
+	tt := map[string]struct {
 		elements []Tetrimino
 	}{
-		{
-			name:     "2 elements",
+		"2 elements": {
 			elements: make([]Tetrimino, 2, 14),
 		},
-		{
-			name:     "7 elements",
+		"7 elements": {
 			elements: make([]Tetrimino, 7, 14),
 		},
-		{
-			name:     "8 elements",
+		"8 elements": {
 			elements: make([]Tetrimino, 8, 14),
 		},
-		{
-			name:     "14 elements",
+		"14 elements": {
 			elements: make([]Tetrimino, 14),
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			b := Bag{
 				elements:  tc.elements,
 				startLine: 40,
@@ -87,17 +78,14 @@ func TestBag_Next(t *testing.T) {
 			}
 
 			result := b.Next()
-			if !reflect.DeepEqual(*result, *expected) {
-				t.Errorf("Tetrimino: want %v, got %v", *expected, *result)
-			}
+			assert.EqualValues(t, *expected, *result)
 
 			for i := range b.elements {
 				b.elements[i].Pos.Y += b.startLine
 			}
 
-			if v := b.elements[:len(expectedElements)]; !reflect.DeepEqual(v, expectedElements) {
-				t.Errorf("elements: want %v, got %v", expectedElements, v)
-			}
+			v := b.elements[:len(expectedElements)]
+			assert.EqualValues(t, expectedElements, v)
 
 			expectedLength := len(expectedElements)
 			if expectedLength < 7 && len(b.elements) != expectedLength+7 {
@@ -111,45 +99,38 @@ func TestBag_Next(t *testing.T) {
 //   - that the bag is filled with 7 tetriminos if it has less than 7 elements.
 //   - that the tetriminos added to the bag are not duplicates.
 func TestBag_Fill(t *testing.T) {
-	tt := []struct {
-		name        string
+	tt := map[string]struct {
 		elements    []Tetrimino
 		timesToFill int
 	}{
-		{
-			name:        "0 elements, 1 fill",
+		"0 elements, 1 fill": {
 			elements:    make([]Tetrimino, 0, 14),
 			timesToFill: 1,
 		},
-		{
-			name:        "4 elements, 1 fill",
+		"4 elements, 1 fill": {
 			elements:    make([]Tetrimino, 4, 14),
 			timesToFill: 1,
 		},
-		{
-			name:        "7 elements, 1 fill",
+		"7 elements, 1 fill": {
 			elements:    make([]Tetrimino, 7, 14),
 			timesToFill: 1,
 		},
-		{
-			name:        "0 elements, 2 fills",
+		"0 elements, 2 fills": {
 			elements:    make([]Tetrimino, 0, 14),
 			timesToFill: 2,
 		},
-		{
-			name:        "4 elements, 2 fills",
+		"4 elements, 2 fills": {
 			elements:    make([]Tetrimino, 4, 14),
 			timesToFill: 2,
 		},
-		{
-			name:        "7 elements, 2 fills",
+		"7 elements, 2 fills": {
 			elements:    make([]Tetrimino, 7, 14),
 			timesToFill: 2,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			b := Bag{
 				elements:  tc.elements,
 				startLine: 40,
@@ -159,23 +140,18 @@ func TestBag_Fill(t *testing.T) {
 				b.fill()
 			}
 
-			length := len(b.elements)
 			expectedLength := len(tc.elements) + (7 * tc.timesToFill)
 			for expectedLength > 14 {
 				expectedLength -= 7
 			}
-			if length != expectedLength {
-				t.Errorf("Length: want %d, got %d", expectedLength, length)
-			}
+			assert.Len(t, b.elements, expectedLength)
 
 			tetCount := make(map[byte]int)
-			for i := len(tc.elements); i < length; i++ {
+			for i := len(tc.elements); i < len(b.elements); i++ {
 				tetCount[b.elements[i].Value]++
 			}
 			for value, count := range tetCount {
-				if count > tc.timesToFill {
-					t.Errorf("Duplicate tetrimino '%v' in bag: %v", value, b.elements)
-				}
+				assert.LessOrEqualf(t, count, tc.timesToFill, "Duplicate tetrimino '%v' in bag: %v", value, b.elements)
 			}
 		})
 	}

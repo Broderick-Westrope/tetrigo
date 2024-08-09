@@ -5,6 +5,14 @@ import "fmt"
 // Matrix represents the board of cells on which the game is played.
 type Matrix [][]byte
 
+func DefaultMatrix() Matrix {
+	m, err := NewMatrix(40, 10)
+	if err != nil {
+		panic(fmt.Errorf("failed to create default matrix: %w", err))
+	}
+	return m
+}
+
 // NewMatrix creates a new Matrix with the given height and width.
 func NewMatrix(height, width uint) (Matrix, error) {
 	if height <= 20 {
@@ -35,7 +43,7 @@ func (m *Matrix) GetVisible() [][]byte {
 
 func (m *Matrix) isLineComplete(row int) bool {
 	for _, cell := range (*m)[row] {
-		if isCellEmpty(cell) {
+		if isMinoEmpty(cell) {
 			return false
 		}
 	}
@@ -65,7 +73,7 @@ func (m *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
 
 				cellValue := (*m)[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]
 				if cellValue != tetrimino.Value {
-					return fmt.Errorf("cell at row %d, col %d is '%s' (byte value %v) not the expected '%s' (byte value %v)", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, string(cellValue), cellValue, string(tetrimino.Value), tetrimino.Value)
+					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected '%s' (byte value %v)", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, string(cellValue), cellValue, string(tetrimino.Value), tetrimino.Value)
 				}
 				(*m)[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = 0
 			}
@@ -75,7 +83,7 @@ func (m *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
 }
 
 // AddTetrimino adds the given Tetrimino to the Matrix.
-// It returns an error if the Tetrimino is out of bounds or if the Tetrimino overlaps with an occupied cell.
+// It returns an error if the Tetrimino is out of bounds or if the Tetrimino overlaps with an occupied mino.
 func (m *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Minos {
 		for col := range tetrimino.Minos[row] {
@@ -88,8 +96,8 @@ func (m *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 				}
 
 				cellValue := (*m)[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]
-				if !isCellEmpty(cellValue) {
-					return fmt.Errorf("cell at row %d, col %d is '%s' (byte value %v) not empty", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, string(cellValue), cellValue)
+				if !isMinoEmpty(cellValue) {
+					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not empty", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, string(cellValue), cellValue)
 				}
 				(*m)[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = tetrimino.Value
 			}
@@ -99,8 +107,8 @@ func (m *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 }
 
 // RemoveCompletedLines checks each row that the given Tetrimino occupies and removes any completed lines from the Matrix.
-// It returns an action to be used for calculating the score.
-func (m *Matrix) RemoveCompletedLines(tet *Tetrimino) action {
+// It returns an Action to be used for calculating the score.
+func (m *Matrix) RemoveCompletedLines(tet *Tetrimino) Action {
 	lines := 0
 	for row := range tet.Minos {
 		if m.isLineComplete(tet.Pos.Y + row) {

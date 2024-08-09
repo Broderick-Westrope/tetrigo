@@ -8,10 +8,10 @@ type Scoring struct {
 	backToBack bool
 }
 
-// TODO: make action exported
+// TODO: make Action exported
 
 // Actions that score points. Defined in chapter 8 of the 2009 Guideline
-type action int8
+type Action int8
 
 const (
 	actionNone = iota
@@ -54,7 +54,7 @@ func (s *Scoring) AddHardDrop(lines uint) {
 	s.total += lines * 2
 }
 
-func (s *Scoring) ProcessAction(a action) {
+func (s *Scoring) ProcessAction(a Action) {
 	if a == actionNone {
 		return
 	}

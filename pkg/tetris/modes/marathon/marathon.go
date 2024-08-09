@@ -158,7 +158,7 @@ func (g *Game) next() (bool, error) {
 	g.currentTet = g.bag.Next()
 
 	// Block Out
-	if g.currentTet.IsOverlapping(&g.matrix) {
+	if g.currentTet.IsOverlapping(g.matrix) {
 		return true, nil
 	}
 
