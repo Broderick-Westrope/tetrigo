@@ -162,24 +162,24 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			//	return stopwatch.TickMsg{ID: m.fallStopwatch.ID()}
 			//})
 		case key.Matches(msg, m.keys.Hold):
-			err := m.game.Hold()
+			gameOver, err := m.game.Hold()
 			if err != nil {
 				panic(fmt.Errorf("failed to hold tetrimino: %w", err))
+			}
+			if gameOver {
+				m.gameOver()
 			}
 		}
 	case stopwatch.TickMsg:
 		if m.fallStopwatch.ID() != msg.ID {
 			break
 		}
-		lockedDown, err := m.game.TickLower()
+		gameOver, err := m.game.TickLower()
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
-		if lockedDown && m.game.IsGameOver() {
-			cmds = append(cmds, m.timer.Toggle())
-			cmds = append(cmds, m.fallStopwatch.Toggle())
-			m.gameOverStopwatch = stopwatch.NewWithInterval(time.Second * 5)
-			cmds = append(cmds, m.gameOverStopwatch.Start())
+		if gameOver {
+			m.gameOver()
 		}
 	}
 
@@ -307,4 +307,13 @@ func (m *Model) renderCell(cell byte) string {
 		}
 	}
 	return "??"
+}
+
+func (m *Model) gameOver() tea.Cmd {
+	var cmds []tea.Cmd
+	cmds = append(cmds, m.timer.Stop())
+	cmds = append(cmds, m.fallStopwatch.Stop())
+	m.gameOverStopwatch = stopwatch.NewWithInterval(time.Second * 10)
+	cmds = append(cmds, m.gameOverStopwatch.Start())
+	return tea.Batch(cmds...)
 }
