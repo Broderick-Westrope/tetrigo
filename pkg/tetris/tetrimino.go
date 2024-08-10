@@ -405,13 +405,13 @@ func (t *Tetrimino) DeepCopy() *Tetrimino {
 	}
 }
 
-func (t *Tetrimino) IsAbovePlayfield(skyline int) bool {
-	// The skyline is the highest row visible to the player. Decrement by 1 to get the lowest row of the buffer zone.
-	bufferZoneBottom := skyline - 1
+// IsAboveSkyline returns true if the entire Tetrimino is above the skyline.
+// This can be helpful when checking for Lock Out.
+func (t *Tetrimino) IsAboveSkyline(skyline int) bool {
 	for row := len(t.Minos) - 1; row >= 0; row-- {
 		for col := range t.Minos[row] {
 			if t.Minos[row][col] {
-				if t.Pos.Y+row > bufferZoneBottom {
+				if t.Pos.Y+row >= skyline {
 					return false
 				}
 				break
@@ -421,6 +421,8 @@ func (t *Tetrimino) IsAbovePlayfield(skyline int) bool {
 	return true
 }
 
+// IsOverlapping checks whether the Tetrimino would be overlapping with an occupied Mino if it were on the Matrix.
+// The Tetrmino should not yet be added to the Matrix, otherwise this will always return true as a Tetrimino is always overlapping with itself.
 func (t *Tetrimino) IsOverlapping(matrix Matrix) bool {
 	for col := range t.Minos[0] {
 		for row := range t.Minos {

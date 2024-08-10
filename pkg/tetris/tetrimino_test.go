@@ -1589,35 +1589,35 @@ func TestTetrimino_IsAbovePlayfield(t *testing.T) {
 		tet      *Tetrimino
 		expected bool
 	}{
-		"true, skyline 30": {
+		"true, skyline 10": {
 			skyline: 10,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 9},
-				Minos: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true}},
 			},
 			expected: true,
 		},
-		"true, skyline 40": {
+		"true, skyline 20": {
 			skyline: 20,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 19},
-				Minos: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true}},
 			},
 			expected: true,
 		},
-		"false, skyline 30": {
+		"false, skyline 10": {
 			skyline: 10,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 10},
-				Minos: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true}},
 			},
 			expected: false,
 		},
-		"false, skyline 40": {
+		"false, skyline 20": {
 			skyline: 20,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 20},
-				Minos: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true}},
 			},
 			expected: false,
 		},
@@ -1625,7 +1625,7 @@ func TestTetrimino_IsAbovePlayfield(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			result := tc.tet.IsAbovePlayfield(tc.skyline)
+			result := tc.tet.IsAboveSkyline(tc.skyline)
 
 			assert.Equal(t, tc.expected, result)
 		})
