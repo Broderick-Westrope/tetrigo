@@ -27,6 +27,7 @@ func (nq *NextQueue) GetElements() []Tetrimino {
 }
 
 // Next returns the next Tetrimino, removing it from the queue and refilling if necessary.
+// This applies the skyline value (provided in NewNextQueue) to the Tetriminos Y axis.
 func (nq *NextQueue) Next() *Tetrimino {
 	tet := nq.elements[0]
 	nq.elements = nq.elements[1:]

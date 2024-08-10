@@ -88,18 +88,21 @@ func (m *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 	for row := range tetrimino.Minos {
 		for col := range tetrimino.Minos[row] {
 			if tetrimino.Minos[row][col] {
-				if row+tetrimino.Pos.Y >= len(*m) || row+tetrimino.Pos.Y < 0 {
-					return fmt.Errorf("row %d is out of bounds", row+tetrimino.Pos.Y)
+				minoAbsRow := row + tetrimino.Pos.Y
+				minoAbsCol := col + tetrimino.Pos.X
+
+				if minoAbsRow >= len(*m) || minoAbsRow < 0 {
+					return fmt.Errorf("row %d is out of bounds", minoAbsRow)
 				}
-				if col+tetrimino.Pos.X >= len((*m)[row]) || col+tetrimino.Pos.X < 0 {
-					return fmt.Errorf("col %d is out of bounds", col+tetrimino.Pos.X)
+				if minoAbsCol >= len((*m)[row]) || minoAbsCol < 0 {
+					return fmt.Errorf("col %d is out of bounds", minoAbsCol)
 				}
 
-				cellValue := (*m)[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]
+				cellValue := (*m)[minoAbsRow][minoAbsCol]
 				if !isMinoEmpty(cellValue) {
-					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not empty", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, string(cellValue), cellValue)
+					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not empty", minoAbsRow, minoAbsCol, string(cellValue), cellValue)
 				}
-				(*m)[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = tetrimino.Value
+				(*m)[minoAbsRow][minoAbsCol] = tetrimino.Value
 			}
 		}
 	}

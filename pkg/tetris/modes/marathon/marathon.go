@@ -87,7 +87,7 @@ func (g *Game) Hold() error {
 		if t.Value != g.holdQueue.Value {
 			continue
 		}
-		g.holdQueue.Pos = t.Pos
+		g.holdQueue = t.DeepCopy()
 		g.holdQueue.Pos.Y += g.matrix.GetSkyline()
 		found = true
 		break
