@@ -2,6 +2,7 @@ package marathon
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
@@ -220,31 +221,40 @@ func (m *Model) matrixView() string {
 }
 
 func (m *Model) informationView() string {
+	width := m.styles.Information.GetWidth()
+
 	var header string
-	headerStyle := lipgloss.NewStyle().Width(m.styles.Information.GetWidth()).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
+	headerStyle := lipgloss.NewStyle().Width(width).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
 	if m.game.IsGameOver() {
 		header = headerStyle.Render("GAME OVER")
 	} else if m.paused {
 		header = headerStyle.Render("PAUSED")
 	} else {
-		header = headerStyle.Render("RUNNING")
+		header = headerStyle.Render("MARATHON")
 	}
 
-	var output string
-	output += fmt.Sprintln("Score: ", m.game.GetTotalScore())
-	output += fmt.Sprintln("level: ", m.game.GetLevel())
-	output += fmt.Sprintln("Cleared: ", m.game.GetLinesCleared())
+	toFixedWidth := func(title, value string) string {
+		return fmt.Sprintf("%s%*s\n", title, width-(1+len(title)), value)
+	}
 
 	elapsed := m.timer.Elapsed().Seconds()
 	minutes := int(elapsed) / 60
 
-	output += "Time: "
+	var timeStr string
 	if minutes > 0 {
 		seconds := int(elapsed) % 60
-		output += fmt.Sprintf("%02d:%02d\n", minutes, seconds)
+		timeStr += fmt.Sprintf("%02d:%02d", minutes, seconds)
 	} else {
-		output += fmt.Sprintf("%06.3f\n", elapsed)
+		timeStr += fmt.Sprintf("%06.3f", elapsed)
 	}
+
+	var output string
+	output += fmt.Sprintln("Score:")
+	output += fmt.Sprintf("%*d\n", width-1, m.game.GetTotalScore())
+	output += fmt.Sprintln("Time:")
+	output += fmt.Sprintf("%*s\n", width-1, timeStr)
+	output += toFixedWidth("Lines:", strconv.Itoa(int(m.game.GetLinesCleared())))
+	output += toFixedWidth("Level:", strconv.Itoa(int(m.game.GetLevel())))
 
 	return m.styles.Information.Render(lipgloss.JoinVertical(lipgloss.Left, header, output))
 }
