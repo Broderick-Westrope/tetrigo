@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/starter"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/starter"
 	"github.com/alecthomas/kong"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -21,9 +21,9 @@ var cli struct {
 	} `cmd:"" help:"Play marathon mode"`
 }
 
-var subcommandToStarterMode = map[string]tui.Mode{
-	"menu":     tui.MODE_MENU,
-	"marathon": tui.MODE_MARATHON,
+var subcommandToStarterMode = map[string]common.Mode{
+	"menu":     common.MODE_MENU,
+	"marathon": common.MODE_MARATHON,
 }
 
 func main() {

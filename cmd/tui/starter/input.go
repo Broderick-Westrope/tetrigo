@@ -1,19 +1,19 @@
 package starter
 
 import (
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/marathon"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/menu"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/marathon"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/menu"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Input struct {
 	isFullscreen bool
 	level        uint
-	mode         tui.Mode
+	mode         common.Mode
 }
 
-func NewInput(mode tui.Mode, isFullscreen bool, level uint) *Input {
+func NewInput(mode common.Mode, isFullscreen bool, level uint) *Input {
 	return &Input{
 		mode:         mode,
 		isFullscreen: isFullscreen,
@@ -29,11 +29,11 @@ func (in *Input) ToMenuInput() *menu.Input {
 	return menu.NewInput(in.isFullscreen)
 }
 
-func (in *Input) getChild(mode tui.Mode) (tea.Model, error) {
+func (in *Input) getChild(mode common.Mode) (tea.Model, error) {
 	switch mode {
-	case tui.MODE_MENU:
+	case common.MODE_MENU:
 		return menu.NewModel(in.ToMenuInput()), nil
-	case tui.MODE_MARATHON:
+	case common.MODE_MARATHON:
 		return marathon.NewModel(in.ToMarathonInput())
 	default:
 		panic("invalid mode")

@@ -1,7 +1,7 @@
 package starter
 
 import (
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -29,7 +29,7 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tui.SwitchModeMsg:
+	case common.SwitchModeMsg:
 		model, err := m.input.getChild(msg.Target)
 		if err != nil {
 			panic(err)
