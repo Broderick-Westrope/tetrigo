@@ -55,7 +55,7 @@ func NewModel(in *Input) (*Model, error) {
 		styles:       defaultStyles(),
 		help:         help.New(),
 		keys:         defaultKeyMap(),
-		timer:        stopwatch.NewWithInterval(time.Millisecond),
+		timer:        stopwatch.NewWithInterval(time.Millisecond * 3),
 		paused:       false,
 		isFullscreen: in.isFullscreen,
 		game:         game,
