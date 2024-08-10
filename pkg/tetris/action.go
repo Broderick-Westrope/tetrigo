@@ -109,6 +109,24 @@ func (a action) GetPoints() int {
 	return actionToPointsMap[a]
 }
 
+func (a action) EndsBackToBack() bool {
+	switch a {
+	case actionSingle, actionDouble, actionTriple:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a action) StartsBackToBack() bool {
+	switch a {
+	case actionTetris, actionMiniTSpinSingle, actionTSpinSingle, actionTSpinDouble, actionTSpinTriple:
+		return true
+	default:
+		return false
+	}
+}
+
 type ActionContainer struct {
 	UNKNOWN            Action
 	NONE               Action

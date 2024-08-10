@@ -43,34 +43,9 @@ func (s *Scoring) ProcessAction(a Action) {
 	points := float64(a.GetPoints())
 
 	backToBack := 0.0
-	switch a {
-	case Actions.SINGLE:
+	if a.EndsBackToBack() {
 		s.backToBack = false
-	case Actions.DOUBLE:
-		s.backToBack = false
-	case Actions.TRIPLE:
-		s.backToBack = false
-	case Actions.TETRIS:
-		if s.backToBack {
-			backToBack = points * 0.5
-		}
-		s.backToBack = true
-	case Actions.MINI_T_SPIN_SINGLE:
-		if s.backToBack {
-			backToBack = points * 0.5
-		}
-		s.backToBack = true
-	case Actions.T_SPIN_SINGLE:
-		if s.backToBack {
-			backToBack = points * 0.5
-		}
-		s.backToBack = true
-	case Actions.T_SPIN_DOUBLE:
-		if s.backToBack {
-			backToBack = points * 0.5
-		}
-		s.backToBack = true
-	case Actions.T_SPIN_TRIPLE:
+	} else if a.StartsBackToBack() {
 		if s.backToBack {
 			backToBack = points * 0.5
 		}
