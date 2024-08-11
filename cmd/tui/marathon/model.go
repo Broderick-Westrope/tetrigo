@@ -22,10 +22,10 @@ type Model struct {
 	styles            *Styles
 	help              help.Model
 	keys              *keyMap
-	timer             stopwatch.Model
+	timerStopwatch    stopwatch.Model
 	cfg               *config.Config
 	isFullscreen      bool
-	paused            bool
+	isPaused          bool
 	fallStopwatch     stopwatch.Model
 	gameOverStopwatch stopwatch.Model
 	game              *marathon.Game
@@ -38,13 +38,13 @@ func NewModel(in *common.MarathonInput) (*Model, error) {
 	}
 
 	m := &Model{
-		styles:       defaultStyles(),
-		help:         help.New(),
-		keys:         defaultKeyMap(),
-		timer:        stopwatch.NewWithInterval(time.Millisecond * 3),
-		paused:       false,
-		isFullscreen: in.IsFullscreen,
-		game:         game,
+		styles:         defaultStyles(),
+		help:           help.New(),
+		keys:           defaultKeyMap(),
+		timerStopwatch: stopwatch.NewWithInterval(time.Millisecond * 3),
+		isPaused:       false,
+		isFullscreen:   in.IsFullscreen,
+		game:           game,
 	}
 	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
@@ -63,84 +63,136 @@ func NewModel(in *common.MarathonInput) (*Model, error) {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.fallStopwatch.Init(), m.timer.Init())
+	return tea.Batch(m.fallStopwatch.Init(), m.timerStopwatch.Init())
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	m.timer, cmd = m.timer.Update(msg)
-	cmds = append(cmds, cmd)
-
-	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
+	// Dependencies
+	m, cmd = m.dependenciesUpdate(msg)
 	cmds = append(cmds, cmd)
 
 	// Operations that can be performed all the time
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Quit):
-			return m, tea.Quit
-		case key.Matches(msg, m.keys.Pause):
-			if m.game.IsGameOver() {
-				break
-			}
-			m.paused = !m.paused
-			cmds = append(cmds, m.timer.Toggle())
-			cmds = append(cmds, m.fallStopwatch.Toggle())
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
+			return m, tea.Batch(cmds...)
 		}
 	case tea.WindowSizeMsg:
 		m.styles.ProgramFullscreen.Width(msg.Width).Height(msg.Height)
-	case stopwatch.TickMsg:
-		if m.gameOverStopwatch.ID() != msg.ID {
-			break
-		}
-		// TODO: Redirect to game over / leaderboard screen
-		return m, tea.Quit
+		return m, tea.Batch(cmds...)
 	case common.SwitchModeMsg:
-		if msg.Target == common.MODE_MENU {
-			return m, tea.Quit
-		}
+		panic(fmt.Errorf("unexpected/unhandled SwitchModeMsg: %v", msg.Target))
 	}
 
-	if m.paused || m.game.IsGameOver() {
+	// Game Over
+	if m.game.IsGameOver() {
+		m, cmd = m.gameOverUpdate(msg)
+		cmds = append(cmds, cmd)
 		return m, tea.Batch(cmds...)
 	}
 
-	// Operations that can be performed when the game is not paused
+	// Paused
+	if m.isPaused {
+		m, cmd = m.pausedUpdate(msg)
+		cmds = append(cmds, cmd)
+		return m, tea.Batch(cmds...)
+	}
+
+	// Playing
+	m, cmd = m.playingUpdate(msg)
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
+}
+
+func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
+	m.timerStopwatch, cmd = m.timerStopwatch.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
+	cmds = append(cmds, cmd)
+
+	m.gameOverStopwatch, cmd = m.gameOverStopwatch.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keys.Quit):
+			return m, common.SwitchModeCmd(common.MODE_LEADERBOARD, common.NewLeaderboardInput(nil, "marathon"))
+		}
+	case stopwatch.TickMsg:
+		if msg.ID != m.gameOverStopwatch.ID() {
+			break
+		}
+		return m, common.SwitchModeCmd(common.MODE_LEADERBOARD, common.NewLeaderboardInput(nil, "marathon"))
+	}
+
+	return m, nil
+}
+
+func (m *Model) pausedUpdate(msg tea.Msg) (*Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.keys.Pause):
+			return m, m.togglePause()
+		}
+	}
+
+	return m, nil
+}
+
+func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Left):
 			err := m.game.MoveLeft()
 			if err != nil {
-				panic(fmt.Errorf("failed to move tetrimino left: %w", err))
+				panic(fmt.Errorf("failed to move left: %w", err))
 			}
+			return m, nil
 		case key.Matches(msg, m.keys.Right):
 			err := m.game.MoveRight()
 			if err != nil {
-				panic(fmt.Errorf("failed to move tetrimino right: %w", err))
+				panic(fmt.Errorf("failed to move right: %w", err))
 			}
+			return m, nil
 		case key.Matches(msg, m.keys.Clockwise):
 			err := m.game.Rotate(true)
 			if err != nil {
-				panic(fmt.Errorf("failed to rotate tetrimino clockwise: %w", err))
+				panic(fmt.Errorf("failed to rotate clockwise: %w", err))
 			}
+			return m, nil
 		case key.Matches(msg, m.keys.CounterClockwise):
 			err := m.game.Rotate(false)
 			if err != nil {
-				panic(fmt.Errorf("failed to rotate tetrimino counter-clockwise: %w", err))
+				panic(fmt.Errorf("failed to rotate counter-clockwise: %w", err))
 			}
+			return m, nil
 		case key.Matches(msg, m.keys.HardDrop):
-			// TODO: handle hard drop game over
-			_, err := m.game.HardDrop()
+			gameOver, err := m.game.HardDrop()
 			if err != nil {
 				panic(fmt.Errorf("failed to hard drop: %w", err))
 			}
+			var cmds []tea.Cmd
+			if gameOver {
+				cmds = append(cmds, m.triggerGameOver())
+			}
 			cmds = append(cmds, m.fallStopwatch.Reset())
+			return m, tea.Batch(cmds...)
 		case key.Matches(msg, m.keys.SoftDrop):
 			m.fallStopwatch.Interval = m.game.ToggleSoftDrop()
 			// TODO: find a fix for "pausing" momentarily before soft drop begins
@@ -152,24 +204,30 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if err != nil {
 				panic(fmt.Errorf("failed to hold tetrimino: %w", err))
 			}
+			var cmds []tea.Cmd
 			if gameOver {
-				m.gameOver()
+				cmds = append(cmds, m.triggerGameOver())
 			}
+			return m, tea.Batch(cmds...)
+		case key.Matches(msg, m.keys.Pause):
+			return m, m.togglePause()
 		}
 	case stopwatch.TickMsg:
-		if m.fallStopwatch.ID() != msg.ID {
+		if msg.ID != m.fallStopwatch.ID() {
 			break
 		}
 		gameOver, err := m.game.TickLower()
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
 		}
+		var cmds []tea.Cmd
 		if gameOver {
-			m.gameOver()
+			cmds = append(cmds, m.triggerGameOver())
 		}
+		return m, tea.Batch(cmds...)
 	}
 
-	return m, tea.Batch(cmds...)
+	return m, nil
 }
 
 func (m *Model) View() string {
@@ -213,7 +271,7 @@ func (m *Model) informationView() string {
 	headerStyle := lipgloss.NewStyle().Width(width).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
 	if m.game.IsGameOver() {
 		header = headerStyle.Render("GAME OVER")
-	} else if m.paused {
+	} else if m.isPaused {
 		header = headerStyle.Render("PAUSED")
 	} else {
 		header = headerStyle.Render("MARATHON")
@@ -223,7 +281,7 @@ func (m *Model) informationView() string {
 		return fmt.Sprintf("%s%*s\n", title, width-(1+len(title)), value)
 	}
 
-	elapsed := m.timer.Elapsed().Seconds()
+	elapsed := m.timerStopwatch.Elapsed().Seconds()
 	minutes := int(elapsed) / 60
 
 	var timeStr string
@@ -295,11 +353,19 @@ func (m *Model) renderCell(cell byte) string {
 	return "??"
 }
 
-func (m *Model) gameOver() tea.Cmd {
+func (m *Model) triggerGameOver() tea.Cmd {
 	var cmds []tea.Cmd
-	cmds = append(cmds, m.timer.Stop())
+	cmds = append(cmds, m.timerStopwatch.Stop())
 	cmds = append(cmds, m.fallStopwatch.Stop())
-	m.gameOverStopwatch = stopwatch.NewWithInterval(time.Second * 10)
+	m.gameOverStopwatch = stopwatch.NewWithInterval(time.Second * 5)
 	cmds = append(cmds, m.gameOverStopwatch.Start())
 	return tea.Batch(cmds...)
+}
+
+func (m *Model) togglePause() tea.Cmd {
+	m.isPaused = !m.isPaused
+	return tea.Batch(
+		m.fallStopwatch.Toggle(),
+		m.timerStopwatch.Toggle(),
+	)
 }

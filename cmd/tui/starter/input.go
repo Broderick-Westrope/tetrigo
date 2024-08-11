@@ -72,6 +72,7 @@ func (in *Input) getChild(mode common.Mode, switchIn common.SwitchModeInput) (te
 		if !ok {
 			return nil, ErrInvalidSwitchModeInput
 		}
+		leaderboardIn.DB = in.db
 		return leaderboard.NewModel(leaderboardIn)
 	default:
 		return nil, ErrInvalidSwitchMode
