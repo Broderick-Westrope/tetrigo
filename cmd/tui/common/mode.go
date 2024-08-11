@@ -1,24 +1,31 @@
 package common
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 type Mode int
 
 const (
 	MODE_MENU = Mode(iota)
 	MODE_MARATHON
+	MODE_LEADERBOARD
 )
 
 type SwitchModeMsg struct {
 	Target Mode
-	Level  uint
+	Input  SwitchModeInput
 }
 
-func SwitchModeCmd(target Mode, level uint) tea.Cmd {
+type SwitchModeInput interface {
+	isSwitchModeInput()
+}
+
+func SwitchModeCmd(target Mode, in SwitchModeInput) tea.Cmd {
 	return func() tea.Msg {
 		return SwitchModeMsg{
 			Target: target,
-			Level:  level,
+			Input:  in,
 		}
 	}
 }

@@ -16,20 +16,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Input struct {
-	isFullscreen bool
-	level        uint
-	maxLevel     uint
-}
-
-func NewInput(isFullscreen bool, level, maxLevel uint) *Input {
-	return &Input{
-		isFullscreen: isFullscreen,
-		level:        level,
-		maxLevel:     maxLevel,
-	}
-}
-
 var _ tea.Model = &Model{}
 
 type Model struct {
@@ -45,8 +31,8 @@ type Model struct {
 	game              *marathon.Game
 }
 
-func NewModel(in *Input) (*Model, error) {
-	game, err := marathon.NewGame(in.level, in.maxLevel)
+func NewModel(in *common.MarathonInput) (*Model, error) {
+	game, err := marathon.NewGame(in.Level, in.MaxLevel)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create marathon game: %w", err)
 	}
@@ -57,7 +43,7 @@ func NewModel(in *Input) (*Model, error) {
 		keys:         defaultKeyMap(),
 		timer:        stopwatch.NewWithInterval(time.Millisecond * 3),
 		paused:       false,
-		isFullscreen: in.isFullscreen,
+		isFullscreen: in.IsFullscreen,
 		game:         game,
 	}
 	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
@@ -69,7 +55,7 @@ func NewModel(in *Input) (*Model, error) {
 	m.styles = CreateStyles(&cfg.Theme)
 	m.cfg = cfg
 
-	if in.isFullscreen {
+	if in.IsFullscreen {
 		m.styles.ProgramFullscreen.Width(0).Height(0)
 	}
 

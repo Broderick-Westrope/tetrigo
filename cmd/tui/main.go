@@ -7,6 +7,7 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/starter"
+	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/alecthomas/kong"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -34,8 +35,14 @@ func main() {
 		fmt.Printf("Invalid command: %s\n", ctx.Command())
 	}
 
+	db, err := data.NewDB("data.db")
+	if err != nil {
+		log.Printf("error opening database: %v", err)
+		os.Exit(1)
+	}
+
 	model, err := starter.NewModel(
-		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level),
+		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level, db),
 	)
 	if err != nil {
 		log.Printf("error creating starter model: %v", err)
