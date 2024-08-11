@@ -51,3 +51,4 @@ go.work
 config.toml
 # Go test coverage
 cover.out
+**/*.db
