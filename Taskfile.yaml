@@ -12,7 +12,7 @@ tasks:
   run:
     desc: Run the Go project
     cmds:
-      - go run . {{.CLI_ARGS}}
+      - go run ./cmd/tui/ {{.CLI_ARGS}}
   cover:
     desc: Run tests with coverage
     cmds:

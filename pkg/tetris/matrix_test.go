@@ -2,36 +2,50 @@ package tetris
 
 import (
 	"fmt"
-	"reflect"
+	"slices"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMatrix_IsLineComplete(t *testing.T) {
-	m := &Matrix{
-		[10]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		[10]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		[10]byte{0, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		[10]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
-		[10]byte{1, 1, 1, 1, 0, 1, 1, 0, 0, 1},
-		[10]byte{1, 1, 0, 1, 1, 1, 1, 1, 1, 1},
+	matrix := &Matrix{
+		[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		[]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		[]byte{0, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+		[]byte{1, 1, 1, 1, 0, 1, 1, 0, 0, 1},
+		[]byte{1, 1, 0, 1, 1, 1, 1, 1, 1, 1},
 	}
 
 	// these test cases correspond to the rows in the matrix above
 	tt := []struct {
-		name     string
 		expected bool
 	}{
-		{"row 0", true},
-		{"row 1", false},
-		{"row 2", false},
-		{"row 3", false},
-		{"row 4", false},
-		{"row 5", false},
+		{
+			expected: true,
+		},
+		{
+			expected: false,
+		},
+		{
+			expected: false,
+		},
+		{
+			expected: false,
+		},
+		{
+			expected: false,
+		},
+		{
+			expected: false,
+		},
 	}
 
-	for tcIndex, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			if actual := m.isLineComplete(tcIndex); actual != tc.expected {
+	for row, tc := range tt {
+		name := fmt.Sprintf("row %d", row)
+		t.Run(name, func(t *testing.T) {
+			if actual := matrix.isLineComplete(row); actual != tc.expected {
 				t.Errorf("expected %v, got %v", tc.expected, actual)
 			}
 		})
@@ -39,61 +53,56 @@ func TestMatrix_IsLineComplete(t *testing.T) {
 }
 
 func TestMatrix_RemoveLine(t *testing.T) {
-	testRows := Matrix{
-		[10]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		[10]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-		[10]byte{0, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		[10]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
-		[10]byte{1, 1, 1, 1, 0, 1, 1, 0, 0, 1},
-		[10]byte{1, 1, 0, 1, 1, 1, 1, 1, 1, 1},
+	matrix := Matrix{
+		[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		[]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		[]byte{0, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+		[]byte{1, 1, 1, 1, 0, 1, 1, 0, 0, 1},
+		[]byte{1, 1, 0, 1, 1, 1, 1, 1, 1, 1},
 	}
 
-	for rowIndex := range testRows {
-		t.Run(fmt.Sprint("row ", rowIndex), func(t *testing.T) {
-			m := Matrix{}
-			m[rowIndex] = testRows[rowIndex]
+	for row := range matrix {
+		t.Run(fmt.Sprint("row ", row), func(t *testing.T) {
+			m := DefaultMatrix()
+			m[row] = slices.Clone(matrix[row])
 
-			if m[rowIndex] != testRows[rowIndex] {
-				t.Errorf("Before: expected %v, got %v", testRows[rowIndex], m[rowIndex])
-			}
+			assert.ElementsMatch(t, matrix[row], m[row])
 
-			m.removeLine(rowIndex)
+			m.removeLine(row)
 
-			for colIndex := range m[rowIndex] {
-				if m[rowIndex][colIndex] != 0 {
-					t.Errorf("After: expected 0, got %v", m[rowIndex][colIndex])
-				}
+			for colIndex := range m[row] {
+				assert.Equal(t, byte(0), m[row][colIndex])
 			}
 		})
 	}
 }
 
 func TestMatrix_RemoveTetrimino(t *testing.T) {
-	matrixRows := []int{0, 10, 20, 30, 39}
-	matrixCols := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+	testRows := []int{0, 10, 20, 30, 38}
+	testCols := []int{0, 1, 2, 3, 4, 5, 6}
 
 	for _, tet := range Tetriminos {
-		for _, mRow := range matrixRows {
-			for _, mCol := range matrixCols {
-				t.Run(fmt.Sprintf("Tetrimino %s, row %d, col %d", string(tet.Value), mRow, mCol), func(t *testing.T) {
-					m := Matrix{}
-					tet.Pos = Coordinate{mCol, mRow}
+		for _, mRow := range testRows {
+			for _, mCol := range testCols {
+				name := fmt.Sprintf("Tetrimino %s, row %d, col %d", string(tet.Value), mRow, mCol)
+				t.Run(name, func(t *testing.T) {
+					m := DefaultMatrix()
+					tet.Pos = Coordinate{X: mCol, Y: mRow}
 
 					err := m.AddTetrimino(&tet)
-					if err != nil {
+					if !assert.NoError(t, err) {
 						return
 					}
 
 					err = m.RemoveTetrimino(&tet)
-					if err != nil {
-						t.Errorf("expected no error, got %v", err)
+					if !assert.NoError(t, err) {
+						return
 					}
 
-					for row := range tet.Cells {
-						for col := range tet.Cells[row] {
-							if m[row+tet.Pos.Y][col+tet.Pos.X] != 0 {
-								t.Errorf("expected 0, got %v", m[row+tet.Pos.Y][col+tet.Pos.X])
-							}
+					for row := range tet.Minos {
+						for col := range tet.Minos[row] {
+							assert.Equal(t, byte(0), m[row+tet.Pos.Y][col+tet.Pos.X])
 						}
 					}
 				})
@@ -105,29 +114,26 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 func TestMatrix_AddTetrimino(t *testing.T) {
 	errorCases := []bool{true, false}
 
-	for _, expectsErr := range errorCases {
+	for _, wantErr := range errorCases {
 		for _, tet := range Tetriminos {
-			t.Run(fmt.Sprintf("Tetrimino %s, error %t", string(tet.Value), expectsErr), func(t *testing.T) {
+			t.Run(fmt.Sprintf("Tetrimino %s, error %t", string(tet.Value), wantErr), func(t *testing.T) {
 				tet.Pos = Coordinate{0, 0}
 
-				m := Matrix{}
-				if expectsErr {
-					m[0] = [10]byte{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'}
+				m := DefaultMatrix()
+				if wantErr {
+					m[0] = []byte{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'}
 				}
 
 				err := m.AddTetrimino(&tet)
-				if expectsErr && err == nil {
-					t.Error("expected an error, got nil")
-				} else if !expectsErr && err != nil {
-					t.Errorf("expected no error, got %v", err)
-				} else if !expectsErr {
-					for row := range tet.Cells {
-						for col := range tet.Cells[row] {
-							if tet.Cells[row][col] {
-								if m[row][col] != tet.Value {
-									t.Errorf("tet.Cells[%d][%d]: expected %v, got %v", row, col, tet.Value, m[row][col])
-								}
-							}
+				if wantErr {
+					assert.Error(t, err)
+					return
+				}
+				assert.NoError(t, err)
+				for row := range tet.Minos {
+					for col := range tet.Minos[row] {
+						if tet.Minos[row][col] {
+							assert.Equal(t, tet.Value, m[row][col])
 						}
 					}
 				}
@@ -137,132 +143,82 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 }
 
 func TestMatrix_RemoveCompletedLines(t *testing.T) {
-	tt := []struct {
-		name           string
-		matrix         *Matrix
+	tt := map[string]struct {
+		matrix         Matrix
 		posY           int
 		cells          [][]bool
-		expectedAction action
-		expectedMatrix *Matrix
+		expectedAction Action
+		wantMatrix     Matrix
 	}{
-		{
-			"0 lines, height 1",
-			&Matrix{
-				{},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
-			0,
-			[][]bool{{}},
-			actionNone,
-			&Matrix{
-				{},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
+		"none - tet height 1": {
+			matrix:         Matrix{{0}, {'X'}},
+			posY:           0,
+			cells:          [][]bool{{}},
+			expectedAction: Actions.NONE,
+			wantMatrix:     Matrix{{0}, {'X'}},
 		},
-		{
-			"1 line, height 1",
-			&Matrix{
-				{},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
-			1,
-			[][]bool{{}},
-			actionSingle,
-			&Matrix{},
+		"single - tet height 1": {
+			matrix:         Matrix{{0}, {'X'}},
+			posY:           1,
+			cells:          [][]bool{{}},
+			expectedAction: Actions.SINGLE,
+			wantMatrix:     Matrix{{0}, {0}},
 		},
-		{
-			"1 line, height 1",
-			&Matrix{
-				{},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
-			0,
-			[][]bool{{}, {}},
-			actionSingle,
-			&Matrix{},
+		"single - tet height 2": {
+			matrix:         Matrix{{0}, {'X'}},
+			posY:           0,
+			cells:          [][]bool{{}, {}},
+			expectedAction: Actions.SINGLE,
+			wantMatrix:     Matrix{{0}, {0}},
 		},
-		{
-			"2 lines, height 2",
-			&Matrix{
-				{},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
-			1,
-			[][]bool{{}, {}},
-			actionDouble,
-			&Matrix{},
+		"double - tet height 2": {
+			matrix:         Matrix{{0}, {'X'}, {'X'}},
+			posY:           1,
+			cells:          [][]bool{{}, {}},
+			expectedAction: Actions.DOUBLE,
+			wantMatrix:     Matrix{{0}, {0}, {0}},
 		},
-		{
-			"2 lines, height 4",
-			&Matrix{
-				{},
-				{},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
-			0,
-			[][]bool{{}, {}, {}, {}},
-			actionDouble,
-			&Matrix{},
+		"double - tet height 4": {
+			matrix:         Matrix{{0}, {0}, {'X'}, {'X'}},
+			posY:           0,
+			cells:          [][]bool{{}, {}, {}, {}},
+			expectedAction: Actions.DOUBLE,
+			wantMatrix:     Matrix{{0}, {0}, {0}, {0}},
 		},
-		{
-			"3 lines",
-			&Matrix{
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
-			0,
-			[][]bool{{}, {}, {}},
-			actionTriple,
-			&Matrix{},
+		"triple - tet height 3": {
+			matrix:         Matrix{{'X'}, {'X'}, {'X'}},
+			posY:           0,
+			cells:          [][]bool{{}, {}, {}},
+			expectedAction: Actions.TRIPLE,
+			wantMatrix:     Matrix{{0}, {0}, {0}},
 		},
-		{
-			"4 lines",
-			&Matrix{
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
-			0,
-			[][]bool{{}, {}, {}, {}},
-			actionTetris,
-			&Matrix{},
+		"tetris - tet height 4": {
+			matrix:         Matrix{{'X'}, {'X'}, {'X'}, {'X'}},
+			posY:           0,
+			cells:          [][]bool{{}, {}, {}, {}},
+			expectedAction: Actions.TETRIS,
+			wantMatrix:     Matrix{{0}, {0}, {0}, {0}},
 		},
-		{
-			"5 lines (unknown action)",
-			&Matrix{
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-				{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
-			},
-			0,
-			[][]bool{{}, {}, {}, {}, {}},
-			actionNone,
-			&Matrix{},
+		"unknown - tet height 5": {
+			matrix:         Matrix{{'X'}, {'X'}, {'X'}, {'X'}, {'X'}},
+			posY:           0,
+			cells:          [][]bool{{}, {}, {}, {}, {}},
+			expectedAction: Actions.UNKNOWN,
+			wantMatrix:     Matrix{{0}, {0}, {0}, {0}, {0}},
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			tet := Tetrimino{
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			tet := &Tetrimino{
 				Pos:   Coordinate{0, tc.posY},
-				Cells: tc.cells,
+				Minos: tc.cells,
 			}
 
-			actualAction := tc.matrix.RemoveCompletedLines(&tet)
+			act := tc.matrix.RemoveCompletedLines(tet)
 
-			if actualAction != tc.expectedAction {
-				t.Errorf("expected action %v, got %v", tc.expectedAction, actualAction)
-			}
-
-			if !reflect.DeepEqual(tc.matrix, tc.expectedMatrix) {
-				t.Errorf("expected matrix %v, got %v", tc.expectedMatrix, tc.matrix)
-			}
+			assert.Equal(t, tc.expectedAction, act)
+			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
 		})
 	}
 }

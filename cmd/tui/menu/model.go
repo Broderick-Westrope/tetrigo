@@ -3,7 +3,8 @@ package menu
 import (
 	"fmt"
 
-	"github.com/Broderick-Westrope/tetrigo/internal"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+
 	//"github.com/Broderick-Westrope/tetrigo/internal/starter"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -17,16 +18,6 @@ type setting struct {
 	name    string
 	options []option
 	index   int
-}
-
-type Input struct {
-	isFullscreen bool
-}
-
-func NewInput(isFullscreen bool) *Input {
-	return &Input{
-		isFullscreen: isFullscreen,
-	}
 }
 
 var _ tea.Model = Model{}
@@ -43,7 +34,7 @@ type Model struct {
 	isFullscreen bool
 }
 
-func NewModel(in *Input) *Model {
+func NewModel(in *common.MenuInput) *Model {
 	m := Model{
 		settings: []setting{
 			{
@@ -66,7 +57,7 @@ func NewModel(in *Input) *Model {
 		keys:         defaultKeyMap(),
 		styles:       defaultStyles(),
 		help:         help.New(),
-		isFullscreen: in.isFullscreen,
+		isFullscreen: in.IsFullscreen,
 	}
 	return &m
 }
@@ -182,7 +173,10 @@ func (m Model) startGame() (tea.Cmd, error) {
 
 	switch mode {
 	case "Marathon":
-		return internal.SwitchModeCmd(internal.MODE_MARATHON, level), nil
+		in := &common.MarathonInput{
+			Level: level,
+		}
+		return common.SwitchModeCmd(common.MODE_MARATHON, in), nil
 	default:
 		return nil, fmt.Errorf("invalid mode: %v", mode)
 	}

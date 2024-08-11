@@ -1,32 +1,36 @@
 package tetris
 
 import (
+	"errors"
 	"fmt"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestTetrimino_MoveDown(t *testing.T) {
-	rows := []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-	cols := []int{0, 1, 2, 3, 4, 5, 6, 7}
-	for _, row := range rows {
-		for _, col := range cols {
-			coord := Coordinate{X: col, Y: row}
-			for _, tet := range Tetriminos {
-				t.Run(fmt.Sprintf("value: %s, coord: %v", string(tet.Value), coord), func(t *testing.T) {
-					m := &Matrix{}
-					tet.Pos = coord
-					m.AddTetrimino(&tet)
+// TODO: tests to add:
+// - TestTetrimino_MoveDown failure cases
 
-					tet.MoveDown(m)
-
-					if tet.Pos.Y == coord.Y+1 {
+func TestTetrimino_MoveDown_success(t *testing.T) {
+	for _, tet := range Tetriminos {
+		maxRow := 40 - len(tet.Minos)
+		maxCol := 10 - len(tet.Minos[0])
+		for row := 0; row < maxRow; row++ {
+			for col := 0; col < maxCol; col++ {
+				name := fmt.Sprintf("value %s, row %d, col %d", string(tet.Value), row, col)
+				t.Run(name, func(t *testing.T) {
+					matrix := DefaultMatrix()
+					startingCoord := Coordinate{X: col, Y: row}
+					tet.Pos = startingCoord
+					err := matrix.AddTetrimino(&tet)
+					if !assert.NoError(t, err) {
 						return
 					}
-					if tet.Pos.Y+len(tet.Cells)-1 == coord.Y {
-						return
-					}
-					t.Errorf("got %v, want %v", tet.Pos.Y, coord.Y+1)
+
+					err = tet.MoveDown(&matrix)
+
+					assert.NoError(t, err)
+					assert.Equal(t, tet.Pos.Y, startingCoord.Y+1)
 				})
 			}
 		}
@@ -34,317 +38,294 @@ func TestTetrimino_MoveDown(t *testing.T) {
 }
 
 func TestTetrimino_MoveLeft(t *testing.T) {
-	tt := []struct {
-		name              string
-		startingPlayfield Matrix
-		startingTet       Tetrimino
-		expectedPlayfield Matrix
-		expectsErr        bool
+	tt := map[string]struct {
+		matrix      Matrix
+		startingTet Tetrimino
+		wantMatrix  Matrix
+		wantErr     bool
 	}{
-		{
-			name: "can, empty matrix",
-			startingPlayfield: Matrix{
+		"success - can, empty matrix": {
+			matrix: Matrix{
 				{0, 'T', 'T', 'T'},
 				{0, 0, 'T', 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 1, Y: 0},
 			},
-			expectedPlayfield: Matrix{
-				{'T', 'T', 'T'},
-				{0, 'T', 0},
+			wantMatrix: Matrix{
+				{'T', 'T', 'T', 0},
+				{0, 'T', 0, 0},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "can, perfect fit",
-			startingPlayfield: Matrix{
+		"success - can, perfect fit": {
+			matrix: Matrix{
 				{'#', 0, 'T', 'T', 'T'},
 				{'#', '#', 0, 'T', 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 2, Y: 0},
 			},
-			expectedPlayfield: Matrix{
-				{'#', 'T', 'T', 'T'},
-				{'#', '#', 'T', 0},
+			wantMatrix: Matrix{
+				{'#', 'T', 'T', 'T', 0},
+				{'#', '#', 'T', 0, 0},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "can, ghost cells",
-			startingPlayfield: Matrix{
+		"success - can, ghost cells": {
+			matrix: Matrix{
 				{'#', 'G', 'T', 'T', 'T'},
 				{'#', '#', 'G', 'T', 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 2, Y: 0},
 			},
-			expectedPlayfield: Matrix{
-				{'#', 'T', 'T', 'T'},
-				{'#', '#', 'T', 0},
+			wantMatrix: Matrix{
+				{'#', 'T', 'T', 'T', 0},
+				{'#', '#', 'T', 0, 0},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "cannot, blocking tetrimino",
-			startingPlayfield: Matrix{
+		"success - cannot, blocking tetrimino": {
+			matrix: Matrix{
 				{'#', 'T', 'T', 'T'},
 				{'#', 0, 'T', 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 1, Y: 0},
 			},
-			expectedPlayfield: Matrix{
+			wantMatrix: Matrix{
 				{'#', 'T', 'T', 'T'},
 				{'#', 0, 'T', 0},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "cannot, end of matrix",
-			startingPlayfield: Matrix{
+		"success - cannot, end of matrix": {
+			matrix: Matrix{
 				{'T', 'T', 'T'},
 				{0, 'T', 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Matrix{
+			wantMatrix: Matrix{
 				{'T', 'T', 'T'},
 				{0, 'T', 0},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "error, wrong value",
-			startingPlayfield: Matrix{
+		"failure - wrong value": {
+			matrix: Matrix{
 				{0, 'X', 'X', 'X'},
 				{0, 0, 'X', 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 1, Y: 0},
 			},
-			expectedPlayfield: Matrix{},
-			expectsErr:        true,
+			wantMatrix: Matrix{},
+			wantErr:    true,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.startingTet.MoveLeft(&tc.startingPlayfield)
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			err := tc.startingTet.MoveLeft(tc.matrix)
 
-			if tc.expectsErr && err == nil {
-				t.Errorf("expected error, got nil")
-			} else if !tc.expectsErr && err != nil {
-				t.Errorf("expected nil, got error")
+			if tc.wantErr {
+				assert.NotNil(t, err)
+				return
 			}
-
-			if err == nil && tc.startingPlayfield != tc.expectedPlayfield {
-				t.Errorf("expected matrix %v, got %v", tc.expectedPlayfield, tc.startingPlayfield)
-			}
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, tc.matrix, tc.wantMatrix)
 		})
 	}
 }
 
 func TestTetrimino_MoveRight(t *testing.T) {
-	tt := []struct {
-		name              string
-		startingPlayfield Matrix
-		startingTet       Tetrimino
-		expectedPlayfield Matrix
-		expectsErr        bool
+	tt := map[string]struct {
+		matrix      Matrix
+		startingTet Tetrimino
+		wantMatrix  Matrix
+		wantErr     bool
 	}{
-		{
-			name: "can, empty matrix",
-			startingPlayfield: Matrix{
-				{'T', 'T', 'T'},
-				{0, 'T', 0},
+		"success - can, empty matrix": {
+			matrix: Matrix{
+				{'T', 'T', 'T', 0},
+				{0, 'T', 0, 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Matrix{
+			wantMatrix: Matrix{
 				{0, 'T', 'T', 'T'},
 				{0, 0, 'T', 0},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "can, perfect fit",
-			startingPlayfield: Matrix{
+		"success - can, perfect fit": {
+			matrix: Matrix{
 				{'T', 'T', 'T', 0, '#'},
 				{0, 'T', 0, '#'},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Matrix{
+			wantMatrix: Matrix{
 				{0, 'T', 'T', 'T', '#'},
 				{0, 0, 'T', '#'},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "can, ghost cells",
-			startingPlayfield: Matrix{
+		"success - can, ghost cells": {
+			matrix: Matrix{
 				{'T', 'T', 'T', 'G', '#'},
 				{0, 'T', 'G', '#'},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Matrix{
+			wantMatrix: Matrix{
 				{0, 'T', 'T', 'T', '#'},
 				{0, 0, 'T', '#'},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "cannot, blocking tetrimino",
-			startingPlayfield: Matrix{
+		"success - cannot, blocking tetrimino": {
+			matrix: Matrix{
 				{'T', 'T', 'T', '#'},
 				{0, 'T', '#'},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Matrix{
+			wantMatrix: Matrix{
 				{'T', 'T', 'T', '#'},
 				{0, 'T', '#'},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "cannot, end of matrix",
-			startingPlayfield: Matrix{
+		"success - cannot, end of matrix": {
+			matrix: Matrix{
 				{0, 0, 0, 0, 0, 0, 0, 'T', 'T', 'T'},
 				{0, 0, 0, 0, 0, 0, 0, 0, 'T', 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 7, Y: 0},
 			},
-			expectedPlayfield: Matrix{
+			wantMatrix: Matrix{
 				{0, 0, 0, 0, 0, 0, 0, 'T', 'T', 'T'},
 				{0, 0, 0, 0, 0, 0, 0, 0, 'T', 0},
 			},
-			expectsErr: false,
+			wantErr: false,
 		},
-		{
-			name: "error, wrong value",
-			startingPlayfield: Matrix{
-				{'X', 'X', 'X'},
-				{0, 'X', 0},
+		"failure - wrong value": {
+			matrix: Matrix{
+				{'X', 'X', 'X', 0},
+				{0, 'X', 0, 0},
 			},
 			startingTet: Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			expectedPlayfield: Matrix{},
-			expectsErr:        true,
+			wantMatrix: Matrix{},
+			wantErr:    true,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.startingTet.MoveRight(&tc.startingPlayfield)
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			err := tc.startingTet.MoveRight(tc.matrix)
 
-			if tc.expectsErr && err == nil {
-				t.Errorf("expected error, got nil")
-			} else if !tc.expectsErr && err != nil {
-				t.Errorf("expected nil, got error")
+			if tc.wantErr {
+				assert.NotNil(t, err)
+				return
 			}
-
-			if err == nil && tc.startingPlayfield != tc.expectedPlayfield {
-				t.Errorf("expected matrix %v, got %v", tc.expectedPlayfield, tc.startingPlayfield)
-			}
+			assert.NoError(t, err)
+			assert.ElementsMatch(t, tc.matrix, tc.wantMatrix)
 		})
 	}
 }
 
 func TestTetrimino_CanMoveDown(t *testing.T) {
-	tt := []struct {
-		name     string
+	tt := map[string]struct {
 		tet      *Tetrimino
-		matrix   *Matrix
+		matrix   Matrix
 		expected bool
 	}{
-		{
-			name: "I, can, top of matrix",
+		"I, can, top of matrix": {
 			tet: &Tetrimino{
 				Value:           'I',
-				Cells:           [][]bool{{true}, {true}, {true}, {true}},
+				Minos:           [][]bool{{true}, {true}, {true}, {true}},
 				Pos:             Coordinate{X: 0, Y: 0},
 				CurrentRotation: 1,
 				RotationCoords:  RotationCoords['I'],
 			},
-			matrix:   &Matrix{},
+			matrix:   DefaultMatrix(),
 			expected: true,
 		},
-		{
-			name: "Z, can, starting position",
+		"Z, can, starting position": {
 			tet: &Tetrimino{
 				Value: 'Z',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, false},
 					{false, true, true},
 				},
@@ -352,14 +333,13 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['6'],
 			},
-			matrix:   &Matrix{},
+			matrix:   DefaultMatrix(),
 			expected: true,
 		},
-		{
-			name: "S, cannot, blocking tetrimino",
+		"S, cannot, blocking tetrimino": {
 			tet: &Tetrimino{
 				Value: 'S',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true, true},
 					{true, true, false},
 				},
@@ -367,16 +347,17 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['6'],
 			},
-			matrix: &Matrix{
-				{}, {}, {'X'},
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{'X', 0, 0},
 			},
 			expected: false,
 		},
-		{
-			name: "O, cannot, bottom of matrix",
+		"O, cannot, bottom of matrix": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -384,14 +365,13 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['O'],
 			},
-			matrix:   &Matrix{},
+			matrix:   DefaultMatrix(),
 			expected: false,
 		},
-		{
-			name: "GitHub Issue #1",
+		"GitHub Issue #1": {
 			tet: &Tetrimino{
 				Value: 'J',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{false, true},
 					{false, true},
@@ -400,41 +380,39 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 				CurrentRotation: 3,
 				RotationCoords:  RotationCoords['J'],
 			},
-			matrix: &Matrix{
-				{}, {'X'},
+			matrix: Matrix{
+				{0, 0},
+				{'X', 0},
+				{0, 0},
 			},
 			expected: false,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			err := tc.matrix.AddTetrimino(tc.tet)
-			if err != nil {
-				t.Errorf("Failed to add tetrimino: got error, want nil")
+			if !assert.NoError(t, err) {
+				return
 			}
 
-			result := tc.tet.CanMoveDown(*tc.matrix)
+			result := tc.tet.CanMoveDown(tc.matrix)
 
-			if result != tc.expected {
-				t.Errorf("got %v, want %v", result, tc.expected)
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
 
 func TestTetrimino_CanMoveLeft(t *testing.T) {
-	tt := []struct {
-		name     string
+	tt := map[string]struct {
 		tet      *Tetrimino
-		matrix   *Matrix
+		matrix   Matrix
 		expected bool
 	}{
-		{
-			name: "Z, can, starting position",
+		"Z, can, starting position": {
 			tet: &Tetrimino{
 				Value: 'Z',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, false},
 					{false, true, true},
 				},
@@ -442,14 +420,13 @@ func TestTetrimino_CanMoveLeft(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['6'],
 			},
-			matrix:   &Matrix{},
+			matrix:   DefaultMatrix(),
 			expected: true,
 		},
-		{
-			name: "O, cannot, blocking tetrimino",
+		"O, cannot, blocking tetrimino": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -457,16 +434,16 @@ func TestTetrimino_CanMoveLeft(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['O'],
 			},
-			matrix: &Matrix{
-				{'X'},
+			matrix: Matrix{
+				{'X', 0, 0},
+				{0, 0, 0},
 			},
 			expected: false,
 		},
-		{
-			name: "O, cannot, end of matrix",
+		"O, cannot, end of matrix": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -474,14 +451,13 @@ func TestTetrimino_CanMoveLeft(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['O'],
 			},
-			matrix:   &Matrix{},
+			matrix:   DefaultMatrix(),
 			expected: false,
 		},
-		{
-			name: "GitHub Issue #1",
+		"GitHub Issue #1": {
 			tet: &Tetrimino{
 				Value: 'L',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, false, true},
 					{true, true, true},
 				},
@@ -489,41 +465,38 @@ func TestTetrimino_CanMoveLeft(t *testing.T) {
 				CurrentRotation: 3,
 				RotationCoords:  RotationCoords['J'],
 			},
-			matrix: &Matrix{
-				{'X', 'X', 'X'},
+			matrix: Matrix{
+				{'X', 'X', 'X', 0},
+				{0, 0, 0, 0},
 			},
 			expected: false,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			err := tc.matrix.AddTetrimino(tc.tet)
-			if err != nil {
-				t.Errorf("Failed to add tetrimino: got error, want nil")
+			if !assert.NoError(t, err) {
+				return
 			}
 
-			result := tc.tet.canMoveLeft(*tc.matrix)
+			result := tc.tet.canMoveLeft(tc.matrix)
 
-			if result != tc.expected {
-				t.Errorf("got %v, want %v", result, tc.expected)
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
 
 func TestTetrimino_CanMoveRight(t *testing.T) {
-	tt := []struct {
-		name     string
+	tt := map[string]struct {
 		tet      *Tetrimino
-		matrix   *Matrix
+		matrix   Matrix
 		expected bool
 	}{
-		{
-			name: "Z, can, starting position",
+		"Z, can, starting position": {
 			tet: &Tetrimino{
 				Value: 'Z',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, false},
 					{false, true, true},
 				},
@@ -531,14 +504,13 @@ func TestTetrimino_CanMoveRight(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['6'],
 			},
-			matrix:   &Matrix{},
+			matrix:   DefaultMatrix(),
 			expected: true,
 		},
-		{
-			name: "O, cannot, blocking tetrimino",
+		"O, cannot, blocking tetrimino": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -546,16 +518,16 @@ func TestTetrimino_CanMoveRight(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['O'],
 			},
-			matrix: &Matrix{
+			matrix: Matrix{
 				{0, 0, 'X'},
+				{0, 0, 0},
 			},
 			expected: false,
 		},
-		{
-			name: "O, cannot, end of matrix",
+		"O, cannot, end of matrix": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -563,14 +535,13 @@ func TestTetrimino_CanMoveRight(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['O'],
 			},
-			matrix:   &Matrix{},
+			matrix:   DefaultMatrix(),
 			expected: false,
 		},
-		{
-			name: "GitHub Issue #1",
+		"GitHub Issue #1": {
 			tet: &Tetrimino{
 				Value: 'J',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, false, false},
 					{true, true, true},
 				},
@@ -578,40 +549,37 @@ func TestTetrimino_CanMoveRight(t *testing.T) {
 				CurrentRotation: 0,
 				RotationCoords:  RotationCoords['J'],
 			},
-			matrix: &Matrix{
+			matrix: Matrix{
 				{0, 'X', 'X', 'X'},
+				{0, 0, 0, 0},
 			},
 			expected: false,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			err := tc.matrix.AddTetrimino(tc.tet)
-			if err != nil {
-				t.Errorf("Failed to add tetrimino: got error, want nil")
+			if !assert.NoError(t, err) {
+				return
 			}
 
-			result := tc.tet.canMoveRight(*tc.matrix)
+			result := tc.tet.canMoveRight(tc.matrix)
 
-			if result != tc.expected {
-				t.Errorf("got %v, want %v", result, tc.expected)
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
 
-func TestTetrimino_RotateClockwise(t *testing.T) {
-	tt := []struct {
-		name        string
+func TestTetrimino_RotateClockwise_success(t *testing.T) {
+	tt := map[string]struct {
 		tet         *Tetrimino
 		expectedTet *Tetrimino
 	}{
-		{
-			name: "I, rotation 0",
+		"I, rotation 0": {
 			tet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true, true},
 				},
 				Pos:             Coordinate{X: 0, Y: 0},
@@ -620,7 +588,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true},
 					{true},
 					{true},
@@ -631,11 +599,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['I'],
 			},
 		},
-		{
-			name: "I, rotation 1",
+		"I, rotation 1": {
 			tet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true},
 					{true},
 					{true},
@@ -647,7 +614,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true, true},
 				},
 				Pos:             Coordinate{X: -2, Y: 2},
@@ -655,11 +622,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['I'],
 			},
 		},
-		{
-			name: "I, rotation 2",
+		"I, rotation 2": {
 			tet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true, true},
 				},
 				Pos:             Coordinate{X: 0, Y: 0},
@@ -668,7 +634,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true},
 					{true},
 					{true},
@@ -679,11 +645,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['I'],
 			},
 		},
-		{
-			name: "I, rotation 3",
+		"I, rotation 3": {
 			tet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true, true},
 				},
 				Pos:             Coordinate{X: 0, Y: 0},
@@ -692,7 +657,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true},
 					{true},
 					{true},
@@ -703,11 +668,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['I'],
 			},
 		},
-		{
-			name: "O, rotation 0",
+		"O, rotation 0": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -717,7 +681,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -726,11 +690,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['O'],
 			},
 		},
-		{
-			name: "O, rotation 1",
+		"O, rotation 1": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -740,7 +703,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -749,11 +712,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['O'],
 			},
 		},
-		{
-			name: "O, rotation 2",
+		"O, rotation 2": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -763,7 +725,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -772,11 +734,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['O'],
 			},
 		},
-		{
-			name: "O, rotation 3",
+		"O, rotation 3": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -786,7 +747,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -795,11 +756,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['O'],
 			},
 		},
-		{
-			name: "T, rotation 0",
+		"T, rotation 0": {
 			tet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true, false},
 					{true, true, true},
 				},
@@ -809,7 +769,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, false},
 					{true, true},
 					{true, false},
@@ -819,11 +779,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['6'],
 			},
 		},
-		{
-			name: "T, rotation 1",
+		"T, rotation 1": {
 			tet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, false},
 					{true, true},
 					{true, false},
@@ -834,7 +793,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
@@ -843,11 +802,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['6'],
 			},
 		},
-		{
-			name: "T, rotation 2",
+		"T, rotation 2": {
 			tet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
@@ -857,7 +815,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true},
 					{true, true},
 					{false, true},
@@ -867,11 +825,10 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['6'],
 			},
 		},
-		{
-			name: "T, rotation 3",
+		"T, rotation 3": {
 			tet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true},
 					{true, true},
 					{false, true},
@@ -882,7 +839,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true, false},
 					{true, true, true},
 				},
@@ -893,32 +850,27 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			newTet, err := tc.tet.rotateClockwise()
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			newTet := tc.tet.DeepCopy()
 
-			if err != nil {
-				t.Errorf("got error, want nil")
-			}
+			err := newTet.rotateClockwise()
 
-			if !reflect.DeepEqual(newTet, tc.expectedTet) {
-				t.Errorf("Tetrimino: got %v, want %v", newTet, tc.expectedTet)
-			}
+			assert.NoError(t, err)
+			assert.EqualValues(t, tc.expectedTet, newTet)
 		})
 	}
 }
 
-func TestTetrimino_RotateCounterClockwise(t *testing.T) {
-	tt := []struct {
-		name        string
+func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
+	tt := map[string]struct {
 		tet         *Tetrimino
 		expectedTet *Tetrimino
 	}{
-		{
-			name: "I, rotation 0",
+		"I, rotation 0": {
 			tet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true, true},
 				},
 				Pos:             Coordinate{X: 0, Y: 0},
@@ -927,7 +879,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true},
 					{true},
 					{true},
@@ -938,11 +890,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['I'],
 			},
 		},
-		{
-			name: "I, rotation 1",
+		"I, rotation 1": {
 			tet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true},
 					{true},
 					{true},
@@ -954,7 +905,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true, true},
 				},
 				Pos:             Coordinate{X: -2, Y: 1},
@@ -962,11 +913,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['I'],
 			},
 		},
-		{
-			name: "I, rotation 2",
+		"I, rotation 2": {
 			tet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true, true},
 				},
 				Pos:             Coordinate{X: 0, Y: 0},
@@ -975,7 +925,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true},
 					{true},
 					{true},
@@ -986,11 +936,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['I'],
 			},
 		},
-		{
-			name: "I, rotation 3",
+		"I, rotation 3": {
 			tet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true},
 					{true},
 					{true},
@@ -1002,7 +951,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true, true},
 				},
 				Pos:             Coordinate{X: -1, Y: 2},
@@ -1010,11 +959,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['I'],
 			},
 		},
-		{
-			name: "O, rotation 0",
+		"O, rotation 0": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -1024,7 +972,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -1033,11 +981,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['O'],
 			},
 		},
-		{
-			name: "O, rotation 1",
+		"O, rotation 1": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -1047,7 +994,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -1056,11 +1003,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['O'],
 			},
 		},
-		{
-			name: "O, rotation 2",
+		"O, rotation 2": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -1070,7 +1016,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -1079,11 +1025,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['O'],
 			},
 		},
-		{
-			name: "O, rotation 3",
+		"O, rotation 3": {
 			tet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -1093,7 +1038,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
@@ -1102,11 +1047,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['O'],
 			},
 		},
-		{
-			name: "T, rotation 0",
+		"T, rotation 0": {
 			tet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true, false},
 					{true, true, true},
 				},
@@ -1116,7 +1060,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true},
 					{true, true},
 					{false, true},
@@ -1126,11 +1070,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['6'],
 			},
 		},
-		{
-			name: "T, rotation 1",
+		"T, rotation 1": {
 			tet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, false},
 					{true, true},
 					{true, false},
@@ -1141,7 +1084,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true, false},
 					{true, true, true},
 				},
@@ -1150,11 +1093,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['6'],
 			},
 		},
-		{
-			name: "T, rotation 2",
+		"T, rotation 2": {
 			tet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
@@ -1164,7 +1106,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, false},
 					{true, true},
 					{true, false},
@@ -1174,11 +1116,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 				RotationCoords:  RotationCoords['6'],
 			},
 		},
-		{
-			name: "T, rotation 3",
+		"T, rotation 3": {
 			tet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true},
 					{true, true},
 					{false, true},
@@ -1189,7 +1130,7 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
@@ -1200,78 +1141,55 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			newTet, err := tc.tet.rotateCounterClockwise()
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			newTet := tc.tet.DeepCopy()
 
-			if err != nil {
-				t.Errorf("got error, want nil")
-			}
+			err := newTet.rotateCounterClockwise()
 
-			if !reflect.DeepEqual(newTet, tc.expectedTet) {
-				t.Errorf("Tetrimino: got %v, want %v", newTet, tc.expectedTet)
-
-				if newTet.Value != tc.expectedTet.Value {
-					t.Errorf("Tetrimino.Value: got %v, want %v", newTet.Value, tc.expectedTet.Value)
-				}
-				if !reflect.DeepEqual(newTet.Cells, tc.expectedTet.Cells) {
-					t.Errorf("Tetrimino.Cells: got %v, want %v", newTet.Cells, tc.expectedTet.Cells)
-				}
-				if newTet.Pos != tc.expectedTet.Pos {
-					t.Errorf("Tetrimino.Pos: got %v, want %v", newTet.Pos, tc.expectedTet.Pos)
-				}
-				if newTet.CurrentRotation != tc.expectedTet.CurrentRotation {
-					t.Errorf("Tetrimino.CurrentRotation: got %v, want %v", newTet.CurrentRotation, tc.expectedTet.CurrentRotation)
-				}
-				if !reflect.DeepEqual(newTet.RotationCoords, tc.expectedTet.RotationCoords) {
-					t.Errorf("Tetrimino.RotationCoords: got %v, want %v", newTet.RotationCoords, tc.expectedTet.RotationCoords)
-				}
-			}
+			assert.NoError(t, err)
+			assert.EqualValues(t, tc.expectedTet, newTet)
 		})
 	}
 }
 
-func TestTranspose(t *testing.T) {
-	tt := []struct {
-		name          string
+func TestTetrimino_Transpose(t *testing.T) {
+	tt := map[string]struct {
 		tet           *Tetrimino
-		expectedCells [][]bool
+		expectedMinos [][]bool
 	}{
-		{
-			"1x2",
-			&Tetrimino{
-				Cells: [][]bool{
+		"1x2": {
+			tet: &Tetrimino{
+				Minos: [][]bool{
 					{true, false},
 				},
 			},
-			[][]bool{
+			expectedMinos: [][]bool{
 				{true},
 				{false},
 			},
 		},
-		{
-			"2x2",
-			&Tetrimino{
-				Cells: [][]bool{
+		"2x2": {
+			tet: &Tetrimino{
+				Minos: [][]bool{
 					{true, false},
 					{true, false},
 				},
 			},
-			[][]bool{
+			expectedMinos: [][]bool{
 				{true, true},
 				{false, false},
 			},
 		},
-		{
-			"3x3",
-			&Tetrimino{
-				Cells: [][]bool{
+		"3x3": {
+			tet: &Tetrimino{
+				Minos: [][]bool{
 					{true, false, true},
 					{true, false, false},
 					{true, false, true},
 				},
 			},
-			[][]bool{
+			expectedMinos: [][]bool{
 				{true, true, true},
 				{false, false, false},
 				{true, false, true},
@@ -1279,32 +1197,26 @@ func TestTranspose(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			tc.tet.transpose()
 
-			if !reflect.DeepEqual(tc.tet.Cells, tc.expectedCells) {
-				t.Errorf("got %v,\nwant %v", tc.tet.Cells, tc.expectedCells)
-			}
+			assert.ElementsMatch(t, tc.tet.Minos, tc.expectedMinos)
 		})
 	}
 }
 
-func TestCanRotate(t *testing.T) {
-	matrix := &Matrix{}
-
-	tt := []struct {
-		name    string
-		matrix  *Matrix
+func TestTetrimino_CanBePlaced(t *testing.T) {
+	tt := map[string]struct {
+		matrix  Matrix
 		rotated *Tetrimino
 		expects bool
 	}{
-		{
-			"can rotate, empty board & starting position",
-			matrix,
+		"can rotate, empty board & starting position": {
+			DefaultMatrix(),
 			&Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{false, true, false},
 					{true, true, true},
 				},
@@ -1317,16 +1229,15 @@ func TestCanRotate(t *testing.T) {
 			},
 			true,
 		},
-		{
-			"can rotate, perfect fit",
-			&Matrix{
+		"can rotate, perfect fit": {
+			Matrix{
 				{0, 0, 0, 'X'},
 				{'X', 0, 'X'},
 				{'X', 'X', 'X'},
 			},
 			&Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
@@ -1339,14 +1250,13 @@ func TestCanRotate(t *testing.T) {
 			},
 			true,
 		},
-		{
-			"cannot rotate, blocking cell",
-			&Matrix{
+		"cannot rotate, blocking mino": {
+			Matrix{
 				{'X'},
 			},
 			&Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
@@ -1359,12 +1269,11 @@ func TestCanRotate(t *testing.T) {
 			},
 			false,
 		},
-		{
-			"cannot rotate, out of bounds left",
-			matrix,
+		"cannot rotate, out of bounds left": {
+			DefaultMatrix(),
 			&Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
@@ -1377,17 +1286,16 @@ func TestCanRotate(t *testing.T) {
 			},
 			false,
 		},
-		{
-			"cannot rotate, out of bounds right",
-			matrix,
+		"cannot rotate, out of bounds right": {
+			DefaultMatrix(),
 			&Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{
-					X: len(matrix[0]) - 2,
+					X: len(DefaultMatrix()[0]) - 2,
 					Y: 0,
 				},
 				CurrentRotation: 2,
@@ -1395,12 +1303,11 @@ func TestCanRotate(t *testing.T) {
 			},
 			false,
 		},
-		{
-			"cannot rotate, out of bounds up",
-			matrix,
+		"cannot rotate, out of bounds up": {
+			DefaultMatrix(),
 			&Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
@@ -1413,18 +1320,17 @@ func TestCanRotate(t *testing.T) {
 			},
 			false,
 		},
-		{
-			"cannot rotate, out of bounds down",
-			matrix,
+		"cannot rotate, out of bounds down": {
+			DefaultMatrix(),
 			&Tetrimino{
 				Value: 'T',
-				Cells: [][]bool{
+				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
 				Pos: Coordinate{
 					X: 0,
-					Y: len(matrix) - 1,
+					Y: len(DefaultMatrix()) - 1,
 				},
 				CurrentRotation: 2,
 				RotationCoords:  RotationCoords['6'],
@@ -1433,279 +1339,237 @@ func TestCanRotate(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			result := tc.rotated.canBePlaced(tc.matrix)
 
-			result := tc.rotated.canRotate(tc.matrix)
-
-			if result != tc.expects {
-				t.Errorf("got %v, want %v", result, tc.expects)
-			}
+			assert.EqualValues(t, result, tc.expects)
 		})
 	}
 }
 
-func TestIsOutOfBoundsHorizontally(t *testing.T) {
-	matrix := &Matrix{}
-
-	tt := []struct {
-		name    string
+func Test_IsOutOfBoundsHorizontally(t *testing.T) {
+	tt := map[string]struct {
 		tetPosX int
 		cellCol int
 		expects bool
 	}{
-		{
-			"out left", 0, -1, true,
+		"out left": {
+			0, -1, true,
 		},
-		{
-			"in left", -1, 1, false,
+		"in left": {
+			-1, 1, false,
 		},
-		{
-			"in right", 10, -1, false,
+		"in right": {
+			10, -1, false,
 		},
-		{
-			"out right", 10, 0, true,
+		"out right": {
+			10, 0, true,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			result := isOutOfBoundsHorizontally(tc.tetPosX, tc.cellCol, matrix)
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			result := isOutOfBoundsHorizontally(tc.tetPosX, tc.cellCol, DefaultMatrix())
 
-			if result != tc.expects {
-				t.Errorf("got %v, want %v", result, tc.expects)
-			}
+			assert.EqualValues(t, result, tc.expects)
 		})
 	}
 }
 
-func TestIsOutOfBoundsVertically(t *testing.T) {
-	matrix := &Matrix{}
-
-	tt := []struct {
-		name    string
+func Test_IsOutOfBoundsVertically(t *testing.T) {
+	tt := map[string]struct {
 		tetPosY int
 		cellRow int
 		expects bool
 	}{
-		{
-			"out up", 0, -1, true,
+		"out up": {
+			0, -1, true,
 		},
-		{
-			"in up", -1, 1, false,
+		"in up": {
+			-1, 1, false,
 		},
-		{
-			"in down", 40, -1, false,
+		"in down": {
+			40, -1, false,
 		},
-		{
-			"out down", 40, 0, true,
+		"out down": {
+			40, 0, true,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			result := isOutOfBoundsVertically(tc.tetPosY, tc.cellRow, matrix)
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			result := isOutOfBoundsVertically(tc.tetPosY, tc.cellRow, DefaultMatrix())
 
-			if result != tc.expects {
-				t.Errorf("got %v, want %v", result, tc.expects)
-			}
+			assert.Equal(t, tc.expects, result)
 		})
 	}
 }
 
 func TestPositiveMod(t *testing.T) {
-	tt := []struct {
-		name       string
-		dividend   int
-		divisor    int
-		expected   int
-		expectsErr bool
+	errResultIsNan := errors.New("result is NaN")
+
+	tt := map[string]struct {
+		dividend int
+		divisor  int
+		expected int
+		wantErr  error
 	}{
-		{
-			"0 mod 0",
-			0, 0, 0, true,
+		"0 mod 0": {
+			0, 0, 0, errResultIsNan,
 		},
-		{
-			"1 mod 0",
-			0, 0, 0, true,
+		"1 mod 0": {
+			0, 0, 0, errResultIsNan,
 		},
-		{
-			"3 mod 5",
-			3, 5, 3, false,
+		"3 mod 5": {
+			3, 5, 3, nil,
 		},
-		{
-			"5 mod 5",
-			5, 5, 0, false,
+		"5 mod 5": {
+			5, 5, 0, nil,
 		},
-		{
-			"3 mod -5",
-			3, -5, 3, false,
+		"3 mod -5": {
+			3, -5, 3, nil,
 		},
-		{
-			"5 mod -5",
-			5, -5, 0, false,
+		"5 mod -5": {
+			5, -5, 0, nil,
 		},
-		{
-			"-4 mod -5",
-			-4, -5, -4, false,
+		"-4 mod -5": {
+			-4, -5, -4, nil,
 		},
-		{
-			"-4 mod 5",
-			-4, 5, 1, false,
+		"-4 mod 5": {
+			-4, 5, 1, nil,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			result, err := positiveMod(tc.dividend, tc.divisor)
-			if result != tc.expected {
-				t.Errorf("result: got %v, want %v", result, tc.expected)
-			}
-			if tc.expectsErr != (err != nil) {
-				t.Error("err: got error, want nil")
+			if tc.wantErr != nil {
+				assert.EqualError(t, err, tc.wantErr.Error())
+				assert.Equal(t, tc.expected, result)
+			} else {
+				assert.NoError(t, err)
 			}
 		})
 	}
 }
 
-func TestDeepCopyCells(t *testing.T) {
-	var cells, cellsCopy [][]bool
-
-	// Case: modify byte
-	cells = [][]bool{
-		{false, false},
+func TestDeepCopyMinos(t *testing.T) {
+	tt := map[string]struct {
+		cells  [][]bool
+		modify func(*[][]bool)
+	}{
+		"modify byte": {
+			cells: [][]bool{
+				{false, false},
+			},
+			modify: func(cells *[][]bool) {
+				(*cells)[0][0] = true
+			},
+		},
+		"modify inner array": {
+			cells: [][]bool{
+				{false, false},
+			},
+			modify: func(cells *[][]bool) {
+				(*cells)[0] = []bool{true, false}
+			},
+		},
 	}
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			cellsCopy := deepCopyMinos(tc.cells)
+			tc.modify(&cellsCopy)
 
-	cellsCopy = deepCopyCells(cells)
-	cellsCopy[0][0] = true
-
-	if cells[0][0] {
-		t.Errorf("byte was modified")
+			assert.False(t, tc.cells[0][0])
+		})
 	}
-
-	// Case: modify inner array
-	cells = [][]bool{
-		{false, false},
-	}
-
-	cellsCopy = deepCopyCells(cells)
-	cellsCopy[0] = []bool{true, false}
-
-	if cells[0][0] {
-		t.Errorf("byte was modified")
-	}
-
 }
 
-func TestIsCellEmpty(t *testing.T) {
+func TestIsMinoEmpty(t *testing.T) {
 	tt := []struct {
-		name     string
-		cell     byte
+		mino     byte
 		expected bool
 	}{
 		{
-			name:     "0",
-			cell:     0,
+			mino:     0,
 			expected: true,
 		},
 		{
-			name:     "G",
-			cell:     'G',
+			mino:     'G',
 			expected: true,
 		},
 		{
-			name:     "I",
-			cell:     'I',
+			mino:     'I',
 			expected: false,
 		},
 		{
-			name:     "O",
-			cell:     'O',
+			mino:     'O',
 			expected: false,
 		},
 		{
-			name:     "T",
-			cell:     'T',
+			mino:     'T',
 			expected: false,
 		},
 		{
-			name:     "S",
-			cell:     'S',
+			mino:     'S',
 			expected: false,
 		},
 		{
-			name:     "Z",
-			cell:     'Z',
+			mino:     'Z',
 			expected: false,
 		},
 		{
-			name:     "J",
-			cell:     'J',
+			mino:     'J',
 			expected: false,
 		},
 		{
-			name:     "L",
-			cell:     'L',
+			mino:     'L',
 			expected: false,
 		},
 	}
 
 	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			result := isCellEmpty(tc.cell)
+		t.Run(string(tc.mino), func(t *testing.T) {
+			result := isMinoEmpty(tc.mino)
 
-			if result != tc.expected {
-				t.Errorf("got %v, want %v", result, tc.expected)
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
 
-func TestTetrimino_Copy(t *testing.T) {
-	// Create a tetrimino
-	tetValue := byte('T')
-	tetCells := [][]bool{
-		{false, true, false},
-		{true, true, true},
-	}
-	tetPosX := 0
-	tetPosY := 0
-	tetCurrentRotation := 0
-	tetRotationCoords := []Coordinate{
-		{0, 0},
-	}
-
+func TestTetrimino_DeepCopy(t *testing.T) {
 	tet := Tetrimino{
-		Value:           tetValue,
-		Cells:           tetCells,
-		Pos:             Coordinate{tetPosX, tetPosY},
-		CurrentRotation: tetCurrentRotation,
-		RotationCoords:  tetRotationCoords,
+		Value: byte('T'),
+		Minos: [][]bool{
+			{false, true, false},
+			{true, true, true},
+		},
+		Pos:             Coordinate{0, 0},
+		CurrentRotation: 0,
+		RotationCoords:  []Coordinate{{0, 0}},
 	}
 
 	// Create a copy manually
 	manualCopy := Tetrimino{
-		Value:           tetValue,
-		Cells:           deepCopyCells(tetCells),
-		Pos:             Coordinate{tetPosX, tetPosY},
-		CurrentRotation: tetCurrentRotation,
+		Value:           tet.Value,
+		Minos:           deepCopyMinos(tet.Minos),
+		Pos:             Coordinate{tet.Pos.X, tet.Pos.Y},
+		CurrentRotation: tet.CurrentRotation,
+		RotationCoords:  make([]Coordinate, len(tet.RotationCoords)),
 	}
-	manualCopy.RotationCoords = make([]Coordinate, len(tetRotationCoords))
 	copy(manualCopy.RotationCoords, tet.RotationCoords)
 
-	// Create a copy with the function
-	easyCopy := tet.Copy()
+	// Create a (dereferences) copy with the helper function
+	easyCopy := *tet.DeepCopy()
 
-	// Check that the copy is the same as the original and the manual copy
-	if !reflect.DeepEqual(easyCopy, &tet) {
-		t.Errorf("easy copy doesn't match original: easy %v, original %v", easyCopy, &tet)
-	} else if !reflect.DeepEqual(easyCopy, &manualCopy) {
-		t.Errorf("easy copy doesn't match manual copy: easy %v, manual %v", easyCopy, &manualCopy)
-	}
+	assert.EqualValues(t, tet, manualCopy)
+	assert.EqualValues(t, tet, easyCopy)
+	assert.EqualValues(t, manualCopy, easyCopy)
 
 	// Modify the original
 	tet.Value = 'I'
-	tet.Cells = [][]bool{
+	tet.Minos = [][]bool{
 		{true, true, true, true},
 	}
 	tet.Pos = Coordinate{1, 1}
@@ -1714,93 +1578,82 @@ func TestTetrimino_Copy(t *testing.T) {
 		{1, 1},
 	}
 
-	// Check that the copy is still the same as the manual copy
-	if !reflect.DeepEqual(easyCopy, &manualCopy) {
-		t.Errorf("easy copy was modified: easy %v, manual %v", easyCopy, &manualCopy)
-	}
+	assert.NotEqualValues(t, tet, manualCopy)
+	assert.NotEqualValues(t, tet, easyCopy)
+	assert.EqualValues(t, manualCopy, easyCopy)
 }
 
 func TestTetrimino_IsAbovePlayfield(t *testing.T) {
-	tt := []struct {
-		name         string
-		matrixLength int
-		tet          *Tetrimino
-		expected     bool
+	tt := map[string]struct {
+		skyline  int
+		tet      *Tetrimino
+		expected bool
 	}{
-		{
-			name:         "true, length 30",
-			matrixLength: 30,
+		"true, skyline 10": {
+			skyline: 10,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 9},
-				Cells: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true}},
 			},
 			expected: true,
 		},
-		{
-			name:         "true, length 40",
-			matrixLength: 40,
+		"true, skyline 20": {
+			skyline: 20,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 19},
-				Cells: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true}},
 			},
 			expected: true,
 		},
-		{
-			name:         "false, length 30",
-			matrixLength: 30,
+		"false, skyline 10": {
+			skyline: 10,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 10},
-				Cells: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true}},
 			},
 			expected: false,
 		},
-		{
-			name:         "false, length 40",
-			matrixLength: 40,
+		"false, skyline 20": {
+			skyline: 20,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 20},
-				Cells: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true}},
 			},
 			expected: false,
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			result := tc.tet.IsAbovePlayfield(tc.matrixLength)
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			result := tc.tet.IsAboveSkyline(tc.skyline)
 
-			if result != tc.expected {
-				t.Errorf("got %v, want %v", result, tc.expected)
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
 
 func TestTetrimino_IsOverlapping(t *testing.T) {
-	tt := []struct {
-		name     string
+	tt := map[string]struct {
 		tet      *Tetrimino
-		matrix   *Matrix
+		matrix   Matrix
 		expected bool
 	}{
-		{
-			name: "true",
+		"true": {
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 0},
-				Cells: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true, true, true, true}},
 			},
-			matrix: &Matrix{
+			matrix: Matrix{
 				{0, 'X'},
 			},
 			expected: true,
 		},
-		{
-			name: "false",
+		"false": {
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 0},
-				Cells: [][]bool{{true, true, true, true}},
+				Minos: [][]bool{{true, true, true, true}},
 			},
-			matrix: &Matrix{
+			matrix: Matrix{
 				{0, 0, 0, 0, 'X'},
 				{'X', 'X', 'X', 'X', 'X'},
 			},
@@ -1808,13 +1661,11 @@ func TestTetrimino_IsOverlapping(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
 			result := tc.tet.IsOverlapping(tc.matrix)
 
-			if result != tc.expected {
-				t.Errorf("got %v, want %v", result, tc.expected)
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }

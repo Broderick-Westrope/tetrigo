@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/Broderick-Westrope/tetrigo/internal"
-	"github.com/Broderick-Westrope/tetrigo/internal/starter"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/starter"
+	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/alecthomas/kong"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -21,9 +22,9 @@ var cli struct {
 	} `cmd:"" help:"Play marathon mode"`
 }
 
-var subcommandToStarterMode = map[string]internal.Mode{
-	"menu":     internal.MODE_MENU,
-	"marathon": internal.MODE_MARATHON,
+var subcommandToStarterMode = map[string]common.Mode{
+	"menu":     common.MODE_MENU,
+	"marathon": common.MODE_MARATHON,
 }
 
 func main() {
@@ -34,8 +35,14 @@ func main() {
 		fmt.Printf("Invalid command: %s\n", ctx.Command())
 	}
 
+	db, err := data.NewDB("data.db")
+	if err != nil {
+		log.Printf("error opening database: %v", err)
+		os.Exit(1)
+	}
+
 	model, err := starter.NewModel(
-		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level),
+		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level, db),
 	)
 	if err != nil {
 		log.Printf("error creating starter model: %v", err)
