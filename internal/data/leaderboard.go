@@ -42,7 +42,7 @@ func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
 	return scores, nil
 }
 
-func (r *LeaderboardRepository) Save(score Score) error {
+func (r *LeaderboardRepository) Save(score *Score) error {
 	_, err := r.db.Exec("INSERT INTO leaderboard (game_mode, name, time, score, lines, level) VALUES ($1, $2, $3, $4, $5, $6)", score.GameMode, score.Name, score.Time, score.Score, score.Lines, score.Level)
 	return err
 }

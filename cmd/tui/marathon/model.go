@@ -7,6 +7,7 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/marathon"
 	"github.com/charmbracelet/bubbles/help"
@@ -128,17 +129,32 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 }
 
 func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
+	switchToLeaderboard := func() tea.Cmd {
+		newEntry := &data.Score{
+			GameMode: "marathon",
+			Name:     "Player",
+			Time:     m.timerStopwatch.Elapsed(),
+			Score:    int(m.game.GetTotalScore()),
+			Lines:    int(m.game.GetLinesCleared()),
+			Level:    int(m.game.GetLevel()),
+		}
+
+		return common.SwitchModeCmd(common.MODE_LEADERBOARD,
+			common.NewLeaderboardInput("marathon", common.WithNewEntry(newEntry)),
+		)
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Exit):
-			return m, common.SwitchModeCmd(common.MODE_LEADERBOARD, common.NewLeaderboardInput("marathon"))
+			return m, switchToLeaderboard()
 		}
 	case stopwatch.TickMsg:
 		if msg.ID != m.gameOverStopwatch.ID() {
 			break
 		}
-		return m, common.SwitchModeCmd(common.MODE_LEADERBOARD, common.NewLeaderboardInput("marathon"))
+		return m, switchToLeaderboard()
 	}
 
 	return m, nil

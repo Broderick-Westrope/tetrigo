@@ -21,6 +21,13 @@ type Model struct {
 
 func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *common.Keys) (Model, error) {
 	repo := data.NewLeaderboardRepository(db)
+
+	if in.NewEntry != nil {
+		if err := repo.Save(in.NewEntry); err != nil {
+			return Model{}, err
+		}
+	}
+
 	scores, err := repo.All(in.GameMode)
 	if err != nil {
 		return Model{}, err
