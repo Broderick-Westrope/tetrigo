@@ -1,7 +1,5 @@
 package common
 
-import "database/sql"
-
 type MarathonInput struct {
 	IsFullscreen bool
 	Level        uint
@@ -31,13 +29,11 @@ func NewMenuInput(isFullscreen bool) *MenuInput {
 func (in *MenuInput) isSwitchModeInput() {}
 
 type LeaderboardInput struct {
-	DB       *sql.DB
 	GameMode string
 }
 
-func NewLeaderboardInput(db *sql.DB, gameMode string) *LeaderboardInput {
+func NewLeaderboardInput(gameMode string) *LeaderboardInput {
 	return &LeaderboardInput{
-		DB:       db,
 		GameMode: gameMode,
 	}
 }

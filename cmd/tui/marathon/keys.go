@@ -1,9 +1,13 @@
 package marathon
 
-import "github.com/charmbracelet/bubbles/key"
+import (
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/charmbracelet/bubbles/key"
+)
 
 type keyMap struct {
-	Quit             key.Binding
+	ForceQuit        key.Binding
+	Exit             key.Binding
 	Help             key.Binding
 	Left             key.Binding
 	Right            key.Binding
@@ -12,27 +16,26 @@ type keyMap struct {
 	SoftDrop         key.Binding
 	HardDrop         key.Binding
 	Hold             key.Binding
-	Pause            key.Binding
 }
 
-func defaultKeyMap() *keyMap {
+func constructKeyMap(keys *common.Keys) *keyMap {
 	return &keyMap{
-		Quit:             key.NewBinding(key.WithKeys("esc", "ctrl+c"), key.WithHelp("esc", "quit")),
-		Help:             key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")),
-		Left:             key.NewBinding(key.WithKeys("j", "a"), key.WithHelp("a, j", "move left")),
-		Right:            key.NewBinding(key.WithKeys("l", "d"), key.WithHelp("d, l", "move right")),
-		Clockwise:        key.NewBinding(key.WithKeys("e", "o"), key.WithHelp("e, o", "rotate clockwise")),
-		CounterClockwise: key.NewBinding(key.WithKeys("q", "u"), key.WithHelp("q, u", "rotate counter-clockwise")),
-		SoftDrop:         key.NewBinding(key.WithKeys("s", "k"), key.WithHelp("s, k", "toggle soft drop")),
-		HardDrop:         key.NewBinding(key.WithKeys("w", "i"), key.WithHelp("w, i", "hard drop")),
-		Hold:             key.NewBinding(key.WithKeys(" "), key.WithHelp("space", "hold")),
-		Pause:            key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "pause")),
+		ForceQuit:        common.ConstructKeyBinding(keys.ForceQuit, "force quit"),
+		Exit:             common.ConstructKeyBinding(keys.Exit, "exit"),
+		Help:             common.ConstructKeyBinding(keys.Help, "help"),
+		Left:             common.ConstructKeyBinding(keys.Left, "move left"),
+		Right:            common.ConstructKeyBinding(keys.Right, "move right"),
+		Clockwise:        common.ConstructKeyBinding(keys.RightRotate, "rotate clockwise"),
+		CounterClockwise: common.ConstructKeyBinding(keys.LeftRotate, "rotate counter-clockwise"),
+		SoftDrop:         common.ConstructKeyBinding(keys.Down, "toggle soft drop"),
+		HardDrop:         common.ConstructKeyBinding(keys.Up, "hard drop"),
+		Hold:             common.ConstructKeyBinding(keys.Submit, "hold"),
 	}
 }
 
 func (k *keyMap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.Quit,
+		k.Exit,
 		k.Help,
 	}
 }
@@ -40,7 +43,7 @@ func (k *keyMap) ShortHelp() []key.Binding {
 func (k *keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{
-			k.Quit,
+			k.Exit,
 			k.Help,
 			k.Left,
 		},

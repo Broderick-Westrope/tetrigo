@@ -34,7 +34,7 @@ type Model struct {
 	isFullscreen bool
 }
 
-func NewModel(in *common.MenuInput) *Model {
+func NewModel(in *common.MenuInput, keys *common.Keys) *Model {
 	m := Model{
 		settings: []setting{
 			{
@@ -54,7 +54,7 @@ func NewModel(in *common.MenuInput) *Model {
 			},
 		},
 		settingIndex: 0,
-		keys:         defaultKeyMap(),
+		keys:         constructKeyMap(keys),
 		styles:       defaultStyles(),
 		help:         help.New(),
 		isFullscreen: in.IsFullscreen,
@@ -70,7 +70,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Quit):
+		case key.Matches(msg, m.keys.Exit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Left):
 			m.settingIndex--

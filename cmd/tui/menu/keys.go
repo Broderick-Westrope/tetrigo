@@ -1,9 +1,12 @@
 package menu
 
-import "github.com/charmbracelet/bubbles/key"
+import (
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/charmbracelet/bubbles/key"
+)
 
 type keyMap struct {
-	Quit  key.Binding
+	Exit  key.Binding
 	Help  key.Binding
 	Left  key.Binding
 	Right key.Binding
@@ -12,21 +15,22 @@ type keyMap struct {
 	Start key.Binding
 }
 
-func defaultKeyMap() *keyMap {
+func constructKeyMap(keys *common.Keys) *keyMap {
+	exitKeys := append(keys.Exit, keys.ForceQuit...)
 	return &keyMap{
-		Quit:  key.NewBinding(key.WithKeys("esc", "ctrl+c"), key.WithHelp("esc", "quit")),
-		Help:  key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")),
-		Left:  key.NewBinding(key.WithKeys("j", "a", "left"), key.WithHelp("a, j, left", "move left")),
-		Right: key.NewBinding(key.WithKeys("l", "d", "right"), key.WithHelp("d, l, right", "move right")),
-		Up:    key.NewBinding(key.WithKeys("i", "w", "up"), key.WithHelp("w, i, right", "move up")),
-		Down:  key.NewBinding(key.WithKeys("k", "s", "down"), key.WithHelp("s, k, down", "move down")),
-		Start: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "start game")),
+		Exit:  common.ConstructKeyBinding(exitKeys, "exit"),
+		Help:  common.ConstructKeyBinding(keys.Help, "help"),
+		Left:  common.ConstructKeyBinding(keys.Left, "move left"),
+		Right: common.ConstructKeyBinding(keys.Right, "move right"),
+		Up:    common.ConstructKeyBinding(keys.Down, "toggle soft drop"),
+		Down:  common.ConstructKeyBinding(keys.Up, "hard drop"),
+		Start: common.ConstructKeyBinding(keys.Submit, "hold"),
 	}
 }
 
 func (k *keyMap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.Quit,
+		k.Exit,
 		k.Help,
 	}
 }
@@ -34,7 +38,7 @@ func (k *keyMap) ShortHelp() []key.Binding {
 func (k *keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{
-			k.Quit,
+			k.Exit,
 			k.Help,
 			k.Left,
 			k.Right,

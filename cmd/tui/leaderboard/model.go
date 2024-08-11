@@ -1,6 +1,7 @@
 package leaderboard
 
 import (
+	"database/sql"
 	"strconv"
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
@@ -18,15 +19,15 @@ type Model struct {
 	table table.Model
 }
 
-func NewModel(in *common.LeaderboardInput) (Model, error) {
-	repo := data.NewLeaderboardRepository(in.DB)
+func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *common.Keys) (Model, error) {
+	repo := data.NewLeaderboardRepository(db)
 	scores, err := repo.All(in.GameMode)
 	if err != nil {
 		return Model{}, err
 	}
 
 	m := Model{
-		keys:  defaultKeyMap(),
+		keys:  constructKeyMap(keys),
 		repo:  repo,
 		table: getLeaderboardTable(scores),
 	}
@@ -41,7 +42,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Quit):
+		case key.Matches(msg, m.keys.Exit):
 			return m, tea.Quit
 		}
 	}

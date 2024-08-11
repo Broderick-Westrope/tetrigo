@@ -1,30 +1,35 @@
 package leaderboard
 
-import "github.com/charmbracelet/bubbles/key"
+import (
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/charmbracelet/bubbles/key"
+)
 
 type keyMap struct {
-	Quit  key.Binding
-	Help  key.Binding
-	Left  key.Binding
-	Right key.Binding
-	Up    key.Binding
-	Down  key.Binding
+	ForceQuit key.Binding
+	Exit      key.Binding
+	Help      key.Binding
+	Left      key.Binding
+	Right     key.Binding
+	Up        key.Binding
+	Down      key.Binding
 }
 
-func defaultKeyMap() *keyMap {
+func constructKeyMap(keys *common.Keys) *keyMap {
 	return &keyMap{
-		Quit:  key.NewBinding(key.WithKeys("esc", "ctrl+c"), key.WithHelp("esc", "quit")),
-		Help:  key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")),
-		Left:  key.NewBinding(key.WithKeys("j", "a", "left"), key.WithHelp("a, j, left", "move left")),
-		Right: key.NewBinding(key.WithKeys("l", "d", "right"), key.WithHelp("d, l, right", "move right")),
-		Up:    key.NewBinding(key.WithKeys("i", "w", "up"), key.WithHelp("w, i, right", "move up")),
-		Down:  key.NewBinding(key.WithKeys("k", "s", "down"), key.WithHelp("s, k, down", "move down")),
+		ForceQuit: common.ConstructKeyBinding(keys.ForceQuit, "force quit"),
+		Exit:      common.ConstructKeyBinding(keys.Exit, "exit"),
+		Help:      common.ConstructKeyBinding(keys.Help, "help"),
+		Up:        common.ConstructKeyBinding(keys.Up, "move up"),
+		Down:      common.ConstructKeyBinding(keys.Down, "move down"),
+		Left:      common.ConstructKeyBinding(keys.Left, "move left"),
+		Right:     common.ConstructKeyBinding(keys.Right, "move right"),
 	}
 }
 
 func (k *keyMap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.Quit,
+		k.Exit,
 		k.Help,
 	}
 }
@@ -32,7 +37,7 @@ func (k *keyMap) ShortHelp() []key.Binding {
 func (k *keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{
-			k.Quit,
+			k.Exit,
 			k.Help,
 		},
 		{

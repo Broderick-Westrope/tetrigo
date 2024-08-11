@@ -31,7 +31,7 @@ type Model struct {
 	game              *marathon.Game
 }
 
-func NewModel(in *common.MarathonInput) (*Model, error) {
+func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
 	game, err := marathon.NewGame(in.Level, in.MaxLevel)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create marathon game: %w", err)
@@ -40,7 +40,7 @@ func NewModel(in *common.MarathonInput) (*Model, error) {
 	m := &Model{
 		styles:         defaultStyles(),
 		help:           help.New(),
-		keys:           defaultKeyMap(),
+		keys:           constructKeyMap(keys),
 		timerStopwatch: stopwatch.NewWithInterval(time.Millisecond * 3),
 		isPaused:       false,
 		isFullscreen:   in.IsFullscreen,
@@ -81,6 +81,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 			return m, tea.Batch(cmds...)
+		case key.Matches(msg, m.keys.ForceQuit):
+			return m, tea.Quit
 		}
 	case tea.WindowSizeMsg:
 		m.styles.ProgramFullscreen.Width(msg.Width).Height(msg.Height)
@@ -129,14 +131,14 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Quit):
-			return m, common.SwitchModeCmd(common.MODE_LEADERBOARD, common.NewLeaderboardInput(nil, "marathon"))
+		case key.Matches(msg, m.keys.Exit):
+			return m, common.SwitchModeCmd(common.MODE_LEADERBOARD, common.NewLeaderboardInput("marathon"))
 		}
 	case stopwatch.TickMsg:
 		if msg.ID != m.gameOverStopwatch.ID() {
 			break
 		}
-		return m, common.SwitchModeCmd(common.MODE_LEADERBOARD, common.NewLeaderboardInput(nil, "marathon"))
+		return m, common.SwitchModeCmd(common.MODE_LEADERBOARD, common.NewLeaderboardInput("marathon"))
 	}
 
 	return m, nil
@@ -146,8 +148,10 @@ func (m *Model) pausedUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Pause):
+		case key.Matches(msg, m.keys.Exit):
 			return m, m.togglePause()
+		case key.Matches(msg, m.keys.Hold):
+			return m, common.SwitchModeCmd(common.MODE_MENU, common.NewMenuInput(m.isFullscreen))
 		}
 	}
 
@@ -209,7 +213,7 @@ func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 				cmds = append(cmds, m.triggerGameOver())
 			}
 			return m, tea.Batch(cmds...)
-		case key.Matches(msg, m.keys.Pause):
+		case key.Matches(msg, m.keys.Exit):
 			return m, m.togglePause()
 		}
 	case stopwatch.TickMsg:

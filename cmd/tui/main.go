@@ -20,11 +20,15 @@ var cli struct {
 		Level      uint `help:"Level to start at" short:"l" default:"1"`
 		Fullscreen bool `help:"Start in fullscreen?" default:"true"`
 	} `cmd:"" help:"Play marathon mode"`
+	Leaderboard struct {
+		GameMode string `help:"Game mode to display" default:"marathon"`
+	} `cmd:"" help:"View the leaderboard for a given mode"`
 }
 
 var subcommandToStarterMode = map[string]common.Mode{
-	"menu":     common.MODE_MENU,
-	"marathon": common.MODE_MARATHON,
+	"menu":        common.MODE_MENU,
+	"marathon":    common.MODE_MARATHON,
+	"leaderboard": common.MODE_LEADERBOARD,
 }
 
 func main() {
@@ -41,8 +45,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	switchIn, err := getSwitchModeInput(starterMode)
+	if err != nil {
+		log.Printf("error getting switch mode input: %v", err)
+		os.Exit(1)
+	}
+
 	model, err := starter.NewModel(
-		starter.NewInput(starterMode, cli.Menu.Fullscreen, cli.Marathon.Level, db),
+		starter.NewInput(starterMode, switchIn, db),
 	)
 	if err != nil {
 		log.Printf("error creating starter model: %v", err)
@@ -52,5 +62,18 @@ func main() {
 	if _, err = tea.NewProgram(model, tea.WithAltScreen()).Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
+	}
+}
+
+func getSwitchModeInput(starterMode common.Mode) (common.SwitchModeInput, error) {
+	switch starterMode {
+	case common.MODE_MENU:
+		return common.NewMenuInput(cli.Menu.Fullscreen), nil
+	case common.MODE_MARATHON:
+		return common.NewMarathonInput(cli.Marathon.Fullscreen, cli.Marathon.Level, 15), nil
+	case common.MODE_LEADERBOARD:
+		return common.NewLeaderboardInput(cli.Leaderboard.GameMode), nil
+	default:
+		return nil, fmt.Errorf("invalid starter mode: %v", starterMode)
 	}
 }
