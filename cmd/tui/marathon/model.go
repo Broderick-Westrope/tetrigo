@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/helpers"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
@@ -16,6 +17,28 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+var pausedMsg = `
+ ______  ___  _   _ _____ ___________ 
+ | ___ \/ _ \| | | /  ___|  ___|  _  \
+ | |_/ / /_\ \ | | \ '--.| |__ | | | |
+ |  __/|  _  | | | |'--. \  __|| | | |
+ | |   | | | | |_| /\__/ / |___| |/ /
+ \_|   \_| |_/\___/\____/\____/|___/
+Press PAUSE to continue or HOLD to exit.
+
+`
+
+var gameOverMsg = `
+ _____   ___  ___  ___ _____   _____  _   _ ___________ 
+|  __ \ / _ \ |  \/  ||  ___| |  _  || | | |  ___| ___ \
+| |  \// /_\ \| .  . || |__   | | | || | | | |__ | |_/ /
+| | __ |  _  || |\/| ||  __|  | | | || | | |  __||    / 
+| |_\ \| | | || |  | || |___  \ \_/ /\ \_/ / |___| |\ \ 
+ \____/\_| |_/\_|  |_/\____/   \___/  \___/\____/\_| \_|
+        		 Press HOLD to continue.
+
+`
 
 var _ tea.Model = &Model{}
 
@@ -257,11 +280,20 @@ func (m *Model) View() string {
 		m.bagView(),
 	)
 
+	if m.game.IsGameOver() {
+		output = helpers.PlaceOverlayCenter(gameOverMsg, output)
+	}
+
+	if m.isPaused {
+		output = helpers.PlaceOverlayCenter(pausedMsg, output)
+	}
+
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
 
 	if m.isFullscreen {
-		return m.styles.ProgramFullscreen.Render(output)
+		output = m.styles.ProgramFullscreen.Render(output)
 	}
+
 	return output
 }
 
