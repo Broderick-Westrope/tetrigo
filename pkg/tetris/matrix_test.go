@@ -1,6 +1,7 @@
 package tetris
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"testing"
@@ -79,35 +80,68 @@ func TestMatrix_RemoveLine(t *testing.T) {
 }
 
 func TestMatrix_RemoveTetrimino(t *testing.T) {
-	testRows := []int{0, 10, 20, 30, 38}
-	testCols := []int{0, 1, 2, 3, 4, 5, 6}
 
-	for _, tet := range Tetriminos {
-		for _, mRow := range testRows {
-			for _, mCol := range testCols {
-				name := fmt.Sprintf("Tetrimino %s, row %d, col %d", string(tet.Value), mRow, mCol)
-				t.Run(name, func(t *testing.T) {
-					m := DefaultMatrix()
-					tet.Pos = Coordinate{X: mCol, Y: mRow}
+	tt := map[string]struct {
+		matrix  Matrix
+		pos     Coordinate
+		wantErr error
+	}{
+		"success - top left": {
+			matrix: Matrix{{'X', 0}, {0, 0}},
+			pos:    Coordinate{0, 0},
+		},
+		"success - bottom left": {
+			matrix: Matrix{{0, 0}, {'X', 0}},
+			pos:    Coordinate{0, 1},
+		},
+		"success - top right": {
+			matrix: Matrix{{0, 'X'}, {0, 0}},
+			pos:    Coordinate{1, 0},
+		},
+		"success - bottom right": {
+			matrix: Matrix{{0, 0}, {0, 'X'}},
+			pos:    Coordinate{1, 1},
+		},
+		"failure - row out of bounds": {
+			matrix:  Matrix{{0}},
+			pos:     Coordinate{0, 1},
+			wantErr: errors.New("row 1 is out of bounds"),
+		},
+		"failure - col out of bounds": {
+			matrix:  Matrix{{0}},
+			pos:     Coordinate{1, 0},
+			wantErr: errors.New("col 1 is out of bounds"),
+		},
+		"failure - mino not expected value": {
+			matrix:  Matrix{{0}},
+			pos:     Coordinate{0, 0},
+			wantErr: errors.New("mino at row 0, col 0 is '\x00' (byte value 0) not the expected 'X' (byte value 88)"),
+		},
+	}
 
-					err := m.AddTetrimino(&tet)
-					if !assert.NoError(t, err) {
-						return
-					}
-
-					err = m.RemoveTetrimino(&tet)
-					if !assert.NoError(t, err) {
-						return
-					}
-
-					for row := range tet.Minos {
-						for col := range tet.Minos[row] {
-							assert.Equal(t, byte(0), m[row+tet.Pos.Y][col+tet.Pos.X])
-						}
-					}
-				})
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			tet := Tetrimino{
+				Value: 'X',
+				Minos: [][]bool{{true}},
+				Pos:   tc.pos,
 			}
-		}
+
+			err := tc.matrix.RemoveTetrimino(&tet)
+
+			if tc.wantErr != nil {
+				assert.EqualError(t, err, tc.wantErr.Error())
+				return
+			}
+
+			assert.NoError(t, err)
+
+			for row := range tet.Minos {
+				for col := range tet.Minos[row] {
+					assert.Equal(t, byte(0), tc.matrix[row+tet.Pos.Y][col+tet.Pos.X])
+				}
+			}
+		})
 	}
 }
 
