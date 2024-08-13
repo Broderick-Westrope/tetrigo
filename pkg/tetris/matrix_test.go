@@ -9,6 +9,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewMatrix(t *testing.T) {
+	tt := map[string]struct {
+		width   uint
+		height  uint
+		want    Matrix
+		wantErr error
+	}{
+		"success": {
+			width:  1,
+			height: 21,
+			want: Matrix{
+				{0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0},
+			},
+		},
+		"failure": {
+			width:   1,
+			height:  20,
+			wantErr: ErrBufferZoneTooSmall,
+		},
+	}
+
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			got, err := NewMatrix(tc.height, tc.width)
+			if tc.wantErr != nil {
+				assert.EqualError(t, tc.wantErr, err.Error())
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestMatrix_IsLineComplete(t *testing.T) {
 	matrix := &Matrix{
 		[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -79,27 +113,26 @@ func TestMatrix_RemoveLine(t *testing.T) {
 	}
 }
 
-func TestMatrix_RemoveTetrimino(t *testing.T) {
-
+func TestMatrix_modifyCell(t *testing.T) {
 	tt := map[string]struct {
 		matrix  Matrix
 		pos     Coordinate
 		wantErr error
 	}{
 		"success - top left": {
-			matrix: Matrix{{'X', 0}, {0, 0}},
+			matrix: Matrix{{0, 0}, {0, 0}},
 			pos:    Coordinate{0, 0},
 		},
 		"success - bottom left": {
-			matrix: Matrix{{0, 0}, {'X', 0}},
+			matrix: Matrix{{0, 0}, {0, 0}},
 			pos:    Coordinate{0, 1},
 		},
 		"success - top right": {
-			matrix: Matrix{{0, 'X'}, {0, 0}},
+			matrix: Matrix{{0, 0}, {0, 0}},
 			pos:    Coordinate{1, 0},
 		},
 		"success - bottom right": {
-			matrix: Matrix{{0, 0}, {0, 'X'}},
+			matrix: Matrix{{0, 0}, {0, 0}},
 			pos:    Coordinate{1, 1},
 		},
 		"failure - row out of bounds": {
@@ -113,21 +146,18 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 			wantErr: errors.New("col 1 is out of bounds"),
 		},
 		"failure - mino not expected value": {
-			matrix:  Matrix{{0}},
+			matrix:  Matrix{{'X'}},
 			pos:     Coordinate{0, 0},
-			wantErr: errors.New("mino at row 0, col 0 is '\x00' (byte value 0) not the expected 'X' (byte value 88)"),
+			wantErr: errors.New("mino at row 0, col 0 is 'X' (byte value 88) not the expected value"),
 		},
 	}
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			tet := Tetrimino{
-				Value: 'X',
-				Minos: [][]bool{{true}},
-				Pos:   tc.pos,
-			}
+			minos := [][]bool{{true}}
+			newValue := byte('X')
 
-			err := tc.matrix.RemoveTetrimino(&tet)
+			err := tc.matrix.modifyCell(minos, tc.pos, newValue, isMinoEmpty)
 
 			if tc.wantErr != nil {
 				assert.EqualError(t, err, tc.wantErr.Error())
@@ -136,43 +166,14 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 
 			assert.NoError(t, err)
 
-			for row := range tet.Minos {
-				for col := range tet.Minos[row] {
-					assert.Equal(t, byte(0), tc.matrix[row+tet.Pos.Y][col+tet.Pos.X])
+			for row := range minos {
+				for col := range minos[row] {
+					if minos[row][col] {
+						assert.Equal(t, newValue, tc.matrix[row+tc.pos.Y][col+tc.pos.X])
+					}
 				}
 			}
 		})
-	}
-}
-
-func TestMatrix_AddTetrimino(t *testing.T) {
-	errorCases := []bool{true, false}
-
-	for _, wantErr := range errorCases {
-		for _, tet := range Tetriminos {
-			t.Run(fmt.Sprintf("Tetrimino %s, error %t", string(tet.Value), wantErr), func(t *testing.T) {
-				tet.Pos = Coordinate{0, 0}
-
-				m := DefaultMatrix()
-				if wantErr {
-					m[0] = []byte{'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'}
-				}
-
-				err := m.AddTetrimino(&tet)
-				if wantErr {
-					assert.Error(t, err)
-					return
-				}
-				assert.NoError(t, err)
-				for row := range tet.Minos {
-					for col := range tet.Minos[row] {
-						if tet.Minos[row][col] {
-							assert.Equal(t, tet.Value, m[row][col])
-						}
-					}
-				}
-			})
-		}
 	}
 }
 

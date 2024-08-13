@@ -59,37 +59,26 @@ func (m *Matrix) removeLine(row int) {
 
 // RemoveTetrimino removes the given Tetrimino from the Matrix.
 // It returns an error if the Tetrimino is out of bounds or if the Tetrimino is not found in the Matrix.
-func (m *Matrix) RemoveTetrimino(tetrimino *Tetrimino) error {
-	for row := range tetrimino.Minos {
-		for col := range tetrimino.Minos[row] {
-			if tetrimino.Minos[row][col] {
-				// The following bounds checks should never be reached as long as tetriminos are added with the dedicated function
-				if row+tetrimino.Pos.Y >= len(*m) || row+tetrimino.Pos.Y < 0 {
-					return fmt.Errorf("row %d is out of bounds", row+tetrimino.Pos.Y)
-				}
-				if col+tetrimino.Pos.X >= len((*m)[row]) || col+tetrimino.Pos.X < 0 {
-					return fmt.Errorf("col %d is out of bounds", col+tetrimino.Pos.X)
-				}
-
-				minoValue := (*m)[row+tetrimino.Pos.Y][col+tetrimino.Pos.X]
-				if minoValue != tetrimino.Value {
-					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected '%s' (byte value %v)", row+tetrimino.Pos.Y, col+tetrimino.Pos.X, string(minoValue), minoValue, string(tetrimino.Value), tetrimino.Value)
-				}
-				(*m)[row+tetrimino.Pos.Y][col+tetrimino.Pos.X] = 0
-			}
-		}
+func (m *Matrix) RemoveTetrimino(tet *Tetrimino) error {
+	isExpectedValue := func(cell byte) bool {
+		return cell == tet.Value
 	}
-	return nil
+
+	return m.modifyCell(tet.Minos, tet.Pos, 0, isExpectedValue)
 }
 
 // AddTetrimino adds the given Tetrimino to the Matrix.
 // It returns an error if the Tetrimino is out of bounds or if the Tetrimino overlaps with an occupied mino.
-func (m *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
-	for row := range tetrimino.Minos {
-		for col := range tetrimino.Minos[row] {
-			if tetrimino.Minos[row][col] {
-				minoAbsRow := row + tetrimino.Pos.Y
-				minoAbsCol := col + tetrimino.Pos.X
+func (m *Matrix) AddTetrimino(tet *Tetrimino) error {
+	return m.modifyCell(tet.Minos, tet.Pos, tet.Value, isMinoEmpty)
+}
+
+func (m *Matrix) modifyCell(minos [][]bool, pos Coordinate, newValue byte, isExpectedValue func(byte) bool) error {
+	for row := range minos {
+		for col := range minos[row] {
+			if minos[row][col] {
+				minoAbsRow := row + pos.Y
+				minoAbsCol := col + pos.X
 
 				if minoAbsRow >= len(*m) || minoAbsRow < 0 {
 					return fmt.Errorf("row %d is out of bounds", minoAbsRow)
@@ -98,11 +87,12 @@ func (m *Matrix) AddTetrimino(tetrimino *Tetrimino) error {
 					return fmt.Errorf("col %d is out of bounds", minoAbsCol)
 				}
 
-				cellValue := (*m)[minoAbsRow][minoAbsCol]
-				if !isMinoEmpty(cellValue) {
-					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not empty", minoAbsRow, minoAbsCol, string(cellValue), cellValue)
+				minoValue := (*m)[minoAbsRow][minoAbsCol]
+				if !isExpectedValue(minoValue) {
+					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected value",
+						minoAbsRow, minoAbsCol, string(minoValue), minoValue)
 				}
-				(*m)[minoAbsRow][minoAbsCol] = tetrimino.Value
+				(*m)[minoAbsRow][minoAbsCol] = newValue
 			}
 		}
 	}
