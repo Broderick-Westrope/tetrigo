@@ -18,41 +18,35 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var pausedMsg = `
- ______  ___  _   _ _____ ___________ 
+var pausedMsg = ` ______  ___  _   _ _____ ___________ 
  | ___ \/ _ \| | | /  ___|  ___|  _  \
  | |_/ / /_\ \ | | \ '--.| |__ | | | |
  |  __/|  _  | | | |'--. \  __|| | | |
  | |   | | | | |_| /\__/ / |___| |/ /
  \_|   \_| |_/\___/\____/\____/|___/
-Press PAUSE to continue or HOLD to exit.
+Press PAUSE to continue or HOLD to exit.`
 
-`
-
-var gameOverMsg = `
- _____   ___  ___  ___ _____   _____  _   _ ___________ 
+var gameOverMsg = ` _____   ___  ___  ___ _____   _____  _   _ ___________ 
 |  __ \ / _ \ |  \/  ||  ___| |  _  || | | |  ___| ___ \
 | |  \// /_\ \| .  . || |__   | | | || | | | |__ | |_/ /
 | | __ |  _  || |\/| ||  __|  | | | || | | |  __||    / 
 | |_\ \| | | || |  | || |___  \ \_/ /\ \_/ / |___| |\ \ 
  \____/\_| |_/\_|  |_/\____/   \___/  \___/\____/\_| \_|
-        		 Press HOLD to continue.
-
-`
+			 Press EXIT or HOLD to continue.`
 
 var _ tea.Model = &Model{}
 
 type Model struct {
-	styles            *Styles
-	help              help.Model
-	keys              *keyMap
-	timerStopwatch    stopwatch.Model
-	cfg               *config.Config
-	isFullscreen      bool
-	isPaused          bool
-	fallStopwatch     stopwatch.Model
-	gameOverStopwatch stopwatch.Model
-	game              *marathon.Game
+	styles         *Styles
+	help           help.Model
+	keys           *keyMap
+	timerStopwatch stopwatch.Model
+	cfg            *config.Config
+	isFullscreen   bool
+	isPaused       bool
+	fallStopwatch  stopwatch.Model
+	game           *marathon.Game
+	isGameOver     bool
 }
 
 func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
@@ -145,39 +139,27 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
 	cmds = append(cmds, cmd)
 
-	m.gameOverStopwatch, cmd = m.gameOverStopwatch.Update(msg)
-	cmds = append(cmds, cmd)
-
 	return m, tea.Batch(cmds...)
 }
 
 func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
-	switchToLeaderboard := func() tea.Cmd {
-		newEntry := &data.Score{
-			GameMode: "marathon",
-			Name:     "Player",
-			Time:     m.timerStopwatch.Elapsed(),
-			Score:    int(m.game.GetTotalScore()),
-			Lines:    int(m.game.GetLinesCleared()),
-			Level:    int(m.game.GetLevel()),
-		}
-
-		return common.SwitchModeCmd(common.MODE_LEADERBOARD,
-			common.NewLeaderboardInput("marathon", common.WithNewEntry(newEntry)),
-		)
-	}
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keys.Exit):
-			return m, switchToLeaderboard()
+		case key.Matches(msg, m.keys.Exit, m.keys.Hold):
+			newEntry := &data.Score{
+				GameMode: "marathon",
+				Name:     "Player",
+				Time:     m.timerStopwatch.Elapsed(),
+				Score:    int(m.game.GetTotalScore()),
+				Lines:    int(m.game.GetLinesCleared()),
+				Level:    int(m.game.GetLevel()),
+			}
+
+			return m, common.SwitchModeCmd(common.MODE_LEADERBOARD,
+				common.NewLeaderboardInput("marathon", common.WithNewEntry(newEntry)),
+			)
 		}
-	case stopwatch.TickMsg:
-		if msg.ID != m.gameOverStopwatch.ID() {
-			break
-		}
-		return m, switchToLeaderboard()
 	}
 
 	return m, nil
@@ -406,11 +388,11 @@ func (m *Model) renderCell(cell byte) string {
 }
 
 func (m *Model) triggerGameOver() tea.Cmd {
+	m.isGameOver = true
+	m.isPaused = false
 	var cmds []tea.Cmd
 	cmds = append(cmds, m.timerStopwatch.Stop())
 	cmds = append(cmds, m.fallStopwatch.Stop())
-	m.gameOverStopwatch = stopwatch.NewWithInterval(time.Second * 5)
-	cmds = append(cmds, m.gameOverStopwatch.Start())
 	return tea.Batch(cmds...)
 }
 
