@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/components/table"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -22,8 +22,11 @@ type Model struct {
 func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *common.Keys) (Model, error) {
 	repo := data.NewLeaderboardRepository(db)
 
+	var err error
+	newEntryId := -1
 	if in.NewEntry != nil {
-		if err := repo.Save(in.NewEntry); err != nil {
+		newEntryId, err = repo.Save(in.NewEntry)
+		if err != nil {
 			return Model{}, err
 		}
 	}
@@ -32,14 +35,24 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *common.Keys) (Model
 	if err != nil {
 		return Model{}, err
 	}
-	scores = processScores(scores, 17, 11, 5)
 
-	m := Model{
+	focusIndex := 0
+	if newEntryId != -1 {
+		for i := range scores {
+			if scores[i].ID == newEntryId {
+				focusIndex = i
+				break
+			}
+		}
+	}
+
+	scores = processScores(scores, focusIndex, 11, 5)
+
+	return Model{
 		keys:  constructKeyMap(keys),
 		repo:  repo,
-		table: getLeaderboardTable(scores),
-	}
-	return m, nil
+		table: getLeaderboardTable(scores, focusIndex),
+	}, nil
 }
 
 func (m Model) Init() tea.Cmd {
@@ -64,16 +77,18 @@ func (m Model) View() string {
 	return m.table.View()
 }
 
-func processScores(scores []data.Score, newEntryRank, maxCount, topCount int) []data.Score {
+func processScores(scores []data.Score, focusIndex, maxCount, topCount int) []data.Score {
 	if len(scores) < maxCount {
 		return scores
 	}
-	if newEntryRank <= maxCount {
-		return scores[:maxCount]
+
+	separator := data.Score{Rank: -1}
+	if focusIndex < maxCount {
+		return append(scores[:maxCount-1], separator)
 	}
 
 	// Collect top scores and add a separator
-	topScores := append(scores[:topCount], data.Score{Rank: -1})
+	topScores := append(scores[:topCount], separator)
 
 	// Calculate padding (number of scores to show surrounding the new entry)
 	remainingCount := maxCount - len(topScores)
@@ -87,9 +102,8 @@ func processScores(scores []data.Score, newEntryRank, maxCount, topCount int) []
 	}
 
 	// Collect the new score and X scores on either side (padding)
-	newEntryIdx := newEntryRank - 1
-	upperBound := newEntryIdx + upperPadding
-	lowerBound := newEntryIdx - lowerPadding
+	upperBound := focusIndex + upperPadding
+	lowerBound := focusIndex - lowerPadding
 	if upperBound > len(scores) {
 		upperBound = len(scores)
 	}
@@ -102,7 +116,7 @@ func processScores(scores []data.Score, newEntryRank, maxCount, topCount int) []
 	return append(topScores, surroundingScores...)
 }
 
-func getLeaderboardTable(scores []data.Score) table.Model {
+func getLeaderboardTable(scores []data.Score, focusIndex int) table.Model {
 	cols := []table.Column{
 		{Title: "Rank", Width: 4},
 		{Title: "Name", Width: 10},
@@ -144,6 +158,7 @@ func getLeaderboardTable(scores []data.Score) table.Model {
 		table.WithColumns(cols),
 		table.WithRows(rows),
 		table.WithFocused(true),
+		table.WithCursor(focusIndex),
 		table.WithStyles(s),
 	)
 }

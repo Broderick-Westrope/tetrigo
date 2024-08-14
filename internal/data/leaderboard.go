@@ -44,7 +44,15 @@ func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
 	return scores, nil
 }
 
-func (r *LeaderboardRepository) Save(score *Score) error {
-	_, err := r.db.Exec("INSERT INTO leaderboard (game_mode, name, time, score, lines, level) VALUES ($1, $2, $3, $4, $5, $6)", score.GameMode, score.Name, score.Time, score.Score, score.Lines, score.Level)
-	return err
+// Save saves a score to the leaderboard and returns the ID of the new score.
+func (r *LeaderboardRepository) Save(score *Score) (int, error) {
+	res, err := r.db.Exec("INSERT INTO leaderboard (game_mode, name, time, score, lines, level) VALUES ($1, $2, $3, $4, $5, $6)", score.GameMode, score.Name, score.Time, score.Score, score.Lines, score.Level)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(id), err
 }
