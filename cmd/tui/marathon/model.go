@@ -42,7 +42,6 @@ type Model struct {
 	keys           *keyMap
 	timerStopwatch stopwatch.Model
 	cfg            *config.Config
-	isFullscreen   bool
 	isPaused       bool
 	fallStopwatch  stopwatch.Model
 	game           *marathon.Game
@@ -62,8 +61,7 @@ func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
 		timerStopwatch: stopwatch.NewWithInterval(time.Millisecond * 3),
 		isPaused:       false,
 		// TODO: set using config
-		isFullscreen: true,
-		game:         game,
+		game: game,
 	}
 	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
@@ -73,10 +71,6 @@ func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
 	}
 	m.styles = CreateStyles(&cfg.Theme)
 	m.cfg = cfg
-
-	if m.isFullscreen {
-		m.styles.ProgramFullscreen.Width(0).Height(0)
-	}
 
 	return m, nil
 }
@@ -103,9 +97,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.ForceQuit):
 			return m, tea.Quit
 		}
-	case tea.WindowSizeMsg:
-		m.styles.ProgramFullscreen.Width(msg.Width).Height(msg.Height)
-		return m, tea.Batch(cmds...)
 	case common.SwitchModeMsg:
 		panic(fmt.Errorf("unexpected/unhandled SwitchModeMsg: %v", msg.Target))
 	}
@@ -272,10 +263,6 @@ func (m *Model) View() string {
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
-
-	if m.isFullscreen {
-		output = m.styles.ProgramFullscreen.Render(output)
-	}
 
 	return output
 }

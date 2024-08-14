@@ -6,15 +6,14 @@ import (
 )
 
 type Styles struct {
-	Playfield         lipgloss.Style
-	ColIndicator      lipgloss.Style
-	TetriminoStyles   map[byte]lipgloss.Style
-	GhostCell         lipgloss.Style
-	Hold              holdStyles
-	Information       lipgloss.Style
-	RowIndicator      lipgloss.Style
-	Bag               lipgloss.Style
-	ProgramFullscreen lipgloss.Style
+	Playfield       lipgloss.Style
+	ColIndicator    lipgloss.Style
+	TetriminoStyles map[byte]lipgloss.Style
+	GhostCell       lipgloss.Style
+	Hold            holdStyles
+	Information     lipgloss.Style
+	RowIndicator    lipgloss.Style
+	Bag             lipgloss.Style
 }
 
 type holdStyles struct {
@@ -42,10 +41,9 @@ func defaultStyles() *Styles {
 			Label: lipgloss.NewStyle().Width(10).PaddingLeft(1).PaddingBottom(1),
 			Item:  lipgloss.NewStyle().Width(10).Height(2).Align(lipgloss.Center, lipgloss.Center),
 		},
-		Information:       lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
-		RowIndicator:      lipgloss.NewStyle().Foreground(lipgloss.Color("#444049")).Align(lipgloss.Left).Padding(0, 1, 0),
-		Bag:               lipgloss.NewStyle().PaddingTop(1),
-		ProgramFullscreen: lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Center),
+		Information:  lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
+		RowIndicator: lipgloss.NewStyle().Foreground(lipgloss.Color("#444049")).Align(lipgloss.Left).Padding(0, 1, 0),
+		Bag:          lipgloss.NewStyle().PaddingTop(1),
 	}
 	return &s
 }
@@ -69,10 +67,9 @@ func CreateStyles(theme *config.Theme) *Styles {
 			Label: lipgloss.NewStyle().Width(10).PaddingLeft(1).PaddingBottom(1),
 			Item:  lipgloss.NewStyle().Width(10).Height(2).Align(lipgloss.Center, lipgloss.Center),
 		},
-		Information:       lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
-		RowIndicator:      lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Characters.EmptyCell)).Align(lipgloss.Left).Padding(0, 1, 0),
-		Bag:               lipgloss.NewStyle().PaddingTop(1),
-		ProgramFullscreen: lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Center),
+		Information:  lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
+		RowIndicator: lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Characters.EmptyCell)).Align(lipgloss.Left).Padding(0, 1, 0),
+		Bag:          lipgloss.NewStyle().PaddingTop(1),
 	}
 	return &s
 

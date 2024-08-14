@@ -30,8 +30,6 @@ type Model struct {
 	keys   *keyMap
 	styles *styles
 	help   help.Model
-
-	isFullscreen bool
 }
 
 func NewModel(_ *common.MenuInput, keys *common.Keys) *Model {
@@ -57,7 +55,6 @@ func NewModel(_ *common.MenuInput, keys *common.Keys) *Model {
 		keys:         constructKeyMap(keys),
 		styles:       defaultStyles(),
 		help:         help.New(),
-		isFullscreen: true,
 	}
 	return &m
 }
@@ -101,8 +98,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		}
-	case tea.WindowSizeMsg:
-		m.styles.programFullscreen.Width(msg.Width).Height(msg.Height)
 	}
 
 	return m, nil
@@ -119,9 +114,6 @@ func (m Model) View() string {
 		lipgloss.JoinHorizontal(lipgloss.Top, settings...),
 	) + "\n" + m.help.View(m.keys)
 
-	if m.isFullscreen {
-		return m.styles.programFullscreen.Render(output)
-	}
 	return output
 }
 

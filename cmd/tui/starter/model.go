@@ -34,15 +34,17 @@ func NewInput(mode common.Mode, switchIn common.SwitchModeInput, db *sql.DB) *In
 var _ tea.Model = &Model{}
 
 type Model struct {
-	child tea.Model
-	db    *sql.DB
-	keys  *common.Keys
+	child  tea.Model
+	db     *sql.DB
+	keys   *common.Keys
+	styles *styles
 }
 
 func NewModel(in *Input) (*Model, error) {
 	m := &Model{
-		db:   in.db,
-		keys: common.DefaultKeys(),
+		db:     in.db,
+		keys:   common.DefaultKeys(),
+		styles: defaultStyles(),
 	}
 
 	err := m.setChild(in.mode, in.switchIn)
@@ -64,6 +66,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			panic(err)
 		}
 		return m, m.child.Init()
+	case tea.WindowSizeMsg:
+		// NOTE: Windows does not have support for reporting when resizes occur as it does not support the SIGWINCH signal.
+		m.styles.programFullscreen.Width(msg.Width).Height(msg.Height)
 	}
 
 	var cmd tea.Cmd
@@ -72,7 +77,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	return m.child.View()
+	var output string
+
+	output = m.child.View()
+	output = m.styles.programFullscreen.Render(output)
+
+	return output
 }
 
 func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) error {
