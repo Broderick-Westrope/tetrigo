@@ -65,13 +65,10 @@ func (m Model) View() string {
 }
 
 func processScores(scores []data.Score, newEntryRank, maxCount, topCount int) []data.Score {
-	newEntryIdx := newEntryRank - 1
-
+	if len(scores) < maxCount {
+		return scores
+	}
 	if newEntryRank <= maxCount {
-		// Return top X scores (maxCount)
-		if len(scores) < maxCount {
-			return scores
-		}
 		return scores[:maxCount]
 	}
 
@@ -90,6 +87,7 @@ func processScores(scores []data.Score, newEntryRank, maxCount, topCount int) []
 	}
 
 	// Collect the new score and X scores on either side (padding)
+	newEntryIdx := newEntryRank - 1
 	upperBound := newEntryIdx + upperPadding
 	lowerBound := newEntryIdx - lowerPadding
 	if upperBound > len(scores) {

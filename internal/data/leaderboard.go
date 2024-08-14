@@ -7,6 +7,7 @@ import (
 
 type Score struct {
 	ID       int
+	Rank     int
 	GameMode string
 	Name     string
 	Time     time.Duration
@@ -32,11 +33,12 @@ func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
 
 	var scores []Score
 	for rows.Next() {
-		var h Score
-		if err := rows.Scan(&h.ID, &h.GameMode, &h.Name, &h.Time, &h.Score, &h.Lines, &h.Level); err != nil {
+		var s Score
+		if err := rows.Scan(&s.ID, &s.GameMode, &s.Name, &s.Time, &s.Score, &s.Lines, &s.Level); err != nil {
 			return nil, err
 		}
-		scores = append(scores, h)
+		s.Rank = len(scores) + 1
+		scores = append(scores, s)
 	}
 
 	return scores, nil
