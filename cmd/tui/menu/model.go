@@ -12,6 +12,14 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const titleStr = `
+    ______________________  ______________ 
+   /_  __/ ____/_  __/ __ \/  _/ ____/ __ \
+    / / / __/   / / / /_/ // // / __/ / / /
+   / / / /___  / / / _, _// // /_/ / /_/ / 
+  /_/ /_____/ /_/ /_/ |_/___/\____/\____/  
+`
+
 type option interface{}
 
 type setting struct {
@@ -108,23 +116,11 @@ func (m Model) View() string {
 	for i := range m.settings {
 		settings[i] = m.renderSetting(i, i == m.settingIndex)
 	}
+	settingsStr := lipgloss.JoinHorizontal(lipgloss.Top, settings...)
 
-	output := lipgloss.JoinVertical(lipgloss.Center,
-		renderTitle(),
-		lipgloss.JoinHorizontal(lipgloss.Top, settings...),
-	) + "\n" + m.help.View(m.keys)
+	output := lipgloss.JoinVertical(lipgloss.Center, titleStr, settingsStr)
+	output += "\n" + m.help.View(m.keys)
 
-	return output
-}
-
-func renderTitle() string {
-	output := `
-    ______________________  ______________ 
-   /_  __/ ____/_  __/ __ \/  _/ ____/ __ \
-    / / / __/   / / / /_/ // // / __/ / / /
-   / / / /___  / / / _, _// // /_/ / /_/ / 
-  /_/ /_____/ /_/ /_/ |_/___/\____/\____/  
-`
 	return output
 }
 

@@ -1,4 +1,4 @@
-package option
+package hpicker
 
 import (
 	"github.com/charmbracelet/bubbles/key"
@@ -20,6 +20,7 @@ var DefaultKeyMap = KeyMap{
 
 var _ tea.Model = &Model{}
 
+// Model is the model for the horizontal picker component.
 type Model struct {
 	// Selection is the current selection number.
 	Selection      int
