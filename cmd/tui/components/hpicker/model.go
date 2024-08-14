@@ -1,42 +1,49 @@
 package hpicker
 
 import (
+	"strconv"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-// KeyMap is the key bindings for different actions within the component.
-type KeyMap struct {
-	Prev key.Binding
-	Next key.Binding
-}
-
-// DefaultKeyMap is the default set of key bindings for navigating and acting  upon the component.
-var DefaultKeyMap = KeyMap{
-	Prev: key.NewBinding(key.WithKeys("left", "h")),
-	Next: key.NewBinding(key.WithKeys("right", "l")),
-}
-
 var _ tea.Model = &Model{}
 
 // Model is the model for the horizontal picker component.
 type Model struct {
-	// Selection is the current selection number.
-	Selection      int
-	SelectionStyle lipgloss.Style
-	// Options is a list of the possible options for this component.
-	Options []string
-	// KeyMap encodes the keybindings recognized by the component.
-	KeyMap KeyMap
+	// cursor is the index of the currently selected option.
+	selected int
+	// options is a list of the possible options for this component.
+	options []string
+	// keymap encodes the keybindings recognized by the component.
+	keymap KeyMap
+	styles Styles
+}
 
-	NextIndicator     string
-	NextStyle         lipgloss.Style
-	NextDisabledStyle lipgloss.Style
+type Option func(*Model)
 
-	PrevIndicator     string
-	PrevStyle         lipgloss.Style
-	PrevDisabledStyle lipgloss.Style
+func NewModel(options []string, opts ...Option) *Model {
+	m := &Model{
+		options: options,
+		keymap:  DefaultKeyMap(),
+		styles:  DefaultStyles(),
+	}
+
+	for _, opt := range opts {
+		opt(m)
+	}
+
+	return m
+}
+
+func WithRange(min, max int) Option {
+	return func(m *Model) {
+		m.options = make([]string, (max-min)+1)
+		for i := min - 1; i < max; i++ {
+			m.options[i] = strconv.Itoa(i + 1)
+		}
+	}
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -48,9 +55,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.KeyMap.Next):
+		case key.Matches(msg, m.keymap.Next):
 			m.Next()
-		case key.Matches(msg, m.KeyMap.Prev):
+		case key.Matches(msg, m.keymap.Prev):
 			m.Prev()
 		}
 	}
@@ -58,47 +65,47 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// View renders the selection to a string.
+// View renders the cursor to a string.
 func (m *Model) View() string {
 	var prev lipgloss.Style
 	if m.isFirstPage() {
-		prev = m.PrevDisabledStyle
+		prev = m.styles.PrevDisabledStyle
 	} else {
-		prev = m.PrevStyle
+		prev = m.styles.PrevStyle
 	}
 
 	var next lipgloss.Style
 	if m.isLastPage() {
-		next = m.NextDisabledStyle
+		next = m.styles.NextDisabledStyle
 	} else {
-		next = m.NextStyle
+		next = m.styles.NextStyle
 	}
 
 	return lipgloss.JoinHorizontal(lipgloss.Center,
-		prev.Render(m.PrevIndicator),
-		m.SelectionStyle.Render(m.Options[m.Selection]),
-		next.Render(m.NextIndicator),
+		prev.Render(m.styles.PrevIndicator),
+		m.styles.SelectionStyle.Render(m.options[m.selected]),
+		next.Render(m.styles.NextIndicator),
 	)
 }
 
 // Prev is a helper function for navigating one option backward. It will not go page beyond the first option (i.e. option 0).
 func (m *Model) Prev() {
 	if !m.isFirstPage() {
-		m.Selection--
+		m.selected--
 	}
 }
 
 // Next is a helper function for navigating one option forward. It will not go beyond the last option (i.e. len(options) - 1).
 func (m *Model) Next() {
 	if !m.isLastPage() {
-		m.Selection++
+		m.selected++
 	}
 }
 
 func (m *Model) isFirstPage() bool {
-	return m.Selection == 0
+	return m.selected == 0
 }
 
 func (m *Model) isLastPage() bool {
-	return m.Selection == len(m.Options)-1
+	return m.selected == len(m.options)-1
 }

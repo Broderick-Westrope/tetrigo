@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/components/hpicker"
 
 	//"github.com/Broderick-Westrope/tetrigo/internal/starter"
 	"github.com/charmbracelet/bubbles/help"
@@ -31,6 +32,7 @@ type setting struct {
 var _ tea.Model = Model{}
 
 type Model struct {
+	picker       *hpicker.Model
 	settings     []setting
 	settingIndex int
 	game         tea.Model
@@ -42,6 +44,7 @@ type Model struct {
 
 func NewModel(_ *common.MenuInput, keys *common.Keys) *Model {
 	m := Model{
+		picker: hpicker.NewModel(nil, hpicker.WithRange(1, 15)),
 		settings: []setting{
 			{
 				name:    "Level",
@@ -78,15 +81,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Exit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Left):
-			m.settingIndex--
-			if m.settingIndex < 0 {
-				m.settingIndex = len(m.settings) - 1
-			}
+			//m.settingIndex--
+			//if m.settingIndex < 0 {
+			//	m.settingIndex = len(m.settings) - 1
+			//}
+			m.picker.Prev()
+			return m, nil
 		case key.Matches(msg, m.keys.Right):
-			m.settingIndex++
-			if m.settingIndex >= len(m.settings) {
-				m.settingIndex = 0
-			}
+			//m.settingIndex++
+			//if m.settingIndex >= len(m.settings) {
+			//	m.settingIndex = 0
+			//}
+			m.picker.Next()
+			return m, nil
 		case key.Matches(msg, m.keys.Up):
 			m.settings[m.settingIndex].index--
 			if m.settings[m.settingIndex].index < 0 {
@@ -112,11 +119,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	settings := make([]string, len(m.settings))
-	for i := range m.settings {
-		settings[i] = m.renderSetting(i, i == m.settingIndex)
-	}
-	settingsStr := lipgloss.JoinHorizontal(lipgloss.Top, settings...)
+	//settings := make([]string, len(m.settings))
+	//for i := range m.settings {
+	//	settings[i] = m.renderSetting(i, i == m.settingIndex)
+	//}
+	//settingsStr := lipgloss.JoinHorizontal(lipgloss.Top, settings...)
+	settingsStr := m.picker.View()
 
 	output := lipgloss.JoinVertical(lipgloss.Center, titleStr, settingsStr)
 	output += "\n" + m.help.View(m.keys)
