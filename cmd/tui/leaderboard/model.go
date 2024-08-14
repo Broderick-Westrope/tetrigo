@@ -65,45 +65,6 @@ func (m Model) View() string {
 	return m.table.View() + "\n"
 }
 
-func processScores(scores []data.Score, focusIndex, maxCount, topCount int) []data.Score {
-	if len(scores) < maxCount {
-		return scores
-	}
-
-	separator := data.Score{Rank: -1}
-	if focusIndex < maxCount {
-		return append(scores[:maxCount-1], separator)
-	}
-
-	// Collect top scores and add a separator
-	topScores := append(scores[:topCount], separator)
-
-	// Calculate padding (number of scores to show surrounding the new entry)
-	remainingCount := maxCount - len(topScores)
-	quotient := remainingCount / 2
-	remainder := remainingCount % 2
-
-	upperPadding := quotient
-	lowerPadding := quotient
-	if remainder != 0 { // When topCount is even
-		upperPadding += 1
-	}
-
-	// Collect the new score and X scores on either side (padding)
-	upperBound := focusIndex + upperPadding
-	lowerBound := focusIndex - lowerPadding
-	if upperBound > len(scores) {
-		upperBound = len(scores)
-	}
-	if lowerBound < topCount {
-		lowerBound = topCount
-	}
-	surroundingScores := scores[lowerBound:upperBound]
-
-	// Combine the two slices with a separator (use a special value for separator)
-	return append(topScores, surroundingScores...)
-}
-
 func getLeaderboardTable(scores []data.Score, focusId int) table.Model {
 	cols := []table.Column{
 		{Title: "Rank", Width: 4},
