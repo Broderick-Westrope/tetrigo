@@ -145,7 +145,6 @@ func getLeaderboardTable(scores []data.Score, focusId int) table.Model {
 	t := table.New(
 		table.WithColumns(cols),
 		table.WithRows(rows),
-		table.WithHeight(5),
 		table.WithFocused(true),
 		table.WithStyles(s),
 	)
