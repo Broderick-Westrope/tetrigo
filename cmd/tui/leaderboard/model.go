@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/cmd/tui/components/table"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -23,7 +23,7 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *common.Keys) (Model
 	repo := data.NewLeaderboardRepository(db)
 
 	var err error
-	newEntryId := -1
+	newEntryId := 0
 	if in.NewEntry != nil {
 		newEntryId, err = repo.Save(in.NewEntry)
 		if err != nil {
@@ -36,22 +36,10 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *common.Keys) (Model
 		return Model{}, err
 	}
 
-	focusIndex := 0
-	if newEntryId != -1 {
-		for i := range scores {
-			if scores[i].ID == newEntryId {
-				focusIndex = i
-				break
-			}
-		}
-	}
-
-	scores = processScores(scores, focusIndex, 11, 5)
-
 	return Model{
 		keys:  constructKeyMap(keys),
 		repo:  repo,
-		table: getLeaderboardTable(scores, focusIndex),
+		table: getLeaderboardTable(scores, newEntryId),
 	}, nil
 }
 
@@ -74,7 +62,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return m.table.View()
+	return m.table.View() + "\n"
 }
 
 func processScores(scores []data.Score, focusIndex, maxCount, topCount int) []data.Score {
@@ -116,23 +104,23 @@ func processScores(scores []data.Score, focusIndex, maxCount, topCount int) []da
 	return append(topScores, surroundingScores...)
 }
 
-func getLeaderboardTable(scores []data.Score, focusIndex int) table.Model {
+func getLeaderboardTable(scores []data.Score, focusId int) table.Model {
 	cols := []table.Column{
 		{Title: "Rank", Width: 4},
 		{Title: "Name", Width: 10},
-		{Title: "Time", Width: 20},
-		{Title: "Score", Width: 20},
+		{Title: "Time", Width: 10},
+		{Title: "Score", Width: 10},
 		{Title: "Lines", Width: 5},
 		{Title: "Level", Width: 5},
 	}
 
+	focusIndex := 0
 	rows := make([]table.Row, len(scores))
 	for i, s := range scores {
-		if s.Rank == -1 {
-			// Add a separator row
-			rows = append(rows, table.Row{"...", "...", "...", "...", "...", "..."})
-			continue
+		if s.ID == focusId {
+			focusIndex = i
 		}
+
 		rows[i] = table.Row{
 			strconv.Itoa(s.Rank),
 			s.Name,
@@ -154,11 +142,14 @@ func getLeaderboardTable(scores []data.Score, focusIndex int) table.Model {
 		Background(lipgloss.Color("57")).
 		Bold(false)
 
-	return table.New(
+	t := table.New(
 		table.WithColumns(cols),
 		table.WithRows(rows),
+		table.WithHeight(5),
 		table.WithFocused(true),
-		table.WithCursor(focusIndex),
 		table.WithStyles(s),
 	)
+	t.SetCursor(focusIndex)
+
+	return t
 }
