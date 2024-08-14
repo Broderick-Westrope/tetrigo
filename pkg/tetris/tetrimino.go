@@ -122,11 +122,7 @@ var Tetriminos = []Tetrimino{
 
 // EmptyTetrimino is a tetrimino with no cells or value. To be used for the starting (empty) hold.
 var EmptyTetrimino = &Tetrimino{
-	Minos: [][]bool{
-		{false, false, false},
-		{false, false, false},
-		{false, false, false},
-	},
+	Minos: [][]bool{},
 	Value: 0,
 }
 
