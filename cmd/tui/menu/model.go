@@ -34,7 +34,7 @@ type Model struct {
 	isFullscreen bool
 }
 
-func NewModel(in *common.MenuInput, keys *common.Keys) *Model {
+func NewModel(_ *common.MenuInput, keys *common.Keys) *Model {
 	m := Model{
 		settings: []setting{
 			{
@@ -57,7 +57,7 @@ func NewModel(in *common.MenuInput, keys *common.Keys) *Model {
 		keys:         constructKeyMap(keys),
 		styles:       defaultStyles(),
 		help:         help.New(),
-		isFullscreen: in.IsFullscreen,
+		isFullscreen: true,
 	}
 	return &m
 }

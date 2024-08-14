@@ -61,8 +61,9 @@ func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
 		keys:           constructKeyMap(keys),
 		timerStopwatch: stopwatch.NewWithInterval(time.Millisecond * 3),
 		isPaused:       false,
-		isFullscreen:   in.IsFullscreen,
-		game:           game,
+		// TODO: set using config
+		isFullscreen: true,
+		game:         game,
 	}
 	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
@@ -73,7 +74,7 @@ func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
 	m.styles = CreateStyles(&cfg.Theme)
 	m.cfg = cfg
 
-	if in.IsFullscreen {
+	if m.isFullscreen {
 		m.styles.ProgramFullscreen.Width(0).Height(0)
 	}
 
@@ -172,7 +173,7 @@ func (m *Model) pausedUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Exit):
 			return m, m.togglePause()
 		case key.Matches(msg, m.keys.Hold):
-			return m, common.SwitchModeCmd(common.MODE_MENU, common.NewMenuInput(m.isFullscreen))
+			return m, common.SwitchModeCmd(common.MODE_MENU, common.NewMenuInput())
 		}
 	}
 

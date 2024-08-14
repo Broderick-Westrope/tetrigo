@@ -3,29 +3,24 @@ package common
 import "github.com/Broderick-Westrope/tetrigo/internal/data"
 
 type MarathonInput struct {
-	IsFullscreen bool
-	Level        uint
-	MaxLevel     uint
+	Level    uint
+	MaxLevel uint
 }
 
-func NewMarathonInput(isFullscreen bool, level, maxLevel uint) *MarathonInput {
+func NewMarathonInput(level, maxLevel uint) *MarathonInput {
 	return &MarathonInput{
-		IsFullscreen: isFullscreen,
-		Level:        level,
-		MaxLevel:     maxLevel,
+		Level:    level,
+		MaxLevel: maxLevel,
 	}
 }
 
 func (in *MarathonInput) isSwitchModeInput() {}
 
 type MenuInput struct {
-	IsFullscreen bool
 }
 
-func NewMenuInput(isFullscreen bool) *MenuInput {
-	return &MenuInput{
-		IsFullscreen: isFullscreen,
-	}
+func NewMenuInput() *MenuInput {
+	return &MenuInput{}
 }
 
 func (in *MenuInput) isSwitchModeInput() {}
