@@ -32,6 +32,7 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *common.Keys) (Model
 	if err != nil {
 		return Model{}, err
 	}
+	scores = processScores(scores, 17, 11, 5)
 
 	m := Model{
 		keys:  constructKeyMap(keys),
@@ -63,18 +64,65 @@ func (m Model) View() string {
 	return m.table.View()
 }
 
+func processScores(scores []data.Score, newEntryRank, maxCount, topCount int) []data.Score {
+	newEntryIdx := newEntryRank - 1
+
+	if newEntryRank <= maxCount {
+		// Return top X scores (maxCount)
+		if len(scores) < maxCount {
+			return scores
+		}
+		return scores[:maxCount]
+	}
+
+	// Collect top scores and add a separator
+	topScores := append(scores[:topCount], data.Score{Rank: -1})
+
+	// Calculate padding (number of scores to show surrounding the new entry)
+	remainingCount := maxCount - len(topScores)
+	quotient := remainingCount / 2
+	remainder := remainingCount % 2
+
+	upperPadding := quotient
+	lowerPadding := quotient
+	if remainder != 0 { // When topCount is even
+		upperPadding += 1
+	}
+
+	// Collect the new score and X scores on either side (padding)
+	upperBound := newEntryIdx + upperPadding
+	lowerBound := newEntryIdx - lowerPadding
+	if upperBound > len(scores) {
+		upperBound = len(scores)
+	}
+	if lowerBound < topCount {
+		lowerBound = topCount
+	}
+	surroundingScores := scores[lowerBound:upperBound]
+
+	// Combine the two slices with a separator (use a special value for separator)
+	return append(topScores, surroundingScores...)
+}
+
 func getLeaderboardTable(scores []data.Score) table.Model {
 	cols := []table.Column{
+		{Title: "Rank", Width: 4},
 		{Title: "Name", Width: 10},
-		{Title: "Time", Width: 30},
-		{Title: "Score", Width: 10},
+		{Title: "Time", Width: 20},
+		{Title: "Score", Width: 20},
 		{Title: "Lines", Width: 5},
 		{Title: "Level", Width: 5},
 	}
 
 	rows := make([]table.Row, len(scores))
 	for i, s := range scores {
+		if s.Rank == -1 {
+			// Add a separator row
+			rows = append(rows, table.Row{"...", "...", "...", "...", "...", "..."})
+			continue
+		}
 		rows[i] = table.Row{
+			strconv.Itoa(s.Rank),
 			s.Name,
 			s.Time.String(),
 			strconv.Itoa(s.Score),
@@ -98,7 +146,6 @@ func getLeaderboardTable(scores []data.Score) table.Model {
 		table.WithColumns(cols),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(7),
 		table.WithStyles(s),
 	)
 }
