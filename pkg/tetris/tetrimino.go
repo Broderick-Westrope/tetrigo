@@ -185,38 +185,6 @@ func GetEmptyTetrimino() *Tetrimino {
 // This does not modify the matrix.
 // If the tetrimino cannot move down, it will not be modified and false will be returned.
 func (t *Tetrimino) MoveDown(matrix Matrix) bool {
-	if t.canMoveDown(matrix) {
-		t.Pos.Y++
-		return true
-	}
-	return false
-}
-
-// MoveLeft moves the tetrimino left one column.
-// This does not modify the matrix.
-// If the tetrimino cannot move left false will be returned.
-func (t *Tetrimino) MoveLeft(matrix Matrix) bool {
-	if t.canMoveLeft(matrix) {
-		t.Pos.X--
-		return true
-	}
-	return false
-}
-
-// MoveRight moves the tetrimino right one column.
-// This does not modify the matrix.
-// If the tetrimino cannot move right false will be returned.
-func (t *Tetrimino) MoveRight(matrix Matrix) bool {
-	if t.canMoveRight(matrix) {
-		t.Pos.X++
-		return true
-	}
-	return false
-}
-
-// Returns true if the tetrimino can move down one row.
-// This gets the lowest mino in each column of the tetrimino, and checks if it is at the bottom of the matrix or if the mino below is occupied.
-func (t *Tetrimino) canMoveDown(matrix Matrix) bool {
 	for col := range t.Minos[0] {
 		for row := len(t.Minos) - 1; row >= 0; row-- {
 			if !t.Minos[row][col] {
@@ -228,10 +196,15 @@ func (t *Tetrimino) canMoveDown(matrix Matrix) bool {
 			break
 		}
 	}
+
+	t.Pos.Y++
 	return true
 }
 
-func (t *Tetrimino) canMoveLeft(matrix Matrix) bool {
+// MoveLeft moves the tetrimino left one column.
+// This does not modify the matrix.
+// If the tetrimino cannot move left false will be returned.
+func (t *Tetrimino) MoveLeft(matrix Matrix) bool {
 	for row := range t.Minos {
 		for col := range t.Minos[row] {
 			if !t.Minos[row][col] {
@@ -243,10 +216,15 @@ func (t *Tetrimino) canMoveLeft(matrix Matrix) bool {
 			break
 		}
 	}
+
+	t.Pos.X--
 	return true
 }
 
-func (t *Tetrimino) canMoveRight(matrix Matrix) bool {
+// MoveRight moves the tetrimino right one column.
+// This does not modify the matrix.
+// If the tetrimino cannot move right false will be returned.
+func (t *Tetrimino) MoveRight(matrix Matrix) bool {
 	for row := range t.Minos {
 		for col := len(t.Minos[row]) - 1; col >= 0; col-- {
 			if !t.Minos[row][col] {
@@ -258,6 +236,8 @@ func (t *Tetrimino) canMoveRight(matrix Matrix) bool {
 			break
 		}
 	}
+
+	t.Pos.X++
 	return true
 }
 
