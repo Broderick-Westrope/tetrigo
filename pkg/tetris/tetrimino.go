@@ -8,11 +8,12 @@ import (
 
 // A Tetrimino is a geometric Tetris shape formed by four Minos connected along their sides.
 type Tetrimino struct {
-	Value           byte         // The value of the Tetrimino. This is the character that will be used to represent the Tetrimino in the matrix.
-	Minos           [][]bool     // A 2D slice of cells that make up the Tetrimino. True means the mino is occupied by a Mino.
-	Pos             Coordinate   // The top left mino of the Tetrimino. Used as a reference point for movement and rotation.
-	CurrentRotation int          // The index of the current rotation in the RotationCoords slice.
-	RotationCoords  []Coordinate // The coordinates used during rotation to control the axis.
+	Value byte       // The value of the Tetrimino. This is the character that will be used to represent the Tetrimino in the matrix.
+	Minos [][]bool   // A 2D slice of cells that make up the Tetrimino. True means the mino is occupied by a Mino.
+	Pos   Coordinate // The top left mino of the Tetrimino. Used as a reference point for movement and rotation.
+
+	CurrentRotation int // The index of the current rotation in the RotationCompass.
+	RotationCompass rotationCompass
 }
 
 // Coordinate represents a point on a 2D plane.
@@ -20,28 +21,62 @@ type Coordinate struct {
 	X, Y int
 }
 
-// RotationCoords is a map of Tetrimino values to the coordinates used for rotation.
+// A rotatationCompass contains a rotationSet corresponding to each of the four compass directions in the order N, E, S, W.
+// These compass directions represent the four rotations of a Tetrimino.
+type rotationCompass [4]rotationSet
+
+// A rotationSet contains coordinates to be used for a single rotation/compass direction.
+// If the first coordinate cannot be used the next will be attempted.
+// This continues until there are no more coordinates to fall back on (in which case rotation is not possible).
+// This is part of the Super Rotation System (SRS).
+type rotationSet []Coordinate
+
+// RotationCompasses is a map of Tetrimino values to the coordinates used for rotation.
 // Each slice should contain a coordinate for north, east, south, and west in that order.
 // These are added to (clockwise) or subtracted from (counter-clockwise) the Tetrimino's position when rotating to ensure it rotates around the correct axis.
-var RotationCoords = map[byte][]Coordinate{
+var RotationCompasses = map[byte]rotationCompass{
 	'I': {
-		{X: -1, Y: 1},
-		{X: 2, Y: -1},
-		{X: -2, Y: 2},
-		{X: 1, Y: -2},
+		{ // North
+			{X: -1, Y: 1},
+		},
+		{ // East
+			{X: 2, Y: -1},
+		},
+		{ // South
+			{X: -2, Y: 2},
+		},
+		{ // West
+			{X: 1, Y: -2},
+		},
 	},
 	'O': {
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
+		{ // North
+			{X: 0, Y: 0},
+		},
+		{ // East
+			{X: 0, Y: 0},
+		},
+		{ // South
+			{X: 0, Y: 0},
+		},
+		{ // West
+			{X: 0, Y: 0},
+		},
 	},
-	// All tetriminos with 6 cells (T, S, Z, J, L) have the same rotation coordinates:
+	// All tetriminos with 6 cells (T, S, Z, J, L) have the same rotation compass:
 	'6': {
-		{X: 0, Y: 0},
-		{X: 1, Y: 0},
-		{X: -1, Y: 1},
-		{X: 0, Y: -1},
+		{ // North
+			{X: 0, Y: 0},
+		},
+		{ // East
+			{X: 1, Y: 0},
+		},
+		{ // South
+			{X: -1, Y: 1},
+		},
+		{ // West
+			{X: 0, Y: -1},
+		},
 	},
 }
 
@@ -60,8 +95,8 @@ var validTetriminos = map[byte]Tetrimino{
 		Minos: [][]bool{
 			{true, true, true, true},
 		},
-		Pos:            startingPositions['I'],
-		RotationCoords: RotationCoords['I'],
+		Pos:             startingPositions['I'],
+		RotationCompass: RotationCompasses['I'],
 	},
 	'O': {
 		Value: 'O',
@@ -69,8 +104,8 @@ var validTetriminos = map[byte]Tetrimino{
 			{true, true},
 			{true, true},
 		},
-		Pos:            startingPositions['O'],
-		RotationCoords: RotationCoords['O'],
+		Pos:             startingPositions['O'],
+		RotationCompass: RotationCompasses['O'],
 	},
 	'T': {
 		Value: 'T',
@@ -78,8 +113,8 @@ var validTetriminos = map[byte]Tetrimino{
 			{false, true, false},
 			{true, true, true},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
 	'S': {
 		Value: 'S',
@@ -87,8 +122,8 @@ var validTetriminos = map[byte]Tetrimino{
 			{false, true, true},
 			{true, true, false},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
 	'Z': {
 		Value: 'Z',
@@ -96,8 +131,8 @@ var validTetriminos = map[byte]Tetrimino{
 			{true, true, false},
 			{false, true, true},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
 	'J': {
 		Value: 'J',
@@ -105,8 +140,8 @@ var validTetriminos = map[byte]Tetrimino{
 			{true, false, false},
 			{true, true, true},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
 	'L': {
 		Value: 'L',
@@ -114,8 +149,8 @@ var validTetriminos = map[byte]Tetrimino{
 			{false, false, true},
 			{true, true, true},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
 }
 
@@ -233,16 +268,17 @@ func (t *Tetrimino) Rotate(matrix Matrix, clockwise bool) error {
 
 	rotated := t.DeepCopy()
 	var err error
+	var foundValid bool
 	if clockwise {
-		err = rotated.rotateClockwise()
+		foundValid, err = rotated.rotateClockwise(matrix)
 	} else {
-		err = rotated.rotateCounterClockwise()
+		foundValid, err = rotated.rotateCounterClockwise(matrix)
 	}
 	if err != nil {
 		return fmt.Errorf("failed to rotate tetrimino: %w", err)
 	}
 
-	if rotated.isValid(matrix) {
+	if foundValid {
 		t.Pos = rotated.Pos
 		t.Minos = rotated.Minos
 		t.CurrentRotation = rotated.CurrentRotation
@@ -251,7 +287,7 @@ func (t *Tetrimino) Rotate(matrix Matrix, clockwise bool) error {
 	return nil
 }
 
-func (t *Tetrimino) rotateClockwise() error {
+func (t *Tetrimino) rotateClockwise(matrix Matrix) (bool, error) {
 	// Reverse the order of the rows
 	for i, j := 0, len(t.Minos)-1; i < j; i, j = i+1, j-1 {
 		t.Minos[i], t.Minos[j] = t.Minos[j], t.Minos[i]
@@ -260,18 +296,25 @@ func (t *Tetrimino) rotateClockwise() error {
 	t.transpose()
 
 	var err error
-	t.CurrentRotation, err = positiveMod(t.CurrentRotation+1, len(t.RotationCoords))
+	t.CurrentRotation, err = positiveMod(t.CurrentRotation+1, len(t.RotationCompass))
 	if err != nil {
-		return fmt.Errorf("failed to get positive mod: %w", err)
+		return false, fmt.Errorf("failed to get positive mod: %w", err)
 	}
 
-	t.Pos.X += t.RotationCoords[t.CurrentRotation].X
-	t.Pos.Y += t.RotationCoords[t.CurrentRotation].Y
+	originalX, originalY := t.Pos.X, t.Pos.Y
+	for _, coord := range t.RotationCompass[t.CurrentRotation] {
+		t.Pos.X = originalX + coord.X
+		t.Pos.Y = originalY + coord.Y
 
-	return nil
+		if t.isValid(matrix) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
-func (t *Tetrimino) rotateCounterClockwise() error {
+func (t *Tetrimino) rotateCounterClockwise(matrix Matrix) (bool, error) {
 	// Reverse the order of the columns
 	for _, row := range t.Minos {
 		for i, j := 0, len(row)-1; i < j; i, j = i+1, j-1 {
@@ -281,16 +324,23 @@ func (t *Tetrimino) rotateCounterClockwise() error {
 
 	t.transpose()
 
-	t.Pos.X -= t.RotationCoords[t.CurrentRotation].X
-	t.Pos.Y -= t.RotationCoords[t.CurrentRotation].Y
-
 	var err error
-	t.CurrentRotation, err = positiveMod(t.CurrentRotation-1, len(t.RotationCoords))
+	t.CurrentRotation, err = positiveMod(t.CurrentRotation+1, len(t.RotationCompass))
 	if err != nil {
-		return fmt.Errorf("failed to get positive mod: %w", err)
+		return false, fmt.Errorf("failed to get positive mod: %w", err)
 	}
 
-	return nil
+	originalX, originalY := t.Pos.X, t.Pos.Y
+	for _, coord := range t.RotationCompass[t.CurrentRotation] {
+		t.Pos.X = originalX - coord.X
+		t.Pos.Y = originalY - coord.Y
+
+		if t.isValid(matrix) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (t *Tetrimino) transpose() {
@@ -352,12 +402,10 @@ func (t *Tetrimino) DeepCopy() *Tetrimino {
 		cells = deepCopyMinos(t.Minos)
 	}
 
-	var rotationCoords []Coordinate
-	if t.RotationCoords == nil {
-		rotationCoords = nil
-	} else {
-		rotationCoords = make([]Coordinate, len(t.RotationCoords))
-		copy(rotationCoords, t.RotationCoords)
+	var compass rotationCompass
+	for i := range t.RotationCompass {
+		compass[i] = make(rotationSet, len(t.RotationCompass[i]))
+		copy(compass[i], t.RotationCompass[i])
 	}
 
 	return &Tetrimino{
@@ -365,7 +413,7 @@ func (t *Tetrimino) DeepCopy() *Tetrimino {
 		Minos:           cells,
 		Pos:             t.Pos,
 		CurrentRotation: t.CurrentRotation,
-		RotationCoords:  rotationCoords,
+		RotationCompass: compass,
 	}
 }
 
