@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewMatrix(t *testing.T) {
+func Test_NewMatrix(t *testing.T) {
 	tt := map[string]struct {
 		width   uint
 		height  uint
@@ -43,7 +43,7 @@ func TestNewMatrix(t *testing.T) {
 	}
 }
 
-func TestMatrix_IsLineComplete(t *testing.T) {
+func TestMatrix_isLineComplete(t *testing.T) {
 	matrix := &Matrix{
 		[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 		[]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -55,39 +55,39 @@ func TestMatrix_IsLineComplete(t *testing.T) {
 
 	// these test cases correspond to the rows in the matrix above
 	tt := []struct {
-		expected bool
+		want bool
 	}{
 		{
-			expected: true,
+			want: true,
 		},
 		{
-			expected: false,
+			want: false,
 		},
 		{
-			expected: false,
+			want: false,
 		},
 		{
-			expected: false,
+			want: false,
 		},
 		{
-			expected: false,
+			want: false,
 		},
 		{
-			expected: false,
+			want: false,
 		},
 	}
 
 	for row, tc := range tt {
 		name := fmt.Sprintf("row %d", row)
 		t.Run(name, func(t *testing.T) {
-			if actual := matrix.isLineComplete(row); actual != tc.expected {
-				t.Errorf("want %v, got %v", tc.expected, actual)
+			if actual := matrix.isLineComplete(row); actual != tc.want {
+				t.Errorf("want %v, got %v", tc.want, actual)
 			}
 		})
 	}
 }
 
-func TestMatrix_RemoveLine(t *testing.T) {
+func TestMatrix_removeLine(t *testing.T) {
 	matrix := Matrix{
 		[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 		[]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -98,7 +98,8 @@ func TestMatrix_RemoveLine(t *testing.T) {
 	}
 
 	for row := range matrix {
-		t.Run(fmt.Sprint("row ", row), func(t *testing.T) {
+		name := fmt.Sprintf("row %d", row)
+		t.Run(name, func(t *testing.T) {
 			m := DefaultMatrix()
 			m[row] = slices.Clone(matrix[row])
 
@@ -119,33 +120,33 @@ func TestMatrix_modifyCell(t *testing.T) {
 		pos     Coordinate
 		wantErr error
 	}{
-		"success - top left": {
+		"success; top left": {
 			matrix: Matrix{{0, 0}, {0, 0}},
 			pos:    Coordinate{0, 0},
 		},
-		"success - bottom left": {
+		"success; bottom left": {
 			matrix: Matrix{{0, 0}, {0, 0}},
 			pos:    Coordinate{0, 1},
 		},
-		"success - top right": {
+		"success; top right": {
 			matrix: Matrix{{0, 0}, {0, 0}},
 			pos:    Coordinate{1, 0},
 		},
-		"success - bottom right": {
+		"success; bottom right": {
 			matrix: Matrix{{0, 0}, {0, 0}},
 			pos:    Coordinate{1, 1},
 		},
-		"failure - row out of bounds": {
+		"failure; row out of bounds": {
 			matrix:  Matrix{{0}},
 			pos:     Coordinate{0, 1},
 			wantErr: errors.New("row 1 is out of bounds"),
 		},
-		"failure - col out of bounds": {
+		"failure; col out of bounds": {
 			matrix:  Matrix{{0}},
 			pos:     Coordinate{1, 0},
 			wantErr: errors.New("col 1 is out of bounds"),
 		},
-		"failure - mino not expected value": {
+		"failure; mino not expected value": {
 			matrix:  Matrix{{'X'}},
 			pos:     Coordinate{0, 0},
 			wantErr: errors.New("mino at row 0, col 0 is 'X' (byte value 88) not the expected value"),
@@ -179,67 +180,67 @@ func TestMatrix_modifyCell(t *testing.T) {
 
 func TestMatrix_RemoveCompletedLines(t *testing.T) {
 	tt := map[string]struct {
-		matrix         Matrix
-		posY           int
-		cells          [][]bool
-		expectedAction Action
-		wantMatrix     Matrix
+		matrix     Matrix
+		posY       int
+		cells      [][]bool
+		wantAction Action
+		wantMatrix Matrix
 	}{
-		"none - tet height 1": {
-			matrix:         Matrix{{0}, {'X'}},
-			posY:           0,
-			cells:          [][]bool{{}},
-			expectedAction: Actions.NONE,
-			wantMatrix:     Matrix{{0}, {'X'}},
+		"none; tet height 1": {
+			matrix:     Matrix{{0}, {'X'}},
+			posY:       0,
+			cells:      [][]bool{{}},
+			wantAction: Actions.NONE,
+			wantMatrix: Matrix{{0}, {'X'}},
 		},
-		"single - tet height 1": {
-			matrix:         Matrix{{0}, {'X'}},
-			posY:           1,
-			cells:          [][]bool{{}},
-			expectedAction: Actions.SINGLE,
-			wantMatrix:     Matrix{{0}, {0}},
+		"single; tet height 1": {
+			matrix:     Matrix{{0}, {'X'}},
+			posY:       1,
+			cells:      [][]bool{{}},
+			wantAction: Actions.SINGLE,
+			wantMatrix: Matrix{{0}, {0}},
 		},
-		"single - tet height 2": {
-			matrix:         Matrix{{0}, {'X'}},
-			posY:           0,
-			cells:          [][]bool{{}, {}},
-			expectedAction: Actions.SINGLE,
-			wantMatrix:     Matrix{{0}, {0}},
+		"single; tet height 2": {
+			matrix:     Matrix{{0}, {'X'}},
+			posY:       0,
+			cells:      [][]bool{{}, {}},
+			wantAction: Actions.SINGLE,
+			wantMatrix: Matrix{{0}, {0}},
 		},
-		"double - tet height 2": {
-			matrix:         Matrix{{0}, {'X'}, {'X'}},
-			posY:           1,
-			cells:          [][]bool{{}, {}},
-			expectedAction: Actions.DOUBLE,
-			wantMatrix:     Matrix{{0}, {0}, {0}},
+		"double; tet height 2": {
+			matrix:     Matrix{{0}, {'X'}, {'X'}},
+			posY:       1,
+			cells:      [][]bool{{}, {}},
+			wantAction: Actions.DOUBLE,
+			wantMatrix: Matrix{{0}, {0}, {0}},
 		},
-		"double - tet height 4": {
-			matrix:         Matrix{{0}, {0}, {'X'}, {'X'}},
-			posY:           0,
-			cells:          [][]bool{{}, {}, {}, {}},
-			expectedAction: Actions.DOUBLE,
-			wantMatrix:     Matrix{{0}, {0}, {0}, {0}},
+		"double; tet height 4": {
+			matrix:     Matrix{{0}, {0}, {'X'}, {'X'}},
+			posY:       0,
+			cells:      [][]bool{{}, {}, {}, {}},
+			wantAction: Actions.DOUBLE,
+			wantMatrix: Matrix{{0}, {0}, {0}, {0}},
 		},
-		"triple - tet height 3": {
-			matrix:         Matrix{{'X'}, {'X'}, {'X'}},
-			posY:           0,
-			cells:          [][]bool{{}, {}, {}},
-			expectedAction: Actions.TRIPLE,
-			wantMatrix:     Matrix{{0}, {0}, {0}},
+		"triple; tet height 3": {
+			matrix:     Matrix{{'X'}, {'X'}, {'X'}},
+			posY:       0,
+			cells:      [][]bool{{}, {}, {}},
+			wantAction: Actions.TRIPLE,
+			wantMatrix: Matrix{{0}, {0}, {0}},
 		},
-		"tetris - tet height 4": {
-			matrix:         Matrix{{'X'}, {'X'}, {'X'}, {'X'}},
-			posY:           0,
-			cells:          [][]bool{{}, {}, {}, {}},
-			expectedAction: Actions.TETRIS,
-			wantMatrix:     Matrix{{0}, {0}, {0}, {0}},
+		"tetris; tet height 4": {
+			matrix:     Matrix{{'X'}, {'X'}, {'X'}, {'X'}},
+			posY:       0,
+			cells:      [][]bool{{}, {}, {}, {}},
+			wantAction: Actions.TETRIS,
+			wantMatrix: Matrix{{0}, {0}, {0}, {0}},
 		},
-		"unknown - tet height 5": {
-			matrix:         Matrix{{'X'}, {'X'}, {'X'}, {'X'}, {'X'}},
-			posY:           0,
-			cells:          [][]bool{{}, {}, {}, {}, {}},
-			expectedAction: Actions.UNKNOWN,
-			wantMatrix:     Matrix{{0}, {0}, {0}, {0}, {0}},
+		"unknown; tet height 5": {
+			matrix:     Matrix{{'X'}, {'X'}, {'X'}, {'X'}, {'X'}},
+			posY:       0,
+			cells:      [][]bool{{}, {}, {}, {}, {}},
+			wantAction: Actions.UNKNOWN,
+			wantMatrix: Matrix{{0}, {0}, {0}, {0}, {0}},
 		},
 	}
 
@@ -252,27 +253,27 @@ func TestMatrix_RemoveCompletedLines(t *testing.T) {
 
 			act := tc.matrix.RemoveCompletedLines(tet)
 
-			assert.Equal(t, tc.expectedAction, act)
+			assert.Equal(t, tc.wantAction, act)
 			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
 		})
 	}
 }
 
-func TestMatrix_IsOutOfBoundsHorizontally(t *testing.T) {
+func TestMatrix_isOutOfBoundsHorizontally(t *testing.T) {
 	tt := map[string]struct {
-		col     int
-		expects bool
+		col  int
+		want bool
 	}{
-		"out left": {
+		"true; left": {
 			-1, true,
 		},
-		"in left": {
+		"false; left": {
 			0, false,
 		},
-		"in right": {
+		"true; right": {
 			9, false,
 		},
-		"out right": {
+		"false; right": {
 			10, true,
 		},
 	}
@@ -282,27 +283,27 @@ func TestMatrix_IsOutOfBoundsHorizontally(t *testing.T) {
 			m := DefaultMatrix()
 			result := m.isOutOfBoundsHorizontally(tc.col)
 
-			assert.EqualValues(t, result, tc.expects)
+			assert.EqualValues(t, result, tc.want)
 		})
 	}
 }
 
-func TestMatrix_IsOutOfBoundsVertically(t *testing.T) {
+func TestMatrix_isOutOfBoundsVertically(t *testing.T) {
 	tt := map[string]struct {
-		row     int
-		expects bool
+		row  int
+		want bool
 	}{
-		"out up": {
+		"true; up": {
 			-1, true,
 		},
-		"in up": {
+		"false; up": {
 			0, false,
 		},
-		"in down": {
-			39, false,
-		},
-		"out down": {
+		"true; down": {
 			40, true,
+		},
+		"false down": {
+			39, false,
 		},
 	}
 
@@ -311,7 +312,59 @@ func TestMatrix_IsOutOfBoundsVertically(t *testing.T) {
 			m := DefaultMatrix()
 			result := m.isOutOfBoundsVertically(tc.row)
 
-			assert.Equal(t, tc.expects, result)
+			assert.Equal(t, tc.want, result)
+		})
+	}
+}
+
+func Test_isCellEmpty(t *testing.T) {
+	tt := []struct {
+		mino byte
+		want bool
+	}{
+		{
+			mino: 0,
+			want: true,
+		},
+		{
+			mino: 'G',
+			want: true,
+		},
+		{
+			mino: 'I',
+			want: false,
+		},
+		{
+			mino: 'O',
+			want: false,
+		},
+		{
+			mino: 'T',
+			want: false,
+		},
+		{
+			mino: 'S',
+			want: false,
+		},
+		{
+			mino: 'Z',
+			want: false,
+		},
+		{
+			mino: 'J',
+			want: false,
+		},
+		{
+			mino: 'L',
+			want: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(string(tc.mino), func(t *testing.T) {
+			result := isCellEmpty(tc.mino)
+
+			assert.Equal(t, tc.want, result)
 		})
 	}
 }

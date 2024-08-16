@@ -391,7 +391,7 @@ func TestTetrimino_Rotate(t *testing.T) {
 	}
 }
 
-func TestTetrimino_RotateClockwise(t *testing.T) {
+func TestTetrimino_rotateClockwise(t *testing.T) {
 	tt := map[string]struct {
 		matrix  Matrix
 		tet     *Tetrimino
@@ -744,7 +744,7 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 	}
 }
 
-func TestTetrimino_RotateCounterClockwise(t *testing.T) {
+func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 	tt := map[string]struct {
 		matrix  Matrix
 		tet     *Tetrimino
@@ -1097,10 +1097,10 @@ func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 	}
 }
 
-func TestTetrimino_Transpose(t *testing.T) {
+func TestTetrimino_transpose(t *testing.T) {
 	tt := map[string]struct {
-		tet           *Tetrimino
-		expectedMinos [][]bool
+		tet       *Tetrimino
+		wantMinos [][]bool
 	}{
 		"1x2": {
 			tet: &Tetrimino{
@@ -1108,7 +1108,7 @@ func TestTetrimino_Transpose(t *testing.T) {
 					{true, false},
 				},
 			},
-			expectedMinos: [][]bool{
+			wantMinos: [][]bool{
 				{true},
 				{false},
 			},
@@ -1120,7 +1120,7 @@ func TestTetrimino_Transpose(t *testing.T) {
 					{true, false},
 				},
 			},
-			expectedMinos: [][]bool{
+			wantMinos: [][]bool{
 				{true, true},
 				{false, false},
 			},
@@ -1133,7 +1133,7 @@ func TestTetrimino_Transpose(t *testing.T) {
 					{true, false, true},
 				},
 			},
-			expectedMinos: [][]bool{
+			wantMinos: [][]bool{
 				{true, true, true},
 				{false, false, false},
 				{true, false, true},
@@ -1145,139 +1145,80 @@ func TestTetrimino_Transpose(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.tet.transpose()
 
-			assert.ElementsMatch(t, tc.tet.Minos, tc.expectedMinos)
+			assert.ElementsMatch(t, tc.tet.Minos, tc.wantMinos)
 		})
 	}
 }
 
-func TestTetrimino_CanBePlaced(t *testing.T) {
+func TestTetrimino_isValid(t *testing.T) {
 	tt := map[string]struct {
-		matrix  Matrix
-		rotated *Tetrimino
-		expects bool
+		matrix Matrix
+		tet    *Tetrimino
+		want   bool
 	}{
-		"can rotate, empty board & starting position": {
-			DefaultMatrix(),
-			&Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{false, true, false},
-					{true, true, true},
-				},
-				Pos: Coordinate{
-					X: startingPositions['6'].X,
-					Y: startingPositions['6'].Y + 20,
-				},
-				CompassDirection: 0,
-				RotationCompass:  RotationCompasses['6'],
+		"true; empty board": {
+			matrix: Matrix{
+				{0},
 			},
-			true,
+			tet: &Tetrimino{
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: 0, Y: 0},
+			},
+			want: true,
 		},
-		"can rotate, perfect fit": {
-			Matrix{
-				{0, 0, 0, 'X'},
+		"true; perfect fit": {
+			matrix: Matrix{
+				{0, 0, 0},
 				{'X', 0, 'X'},
-				{'X', 'X', 'X'},
 			},
-			&Tetrimino{
-				Value: 'T',
+			tet: &Tetrimino{
 				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
-				Pos: Coordinate{
-					X: 0,
-					Y: 0,
-				},
-				CompassDirection: 2,
-				RotationCompass:  RotationCompasses['6'],
+				Pos: Coordinate{X: 0, Y: 0},
 			},
-			true,
+			want: true,
 		},
-		"cannot rotate, blocking mino": {
-			Matrix{
-				{'X'},
+		"false; blocking mino": {
+			matrix: Matrix{
+				{'#'},
 			},
+			tet: &Tetrimino{
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: 0, Y: 0},
+			},
+			want: false,
+		},
+		"false; out of bounds left": {
+			Matrix{{0}},
 			&Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{
-					X: 0,
-					Y: 0,
-				},
-				CompassDirection: 2,
-				RotationCompass:  RotationCompasses['6'],
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: -1, Y: 0},
 			},
 			false,
 		},
-		"cannot rotate, out of bounds left": {
-			DefaultMatrix(),
+		"false; out of bounds right": {
+			Matrix{{0}},
 			&Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{
-					X: -1,
-					Y: 0,
-				},
-				CompassDirection: 2,
-				RotationCompass:  RotationCompasses['6'],
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: 1, Y: 0},
 			},
 			false,
 		},
-		"cannot rotate, out of bounds right": {
-			DefaultMatrix(),
+		"false; out of bounds up": {
+			Matrix{{0}},
 			&Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{
-					X: len(DefaultMatrix()[0]) - 2,
-					Y: 0,
-				},
-				CompassDirection: 2,
-				RotationCompass:  RotationCompasses['6'],
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: 0, Y: -1},
 			},
 			false,
 		},
-		"cannot rotate, out of bounds up": {
-			DefaultMatrix(),
+		"false; out of bounds down": {
+			Matrix{{0}},
 			&Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{
-					X: 0,
-					Y: -1,
-				},
-				CompassDirection: 2,
-				RotationCompass:  RotationCompasses['6'],
-			},
-			false,
-		},
-		"cannot rotate, out of bounds down": {
-			DefaultMatrix(),
-			&Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{
-					X: 0,
-					Y: len(DefaultMatrix()) - 1,
-				},
-				CompassDirection: 2,
-				RotationCompass:  RotationCompasses['6'],
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: 0, Y: 1},
 			},
 			false,
 		},
@@ -1285,27 +1226,25 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			result := tc.rotated.isValid(tc.matrix)
+			result := tc.tet.isValid(tc.matrix)
 
-			assert.EqualValues(t, result, tc.expects)
+			assert.EqualValues(t, result, tc.want)
 		})
 	}
 }
 
-func TestPositiveMod(t *testing.T) {
-	errResultIsNan := errors.New("result is NaN")
-
+func Test_positiveMod(t *testing.T) {
 	tt := map[string]struct {
 		dividend int
 		divisor  int
-		expected int
+		want     int
 		wantErr  error
 	}{
 		"0 mod 0": {
-			0, 0, 0, errResultIsNan,
+			0, 0, 0, errors.New("result is NaN"),
 		},
 		"1 mod 0": {
-			0, 0, 0, errResultIsNan,
+			0, 0, 0, errors.New("result is NaN"),
 		},
 		"3 mod 5": {
 			3, 5, 3, nil,
@@ -1332,7 +1271,7 @@ func TestPositiveMod(t *testing.T) {
 			result, err := positiveMod(tc.dividend, tc.divisor)
 			if tc.wantErr != nil {
 				assert.EqualError(t, err, tc.wantErr.Error())
-				assert.Equal(t, tc.expected, result)
+				assert.Equal(t, tc.want, result)
 			} else {
 				assert.NoError(t, err)
 			}
@@ -1340,7 +1279,7 @@ func TestPositiveMod(t *testing.T) {
 	}
 }
 
-func TestDeepCopyMinos(t *testing.T) {
+func Test_deepCopyMinos(t *testing.T) {
 	tt := map[string]struct {
 		cells  [][]bool
 		modify func(*[][]bool)
@@ -1368,58 +1307,6 @@ func TestDeepCopyMinos(t *testing.T) {
 			tc.modify(&cellsCopy)
 
 			assert.False(t, tc.cells[0][0])
-		})
-	}
-}
-
-func TestIsMinoEmpty(t *testing.T) {
-	tt := []struct {
-		mino     byte
-		expected bool
-	}{
-		{
-			mino:     0,
-			expected: true,
-		},
-		{
-			mino:     'G',
-			expected: true,
-		},
-		{
-			mino:     'I',
-			expected: false,
-		},
-		{
-			mino:     'O',
-			expected: false,
-		},
-		{
-			mino:     'T',
-			expected: false,
-		},
-		{
-			mino:     'S',
-			expected: false,
-		},
-		{
-			mino:     'Z',
-			expected: false,
-		},
-		{
-			mino:     'J',
-			expected: false,
-		},
-		{
-			mino:     'L',
-			expected: false,
-		},
-	}
-
-	for _, tc := range tt {
-		t.Run(string(tc.mino), func(t *testing.T) {
-			result := isCellEmpty(tc.mino)
-
-			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
@@ -1465,43 +1352,43 @@ func TestTetrimino_DeepCopy(t *testing.T) {
 	assert.EqualValues(t, manualCopy, easyCopy)
 }
 
-func TestTetrimino_IsAbovePlayfield(t *testing.T) {
+func TestTetrimino_IsAboveSkyline(t *testing.T) {
 	tt := map[string]struct {
-		skyline  int
-		tet      *Tetrimino
-		expected bool
+		skyline int
+		tet     *Tetrimino
+		want    bool
 	}{
-		"true, skyline 10": {
+		"true; skyline 10": {
 			skyline: 10,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 9},
 				Minos: [][]bool{{true}},
 			},
-			expected: true,
+			want: true,
 		},
-		"true, skyline 20": {
+		"true; skyline 20": {
 			skyline: 20,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 19},
 				Minos: [][]bool{{true}},
 			},
-			expected: true,
+			want: true,
 		},
-		"false, skyline 10": {
+		"false; skyline 10": {
 			skyline: 10,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 10},
 				Minos: [][]bool{{true}},
 			},
-			expected: false,
+			want: false,
 		},
-		"false, skyline 20": {
+		"false; skyline 20": {
 			skyline: 20,
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 20},
 				Minos: [][]bool{{true}},
 			},
-			expected: false,
+			want: false,
 		},
 	}
 
@@ -1509,16 +1396,16 @@ func TestTetrimino_IsAbovePlayfield(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result := tc.tet.IsAboveSkyline(tc.skyline)
 
-			assert.Equal(t, tc.expected, result)
+			assert.Equal(t, tc.want, result)
 		})
 	}
 }
 
 func TestTetrimino_IsOverlapping(t *testing.T) {
 	tt := map[string]struct {
-		tet      *Tetrimino
-		matrix   Matrix
-		expected bool
+		tet    *Tetrimino
+		matrix Matrix
+		want   bool
 	}{
 		"true": {
 			tet: &Tetrimino{
@@ -1528,7 +1415,7 @@ func TestTetrimino_IsOverlapping(t *testing.T) {
 			matrix: Matrix{
 				{0, 'X'},
 			},
-			expected: true,
+			want: true,
 		},
 		"false": {
 			tet: &Tetrimino{
@@ -1539,7 +1426,7 @@ func TestTetrimino_IsOverlapping(t *testing.T) {
 				{0, 0, 0, 0, 'X'},
 				{'X', 'X', 'X', 'X', 'X'},
 			},
-			expected: false,
+			want: false,
 		},
 	}
 
@@ -1547,7 +1434,7 @@ func TestTetrimino_IsOverlapping(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result := tc.tet.IsOverlapping(tc.matrix)
 
-			assert.Equal(t, tc.expected, result)
+			assert.Equal(t, tc.want, result)
 		})
 	}
 }
