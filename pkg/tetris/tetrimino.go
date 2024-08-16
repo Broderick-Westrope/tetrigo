@@ -12,8 +12,8 @@ type Tetrimino struct {
 	Minos [][]bool   // A 2D slice of cells that make up the Tetrimino. True means the mino is occupied by a Mino.
 	Pos   Coordinate // The top left mino of the Tetrimino. Used as a reference point for movement and rotation.
 
-	CurrentRotation int // The index of the current rotation in the RotationCompass.
-	RotationCompass rotationCompass
+	CompassDirection int // The index of the current rotation in the RotationCompass (ie. North, South, East, West).
+	RotationCompass  rotationCompass
 }
 
 // Coordinate represents a point on a 2D plane.
@@ -281,7 +281,7 @@ func (t *Tetrimino) Rotate(matrix Matrix, clockwise bool) error {
 	if foundValid {
 		t.Pos = rotated.Pos
 		t.Minos = rotated.Minos
-		t.CurrentRotation = rotated.CurrentRotation
+		t.CompassDirection = rotated.CompassDirection
 	}
 
 	return nil
@@ -296,13 +296,13 @@ func (t *Tetrimino) rotateClockwise(matrix Matrix) (bool, error) {
 	t.transpose()
 
 	var err error
-	t.CurrentRotation, err = positiveMod(t.CurrentRotation+1, len(t.RotationCompass))
+	t.CompassDirection, err = positiveMod(t.CompassDirection+1, len(t.RotationCompass))
 	if err != nil {
 		return false, fmt.Errorf("failed to get positive mod: %w", err)
 	}
 
 	originalX, originalY := t.Pos.X, t.Pos.Y
-	for _, coord := range t.RotationCompass[t.CurrentRotation] {
+	for _, coord := range t.RotationCompass[t.CompassDirection] {
 		t.Pos.X = originalX + coord.X
 		t.Pos.Y = originalY + coord.Y
 
@@ -325,13 +325,13 @@ func (t *Tetrimino) rotateCounterClockwise(matrix Matrix) (bool, error) {
 	t.transpose()
 
 	var err error
-	t.CurrentRotation, err = positiveMod(t.CurrentRotation+1, len(t.RotationCompass))
+	t.CompassDirection, err = positiveMod(t.CompassDirection+1, len(t.RotationCompass))
 	if err != nil {
 		return false, fmt.Errorf("failed to get positive mod: %w", err)
 	}
 
 	originalX, originalY := t.Pos.X, t.Pos.Y
-	for _, coord := range t.RotationCompass[t.CurrentRotation] {
+	for _, coord := range t.RotationCompass[t.CompassDirection] {
 		t.Pos.X = originalX - coord.X
 		t.Pos.Y = originalY - coord.Y
 
@@ -409,11 +409,11 @@ func (t *Tetrimino) DeepCopy() *Tetrimino {
 	}
 
 	return &Tetrimino{
-		Value:           t.Value,
-		Minos:           cells,
-		Pos:             t.Pos,
-		CurrentRotation: t.CurrentRotation,
-		RotationCompass: compass,
+		Value:            t.Value,
+		Minos:            cells,
+		Pos:              t.Pos,
+		CompassDirection: t.CompassDirection,
+		RotationCompass:  compass,
 	}
 }
 
