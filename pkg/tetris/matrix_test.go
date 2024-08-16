@@ -114,70 +114,6 @@ func TestMatrix_removeLine(t *testing.T) {
 	}
 }
 
-func TestMatrix_modifyCell(t *testing.T) {
-	tt := map[string]struct {
-		matrix  Matrix
-		pos     Coordinate
-		wantErr error
-	}{
-		"success; top left": {
-			matrix: Matrix{{0, 0}, {0, 0}},
-			pos:    Coordinate{0, 0},
-		},
-		"success; bottom left": {
-			matrix: Matrix{{0, 0}, {0, 0}},
-			pos:    Coordinate{0, 1},
-		},
-		"success; top right": {
-			matrix: Matrix{{0, 0}, {0, 0}},
-			pos:    Coordinate{1, 0},
-		},
-		"success; bottom right": {
-			matrix: Matrix{{0, 0}, {0, 0}},
-			pos:    Coordinate{1, 1},
-		},
-		"failure; row out of bounds": {
-			matrix:  Matrix{{0}},
-			pos:     Coordinate{0, 1},
-			wantErr: errors.New("row 1 is out of bounds"),
-		},
-		"failure; col out of bounds": {
-			matrix:  Matrix{{0}},
-			pos:     Coordinate{1, 0},
-			wantErr: errors.New("col 1 is out of bounds"),
-		},
-		"failure; mino not expected value": {
-			matrix:  Matrix{{'X'}},
-			pos:     Coordinate{0, 0},
-			wantErr: errors.New("mino at row 0, col 0 is 'X' (byte value 88) not the expected value"),
-		},
-	}
-
-	for name, tc := range tt {
-		t.Run(name, func(t *testing.T) {
-			minos := [][]bool{{true}}
-			newValue := byte('X')
-
-			err := tc.matrix.modifyCell(minos, tc.pos, newValue, isCellEmpty)
-
-			if tc.wantErr != nil {
-				assert.EqualError(t, err, tc.wantErr.Error())
-				return
-			}
-
-			assert.NoError(t, err)
-
-			for row := range minos {
-				for col := range minos[row] {
-					if minos[row][col] {
-						assert.Equal(t, newValue, tc.matrix[row+tc.pos.Y][col+tc.pos.X])
-					}
-				}
-			}
-		})
-	}
-}
-
 func TestMatrix_RemoveCompletedLines(t *testing.T) {
 	tt := map[string]struct {
 		matrix     Matrix
@@ -368,3 +304,159 @@ func Test_isCellEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestMatrix_AddTetrimino(t *testing.T) {
+	tt := map[string]struct {
+		matrix     Matrix
+		tet        *Tetrimino
+		wantMatrix Matrix
+		wantErr    error
+	}{
+		"success": {
+			matrix: Matrix{
+				{0, '#', 0},
+				{0, 0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'X',
+				Pos:   Coordinate{1, 0},
+				Minos: [][]bool{
+					{false, true},
+					{true, true},
+				},
+			},
+			wantMatrix: Matrix{
+				{0, '#', 'X'},
+				{0, 'X', 'X'},
+			},
+		},
+		"failure; row out of bounds": {
+			matrix: Matrix{{0}},
+			tet: &Tetrimino{
+				Value: 'X',
+				Pos:   Coordinate{0, 1},
+				Minos: [][]bool{
+					{true},
+					{true},
+				},
+			},
+			wantErr: errors.New("row 1 is out of bounds"),
+		},
+		"failure; col out of bounds": {
+			matrix: Matrix{{0}},
+			tet: &Tetrimino{
+				Value: 'X',
+				Pos:   Coordinate{1, 0},
+				Minos: [][]bool{
+					{true, true},
+				},
+			},
+			wantErr: errors.New("col 1 is out of bounds"),
+		},
+		"failure; mino not expected value": {
+			matrix: Matrix{{'#'}},
+			tet: &Tetrimino{
+				Value: 'X',
+				Pos:   Coordinate{0, 0},
+				Minos: [][]bool{
+					{true},
+				},
+			},
+			wantErr: errors.New("mino at row 0, col 0 is '#' (byte value 35) not the expected value"),
+		},
+	}
+
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			err := tc.matrix.AddTetrimino(tc.tet)
+
+			if tc.wantErr != nil {
+				assert.EqualError(t, err, tc.wantErr.Error())
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
+		})
+	}
+}
+
+func TestMatrix_RemoveTetrimino(t *testing.T) {
+	tt := map[string]struct {
+		matrix     Matrix
+		tet        *Tetrimino
+		wantMatrix Matrix
+		wantErr    error
+	}{
+		"success": {
+			matrix: Matrix{
+				{0, '#', 'X'},
+				{0, 'X', 'X'},
+			},
+			tet: &Tetrimino{
+				Value: 'X',
+				Pos:   Coordinate{1, 0},
+				Minos: [][]bool{
+					{false, true},
+					{true, true},
+				},
+			},
+			wantMatrix: Matrix{
+				{0, '#', 0},
+				{0, 0, 0},
+			},
+		},
+		"failure; row out of bounds": {
+			matrix: Matrix{{0}},
+			tet: &Tetrimino{
+				Value: 'X',
+				Pos:   Coordinate{0, 1},
+				Minos: [][]bool{
+					{true},
+					{true},
+				},
+			},
+			wantErr: errors.New("row 1 is out of bounds"),
+		},
+		"failure; col out of bounds": {
+			matrix: Matrix{{0}},
+			tet: &Tetrimino{
+				Value: 'X',
+				Pos:   Coordinate{1, 0},
+				Minos: [][]bool{
+					{true, true},
+				},
+			},
+			wantErr: errors.New("col 1 is out of bounds"),
+		},
+		"failure; mino not expected value": {
+			matrix: Matrix{{'#'}},
+			tet: &Tetrimino{
+				Value: 'X',
+				Pos:   Coordinate{0, 0},
+				Minos: [][]bool{
+					{true},
+				},
+			},
+			wantErr: errors.New("mino at row 0, col 0 is '#' (byte value 35) not the expected value"),
+		},
+	}
+
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			err := tc.matrix.RemoveTetrimino(tc.tet)
+
+			if tc.wantErr != nil {
+				assert.EqualError(t, err, tc.wantErr.Error())
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
+		})
+	}
+}
+
+// TODO:
+//   - DeepCopy
+//   - canPlaceInCell

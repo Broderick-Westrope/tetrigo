@@ -92,11 +92,13 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 	}{
 		"true - empty matrix": {
 			matrix: Matrix{
-				{0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
 			},
 			tet: Tetrimino{
 				Minos: [][]bool{
-					{true},
+					{true, true},
+					{false, true},
 				},
 				Pos: Coordinate{X: 1, Y: 0},
 			},
@@ -179,11 +181,13 @@ func TestTetrimino_MoveRight(t *testing.T) {
 	}{
 		"true - empty matrix": {
 			matrix: Matrix{
-				{0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
 			},
 			tet: Tetrimino{
 				Minos: [][]bool{
-					{true},
+					{true, true},
+					{true, false},
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
@@ -265,6 +269,10 @@ func TestTetrimino_Rotate(t *testing.T) {
 		tet       *Tetrimino
 		wantTet   *Tetrimino
 	}{
+		"O unmodified": {
+			tet:     &Tetrimino{Value: 'O'},
+			wantTet: &Tetrimino{Value: 'O'},
+		},
 		"success; clockwise": {
 			clockwise: true,
 			matrix: Matrix{
@@ -1403,28 +1411,28 @@ func TestTetrimino_IsAboveSkyline(t *testing.T) {
 
 func TestTetrimino_IsOverlapping(t *testing.T) {
 	tt := map[string]struct {
-		tet    *Tetrimino
 		matrix Matrix
+		tet    *Tetrimino
 		want   bool
 	}{
 		"true": {
-			tet: &Tetrimino{
-				Pos:   Coordinate{X: 0, Y: 0},
-				Minos: [][]bool{{true, true, true, true}},
-			},
 			matrix: Matrix{
 				{0, 'X'},
+			},
+			tet: &Tetrimino{
+				Pos:   Coordinate{X: 0, Y: 0},
+				Minos: [][]bool{{true, true}},
 			},
 			want: true,
 		},
 		"false": {
+			matrix: Matrix{
+				{0, 'X', 0, 'X'},
+				{'X', 'X', 'X'},
+			},
 			tet: &Tetrimino{
 				Pos:   Coordinate{X: 0, Y: 0},
-				Minos: [][]bool{{true, true, true, true}},
-			},
-			matrix: Matrix{
-				{0, 0, 0, 0, 'X'},
-				{'X', 'X', 'X', 'X', 'X'},
+				Minos: [][]bool{{true, false, true}},
 			},
 			want: false,
 		},
