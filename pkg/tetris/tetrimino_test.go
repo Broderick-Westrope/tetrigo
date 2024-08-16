@@ -396,7 +396,7 @@ func TestTetrimino_CanMoveDown(t *testing.T) {
 				return
 			}
 
-			result := tc.tet.CanMoveDown(tc.matrix)
+			result := tc.tet.canMoveDown(tc.matrix)
 
 			assert.Equal(t, tc.expected, result)
 		})
@@ -1341,7 +1341,7 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			result := tc.rotated.canBePlaced(tc.matrix)
+			result := tc.rotated.isValid(tc.matrix)
 
 			assert.EqualValues(t, result, tc.expects)
 		})
@@ -1531,7 +1531,7 @@ func TestIsMinoEmpty(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(string(tc.mino), func(t *testing.T) {
-			result := isMinoEmpty(tc.mino)
+			result := isCellEmpty(tc.mino)
 
 			assert.Equal(t, tc.expected, result)
 		})

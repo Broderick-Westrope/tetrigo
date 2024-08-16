@@ -10,8 +10,14 @@ func (g *Game) IsGameOver() bool {
 	return g.gameOver
 }
 
-func (g *Game) GetVisibleMatrix() [][]byte {
-	return g.matrix.GetVisible()
+func (g *Game) GetVisibleMatrix() (tetris.Matrix, error) {
+	matrix := g.matrix.DeepCopy()
+
+	if err := matrix.AddTetrimino(g.tetInPlay); err != nil {
+		return nil, err
+	}
+
+	return matrix.GetVisible(), nil
 }
 
 func (g *Game) GetBagTetriminos() []tetris.Tetrimino {

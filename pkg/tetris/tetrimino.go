@@ -127,70 +127,50 @@ var EmptyTetrimino = &Tetrimino{
 }
 
 // MoveDown moves the tetrimino down one row.
-// If the tetrimino cannot move down, it will be added to the matrix and a new tetrimino will be returned.
-func (t *Tetrimino) MoveDown(matrix *Matrix) error {
-	err := matrix.RemoveTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to remove cells: %w", err)
+// This does not modify the matrix.
+// If the tetrimino cannot move down, it will not be modified and false will be returned.
+func (t *Tetrimino) MoveDown(matrix Matrix) bool {
+	if t.canMoveDown(matrix) {
+		t.Pos.Y++
+		return true
 	}
-	t.Pos.Y++
-	err = matrix.AddTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to add cells: %w", err)
-	}
-	return nil
+	return false
 }
 
 // MoveLeft moves the tetrimino left one column.
-// If the tetrimino cannot move left, nothing will happen.
-func (t *Tetrimino) MoveLeft(matrix Matrix) error {
-	if !t.canMoveLeft(matrix) {
-		return nil
+// This does not modify the matrix.
+// If the tetrimino cannot move left false will be returned.
+func (t *Tetrimino) MoveLeft(matrix Matrix) bool {
+	if t.canMoveLeft(matrix) {
+		t.Pos.X--
+		return true
 	}
-	err := matrix.RemoveTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to remove cells: %w", err)
-	}
-	t.Pos.X--
-	err = matrix.AddTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to add cells: %w", err)
-	}
-	return nil
+	return false
 }
 
 // MoveRight moves the tetrimino right one column.
-// If the tetrimino cannot move right, nothing will happen.
-func (t *Tetrimino) MoveRight(matrix Matrix) error {
-	if !t.canMoveRight(matrix) {
-		return nil
+// This does not modify the matrix.
+// If the tetrimino cannot move right false will be returned.
+func (t *Tetrimino) MoveRight(matrix Matrix) bool {
+	if t.canMoveRight(matrix) {
+		t.Pos.X++
+		return true
 	}
-	err := matrix.RemoveTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to remove cells: %w", err)
-	}
-	t.Pos.X++
-	err = matrix.AddTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to add cells: %w", err)
-	}
-	return nil
+	return false
 }
 
 // Returns true if the tetrimino can move down one row.
 // This gets the lowest mino in each column of the tetrimino, and checks if it is at the bottom of the matrix or if the mino below is occupied.
-func (t *Tetrimino) CanMoveDown(matrix Matrix) bool {
+func (t *Tetrimino) canMoveDown(matrix Matrix) bool {
 	for col := range t.Minos[0] {
 		for row := len(t.Minos) - 1; row >= 0; row-- {
-			if t.Minos[row][col] {
-				if row+t.Pos.Y+1 >= len(matrix) {
-					return false
-				}
-				if !isMinoEmpty(matrix[row+t.Pos.Y+1][col+t.Pos.X]) {
-					return false
-				}
-				break
+			if !t.Minos[row][col] {
+				continue
 			}
+			if !matrix.canPlaceInCell(row+t.Pos.Y+1, col+t.Pos.X) {
+				return false
+			}
+			break
 		}
 	}
 	return true
@@ -199,15 +179,13 @@ func (t *Tetrimino) CanMoveDown(matrix Matrix) bool {
 func (t *Tetrimino) canMoveLeft(matrix Matrix) bool {
 	for row := range t.Minos {
 		for col := range t.Minos[row] {
-			if t.Minos[row][col] {
-				if col+t.Pos.X-1 < 0 {
-					return false
-				}
-				if !isMinoEmpty(matrix[row+t.Pos.Y][col+t.Pos.X-1]) {
-					return false
-				}
-				break
+			if !t.Minos[row][col] {
+				continue
 			}
+			if !matrix.canPlaceInCell(row+t.Pos.Y, col+t.Pos.X-1) {
+				return false
+			}
+			break
 		}
 	}
 	return true
@@ -216,15 +194,13 @@ func (t *Tetrimino) canMoveLeft(matrix Matrix) bool {
 func (t *Tetrimino) canMoveRight(matrix Matrix) bool {
 	for row := range t.Minos {
 		for col := len(t.Minos[row]) - 1; col >= 0; col-- {
-			if t.Minos[row][col] {
-				if col+t.Pos.X+1 >= len(matrix[0]) {
-					return false
-				}
-				if !isMinoEmpty(matrix[row+t.Pos.Y][col+t.Pos.X+1]) {
-					return false
-				}
-				break
+			if !t.Minos[row][col] {
+				continue
 			}
+			if !matrix.canPlaceInCell(row+t.Pos.Y, col+t.Pos.X+1) {
+				return false
+			}
+			break
 		}
 	}
 	return true
@@ -246,21 +222,12 @@ func (t *Tetrimino) Rotate(matrix Matrix, clockwise bool) error {
 		return fmt.Errorf("failed to rotate tetrimino: %w", err)
 	}
 
-	err = matrix.RemoveTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to remove cells: %w", err)
-	}
-
-	if rotated.canBePlaced(matrix) {
+	if rotated.isValid(matrix) {
 		t.Pos = rotated.Pos
 		t.Minos = rotated.Minos
 		t.CurrentRotation = rotated.CurrentRotation
 	}
 
-	err = matrix.AddTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to add cells: %w", err)
-	}
 	return nil
 }
 
@@ -321,35 +288,20 @@ func (t *Tetrimino) transpose() {
 	t.Minos = result
 }
 
-// canBePlaced returns true if the given Tetrimino is within the bounds of the matrix and does not overlap with any occupied cells.
+// isValid returns true if the given Tetrimino is within the bounds of the matrix and does not overlap with any occupied cells.
 // The Tetrimino being checked should not be in the Matrix yet.
-func (t *Tetrimino) canBePlaced(matrix Matrix) bool {
-	for cellRow := range t.Minos {
-		for cellCol := range t.Minos[cellRow] {
-			if t.Minos[cellRow][cellCol] {
-				if isOutOfBoundsHorizontally(t.Pos.X, cellCol, matrix) {
-					return false
-				}
-				if isOutOfBoundsVertically(t.Pos.Y, cellRow, matrix) {
-					return false
-				}
-				if !isMinoEmpty(matrix[t.Pos.Y+cellRow][t.Pos.X+cellCol]) {
-					return false
-				}
+func (t *Tetrimino) isValid(matrix Matrix) bool {
+	for row := range t.Minos {
+		for col := range t.Minos[row] {
+			if !t.Minos[row][col] {
+				continue
+			}
+			if !matrix.canPlaceInCell(row+t.Pos.Y, col+t.Pos.X) {
+				return false
 			}
 		}
 	}
 	return true
-}
-
-func isOutOfBoundsHorizontally(tetPosX, cellCol int, matrix Matrix) bool {
-	tetPosX += cellCol
-	return tetPosX < 0 || tetPosX >= len(matrix[0])
-}
-
-func isOutOfBoundsVertically(tetPosY, cellRow int, matrix Matrix) bool {
-	tetPosY += cellRow
-	return tetPosY < 0 || tetPosY >= len(matrix)
 }
 
 func positiveMod(dividend, divisor int) (int, error) {
@@ -370,10 +322,6 @@ func deepCopyMinos(cells [][]bool) [][]bool {
 		copy(cellsCopy[i], cells[i])
 	}
 	return cellsCopy
-}
-
-func isMinoEmpty(cell byte) bool {
-	return cell == 0 || cell == 'G'
 }
 
 func (t *Tetrimino) DeepCopy() *Tetrimino {
@@ -422,11 +370,11 @@ func (t *Tetrimino) IsAboveSkyline(skyline int) bool {
 func (t *Tetrimino) IsOverlapping(matrix Matrix) bool {
 	for col := range t.Minos[0] {
 		for row := range t.Minos {
-			if t.Minos[row][col] {
-				if !isMinoEmpty(matrix[row+t.Pos.Y][col+t.Pos.X]) {
-					return true
-				}
-				break
+			if !t.Minos[row][col] {
+				continue
+			}
+			if !matrix.isCellEmpty(matrix[row+t.Pos.Y][col+t.Pos.X]) {
+				return true
 			}
 		}
 	}

@@ -176,16 +176,10 @@ func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Left):
-			err := m.game.MoveLeft()
-			if err != nil {
-				panic(fmt.Errorf("failed to move left: %w", err))
-			}
+			m.game.MoveLeft()
 			return m, nil
 		case key.Matches(msg, m.keys.Right):
-			err := m.game.MoveRight()
-			if err != nil {
-				panic(fmt.Errorf("failed to move right: %w", err))
-			}
+			m.game.MoveRight()
 			return m, nil
 		case key.Matches(msg, m.keys.Clockwise):
 			err := m.game.Rotate(true)
@@ -268,7 +262,11 @@ func (m *Model) View() string {
 }
 
 func (m *Model) matrixView() string {
-	matrix := m.game.GetVisibleMatrix()
+	matrix, err := m.game.GetVisibleMatrix()
+	if err != nil {
+		panic(err)
+	}
+
 	var output string
 	for row := range matrix {
 		for col := range matrix[row] {

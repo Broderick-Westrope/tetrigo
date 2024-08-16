@@ -157,7 +157,7 @@ func TestMatrix_modifyCell(t *testing.T) {
 			minos := [][]bool{{true}}
 			newValue := byte('X')
 
-			err := tc.matrix.modifyCell(minos, tc.pos, newValue, isMinoEmpty)
+			err := tc.matrix.modifyCell(minos, tc.pos, newValue, isCellEmpty)
 
 			if tc.wantErr != nil {
 				assert.EqualError(t, err, tc.wantErr.Error())
