@@ -29,7 +29,7 @@ type rotationCompass [4]rotationSet
 // If the first coordinate cannot be used the next will be attempted.
 // This continues until there are no more coordinates to fall back on (in which case rotation is not possible).
 // This is part of the Super Rotation System (SRS).
-type rotationSet []Coordinate
+type rotationSet []*Coordinate
 
 // RotationCompasses is a map of Tetrimino values to the coordinates used for rotation.
 // Each slice should contain a coordinate for north, east, south, and west in that order.
@@ -324,23 +324,28 @@ func (t *Tetrimino) rotateCounterClockwise(matrix Matrix) (bool, error) {
 
 	t.transpose()
 
-	var err error
-	t.CompassDirection, err = positiveMod(t.CompassDirection+1, len(t.RotationCompass))
-	if err != nil {
-		return false, fmt.Errorf("failed to get positive mod: %w", err)
-	}
-
+	foundValid := false
 	originalX, originalY := t.Pos.X, t.Pos.Y
 	for _, coord := range t.RotationCompass[t.CompassDirection] {
 		t.Pos.X = originalX - coord.X
 		t.Pos.Y = originalY - coord.Y
 
 		if t.isValid(matrix) {
-			return true, nil
+			foundValid = true
+			break
 		}
 	}
+	if !foundValid {
+		return false, nil
+	}
 
-	return false, nil
+	var err error
+	t.CompassDirection, err = positiveMod(t.CompassDirection-1, len(t.RotationCompass))
+	if err != nil {
+		return false, fmt.Errorf("failed to get positive mod: %w", err)
+	}
+
+	return true, nil
 }
 
 func (t *Tetrimino) transpose() {
