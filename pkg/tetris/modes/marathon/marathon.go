@@ -8,15 +8,15 @@ import (
 )
 
 type Game struct {
-	matrix    tetris.Matrix     // The Matrix of cells on which the game is played
-	nextQueue *tetris.NextQueue // The queue of upcoming Tetriminos
-	tetInPlay *tetris.Tetrimino // The current Tetrimino in play
-	holdQueue *tetris.Tetrimino // The Tetrimino that is being held
-	canHold   bool              // Whether the player can hold the current Tetrimino
-	gameOver  bool              // Whether the game is over
-	startRow  int               // The line at which the game started
-	scoring   *tetris.Scoring   // The scoring system
-	fall      *tetris.Fall      // The system for calculating the fall speed
+	matrix           tetris.Matrix     // The Matrix of cells on which the game is played
+	nextQueue        *tetris.NextQueue // The queue of upcoming Tetriminos
+	tetInPlay        *tetris.Tetrimino // The current Tetrimino in play
+	holdQueue        *tetris.Tetrimino // The Tetrimino that is being held
+	canHold          bool              // Whether the player can hold the current Tetrimino
+	gameOver         bool              // Whether the game is over
+	softDropStartRow int               // Records where the user began soft drop
+	scoring          *tetris.Scoring   // The scoring system
+	fall             *tetris.Fall      // The system for calculating the fall speed
 }
 
 func NewGame(level, maxLevel uint) (*Game, error) {
@@ -34,9 +34,9 @@ func NewGame(level, maxLevel uint) (*Game, error) {
 		canHold:   true,
 		gameOver:  false,
 		// TODO: is start line needed?
-		startRow: matrix.GetHeight(),
-		scoring:  tetris.NewScoring(level, maxLevel),
-		fall:     tetris.NewFall(level),
+		softDropStartRow: matrix.GetHeight(),
+		scoring:          tetris.NewScoring(level, maxLevel),
+		fall:             tetris.NewFall(level),
 	}
 
 	// TODO: Check if the game is over at the starting position (still needed?)
@@ -125,7 +125,7 @@ func (g *Game) TickLower() (bool, error) {
 	}
 
 	if g.fall.IsSoftDrop {
-		linesCleared := g.tetInPlay.Pos.Y - g.startRow
+		linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
 		if linesCleared > 0 {
 			g.scoring.AddSoftDrop(uint(linesCleared))
 		}
@@ -192,14 +192,14 @@ func (g *Game) addTetInPlay() (bool, error) {
 	g.canHold = true
 
 	if g.fall.IsSoftDrop {
-		g.startRow = g.tetInPlay.Pos.Y
+		g.softDropStartRow = g.tetInPlay.Pos.Y
 	}
 
 	return false, nil
 }
 
 func (g *Game) HardDrop() (bool, error) {
-	g.startRow = g.tetInPlay.Pos.Y
+	g.softDropStartRow = g.tetInPlay.Pos.Y
 	for {
 		lockedDown, err := g.lowerTetInPlay()
 		if err != nil {
@@ -209,11 +209,11 @@ func (g *Game) HardDrop() (bool, error) {
 			break
 		}
 	}
-	linesCleared := g.tetInPlay.Pos.Y - g.startRow
+	linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
 	if linesCleared > 0 {
-		g.scoring.AddHardDrop(uint(g.tetInPlay.Pos.Y - g.startRow))
+		g.scoring.AddHardDrop(uint(g.tetInPlay.Pos.Y - g.softDropStartRow))
 	}
-	g.startRow = len(g.matrix)
+	g.softDropStartRow = len(g.matrix)
 
 	g.tetInPlay = g.nextQueue.Next()
 	gameOver, err := g.addTetInPlay()
@@ -229,13 +229,13 @@ func (g *Game) HardDrop() (bool, error) {
 func (g *Game) ToggleSoftDrop() time.Duration {
 	g.fall.ToggleSoftDrop()
 	if g.fall.IsSoftDrop {
-		g.startRow = g.tetInPlay.Pos.Y
+		g.softDropStartRow = g.tetInPlay.Pos.Y
 		return g.fall.SoftDropInterval
 	}
-	linesCleared := g.tetInPlay.Pos.Y - g.startRow
+	linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
 	if linesCleared > 0 {
 		g.scoring.AddSoftDrop(uint(linesCleared))
 	}
-	g.startRow = g.matrix.GetSkyline()
+	g.softDropStartRow = g.matrix.GetSkyline()
 	return g.fall.DefaultInterval
 }
