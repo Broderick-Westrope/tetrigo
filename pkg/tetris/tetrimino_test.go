@@ -276,9 +276,9 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				Minos: [][]bool{
 					{true, true, true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 1},
+				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 0,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
@@ -288,9 +288,9 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 					{true},
 					{true},
 				},
-				Pos:             Coordinate{X: 2, Y: 0},
+				Pos:              Coordinate{X: 2, Y: 0},
 				CompassDirection: 1,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 		},
 		"I; starting rotation 1 (east); rotation point 1": {
@@ -308,18 +308,18 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 					{true},
 					{true},
 				},
-				Pos:             Coordinate{X: 2, Y: 0},
+				Pos:              Coordinate{X: 2, Y: 0},
 				CompassDirection: 1,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
 				Minos: [][]bool{
 					{true, true, true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 2},
+				Pos:              Coordinate{X: 0, Y: 2},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 		},
 		"I; starting rotation 2 (south); rotation point 1": {
@@ -334,9 +334,9 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 				Minos: [][]bool{
 					{true, true, true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 2},
+				Pos:              Coordinate{X: 0, Y: 2},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
@@ -346,214 +346,258 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 					{true},
 					{true},
 				},
-				Pos:             Coordinate{X: 1, Y: 0},
+				Pos:              Coordinate{X: 1, Y: 0},
 				CompassDirection: 3,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 		},
 		"I; starting rotation 3 (west); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
 			tet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:              Coordinate{X: 1, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['I'],
+			},
+			expectedTet: &Tetrimino{
 				Value: 'I',
 				Minos: [][]bool{
 					{true, true, true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 3,
-				RotationCompass: RotationCompasses['I'],
-			},
-			expectedTet: &Tetrimino{
-				Value: 'I',
-				Minos: [][]bool{
-					{true},
-					{true},
-					{true},
-					{true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 3,
-				RotationCompass: RotationCompasses['I'],
+				Pos:              Coordinate{X: 0, Y: 1},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['I'],
 			},
 		},
-		//"O, rotation 0": {
-		//	tet: &Tetrimino{
-		//		Value: 'O',
-		//		Minos: [][]bool{
-		//			{true, true},
-		//			{true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 0,
-		//		RotationCompass: RotationCompasses['O'],
-		//	},
-		//	expectedTet: &Tetrimino{
-		//		Value: 'O',
-		//		Minos: [][]bool{
-		//			{true, true},
-		//			{true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 1,
-		//		RotationCompass: RotationCompasses['O'],
-		//	},
-		//},
-		//"O, rotation 1": {
-		//	tet: &Tetrimino{
-		//		Value: 'O',
-		//		Minos: [][]bool{
-		//			{true, true},
-		//			{true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 1,
-		//		RotationCompass: RotationCompasses['O'],
-		//	},
-		//	expectedTet: &Tetrimino{
-		//		Value: 'O',
-		//		Minos: [][]bool{
-		//			{true, true},
-		//			{true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 2,
-		//		RotationCompass: RotationCompasses['O'],
-		//	},
-		//},
-		//"O, rotation 2": {
-		//	tet: &Tetrimino{
-		//		Value: 'O',
-		//		Minos: [][]bool{
-		//			{true, true},
-		//			{true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 2,
-		//		RotationCompass: RotationCompasses['O'],
-		//	},
-		//	expectedTet: &Tetrimino{
-		//		Value: 'O',
-		//		Minos: [][]bool{
-		//			{true, true},
-		//			{true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 3,
-		//		RotationCompass: RotationCompasses['O'],
-		//	},
-		//},
-		//"O, rotation 3": {
-		//	tet: &Tetrimino{
-		//		Value: 'O',
-		//		Minos: [][]bool{
-		//			{true, true},
-		//			{true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 3,
-		//		RotationCompass: RotationCompasses['O'],
-		//	},
-		//	expectedTet: &Tetrimino{
-		//		Value: 'O',
-		//		Minos: [][]bool{
-		//			{true, true},
-		//			{true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 0,
-		//		RotationCompass: RotationCompasses['O'],
-		//	},
-		//},
-		//"T, rotation 0": {
-		//	tet: &Tetrimino{
-		//		Value: 'T',
-		//		Minos: [][]bool{
-		//			{false, true, false},
-		//			{true, true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 0,
-		//		RotationCompass: RotationCompasses['6'],
-		//	},
-		//	expectedTet: &Tetrimino{
-		//		Value: 'T',
-		//		Minos: [][]bool{
-		//			{true, false},
-		//			{true, true},
-		//			{true, false},
-		//		},
-		//		Pos:             Coordinate{X: 1, Y: 0},
-		//		CompassDirection: 1,
-		//		RotationCompass: RotationCompasses['6'],
-		//	},
-		//},
-		//"T, rotation 1": {
-		//	tet: &Tetrimino{
-		//		Value: 'T',
-		//		Minos: [][]bool{
-		//			{true, false},
-		//			{true, true},
-		//			{true, false},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 1,
-		//		RotationCompass: RotationCompasses['6'],
-		//	},
-		//	expectedTet: &Tetrimino{
-		//		Value: 'T',
-		//		Minos: [][]bool{
-		//			{true, true, true},
-		//			{false, true, false},
-		//		},
-		//		Pos:             Coordinate{X: -1, Y: 1},
-		//		CompassDirection: 2,
-		//		RotationCompass: RotationCompasses['6'],
-		//	},
-		//},
-		//"T, rotation 2": {
-		//	tet: &Tetrimino{
-		//		Value: 'T',
-		//		Minos: [][]bool{
-		//			{true, true, true},
-		//			{false, true, false},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 2,
-		//		RotationCompass: RotationCompasses['6'],
-		//	},
-		//	expectedTet: &Tetrimino{
-		//		Value: 'T',
-		//		Minos: [][]bool{
-		//			{false, true},
-		//			{true, true},
-		//			{false, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: -1},
-		//		CompassDirection: 3,
-		//		RotationCompass: RotationCompasses['6'],
-		//	},
-		//},
-		//"T, rotation 3": {
-		//	tet: &Tetrimino{
-		//		Value: 'T',
-		//		Minos: [][]bool{
-		//			{false, true},
-		//			{true, true},
-		//			{false, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 3,
-		//		RotationCompass: RotationCompasses['6'],
-		//	},
-		//	expectedTet: &Tetrimino{
-		//		Value: 'T',
-		//		Minos: [][]bool{
-		//			{false, true, false},
-		//			{true, true, true},
-		//		},
-		//		Pos:             Coordinate{X: 0, Y: 0},
-		//		CompassDirection: 0,
-		//		RotationCompass: RotationCompasses['6'],
-		//	},
-		//},
+
+		"O; starting rotation 0 (north); rotation point 1": {
+			matrix: Matrix{
+				{0, 0},
+				{0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['O'],
+			},
+		},
+		"O; starting rotation 1 (east); rotation point 1": {
+			matrix: Matrix{
+				{0, 0},
+				{0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['O'],
+			},
+		},
+		"O; starting rotation 2 (south); rotation point 1": {
+			matrix: Matrix{
+				{0, 0},
+				{0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['O'],
+			},
+		},
+		"O; starting rotation 3 (west); rotation point 1": {
+			matrix: Matrix{
+				{0, 0},
+				{0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['O'],
+			},
+		},
+
+		"6; starting rotation 0 (north); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{false, true, false},
+					{true, true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{true, false},
+					{true, true},
+					{true, false},
+				},
+				Pos:              Coordinate{X: 1, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['6'],
+			},
+		},
+		"6; starting rotation 1 (east); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{true, false},
+					{true, true},
+					{true, false},
+				},
+				Pos:              Coordinate{X: 1, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos:              Coordinate{X: 0, Y: 1},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['6'],
+			},
+		},
+		"6; starting rotation 2 (south); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos:              Coordinate{X: 0, Y: 1},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{false, true},
+					{true, true},
+					{false, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['6'],
+			},
+		},
+		"6; starting rotation 3 (west); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{false, true},
+					{true, true},
+					{false, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['6'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{false, true, false},
+					{true, true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['6'],
+			},
+		},
 	}
 
 	for name, tc := range tt {
@@ -568,20 +612,27 @@ func TestTetrimino_RotateClockwise(t *testing.T) {
 	}
 }
 
-func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
+func TestTetrimino_RotateCounterClockwise(t *testing.T) {
 	tt := map[string]struct {
+		matrix      Matrix
 		tet         *Tetrimino
 		expectedTet *Tetrimino
 	}{
-		"I, rotation 0": {
+		"I; starting rotation 0 (north); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
 			tet: &Tetrimino{
 				Value: 'I',
 				Minos: [][]bool{
 					{true, true, true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 0,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
@@ -591,12 +642,18 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true},
 					{true},
 				},
-				Pos:             Coordinate{X: 1, Y: -1},
+				Pos:              Coordinate{X: 1, Y: 0},
 				CompassDirection: 3,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 		},
-		"I, rotation 1": {
+		"I; starting rotation 1 (east); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
 			tet: &Tetrimino{
 				Value: 'I',
 				Minos: [][]bool{
@@ -605,120 +662,93 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true},
 					{true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 2, Y: 0},
 				CompassDirection: 1,
-				RotationCompass: RotationCompasses['I'],
-			},
-			expectedTet: &Tetrimino{
-				Value: 'I',
-				Minos: [][]bool{
-					{true, true, true, true},
-				},
-				Pos:             Coordinate{X: -2, Y: 1},
-				CompassDirection: 0,
-				RotationCompass: RotationCompasses['I'],
-			},
-		},
-		"I, rotation 2": {
-			tet: &Tetrimino{
-				Value: 'I',
-				Minos: [][]bool{
-					{true, true, true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 2,
-				RotationCompass: RotationCompasses['I'],
-			},
-			expectedTet: &Tetrimino{
-				Value: 'I',
-				Minos: [][]bool{
-					{true},
-					{true},
-					{true},
-					{true},
-				},
-				Pos:             Coordinate{X: 2, Y: -2},
-				CompassDirection: 1,
-				RotationCompass: RotationCompasses['I'],
-			},
-		},
-		"I, rotation 3": {
-			tet: &Tetrimino{
-				Value: 'I',
-				Minos: [][]bool{
-					{true},
-					{true},
-					{true},
-					{true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 3,
-				RotationCompass: RotationCompasses['I'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'I',
 				Minos: [][]bool{
 					{true, true, true, true},
 				},
-				Pos:             Coordinate{X: -1, Y: 2},
-				CompassDirection: 2,
-				RotationCompass: RotationCompasses['I'],
-			},
-		},
-		"O, rotation 0": {
-			tet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 0,
-				RotationCompass: RotationCompasses['O'],
-			},
-			expectedTet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 3,
-				RotationCompass: RotationCompasses['O'],
+				RotationCompass:  RotationCompasses['I'],
 			},
 		},
-		"O, rotation 1": {
+		"I; starting rotation 2 (south); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 2},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:              Coordinate{X: 2, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['I'],
+			},
+		},
+		"I; starting rotation 3 (west); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+				{0, 0, 0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:              Coordinate{X: 1, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['I'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 2},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['I'],
+			},
+		},
+
+		"O; starting rotation 0 (north); rotation point 1": {
+			matrix: Matrix{
+				{0, 0},
+				{0, 0},
+			},
 			tet: &Tetrimino{
 				Value: 'O',
 				Minos: [][]bool{
 					{true, true},
 					{true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 1,
-				RotationCompass: RotationCompasses['O'],
-			},
-			expectedTet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 0},
 				CompassDirection: 0,
-				RotationCompass: RotationCompasses['O'],
-			},
-		},
-		"O, rotation 2": {
-			tet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 2,
-				RotationCompass: RotationCompasses['O'],
+				RotationCompass:  RotationCompasses['O'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
@@ -726,21 +756,25 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true, true},
 					{true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 1,
-				RotationCompass: RotationCompasses['O'],
-			},
-		},
-		"O, rotation 3": {
-			tet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 0},
 				CompassDirection: 3,
-				RotationCompass: RotationCompasses['O'],
+				RotationCompass:  RotationCompasses['O'],
+			},
+		},
+		"O; starting rotation 1 (east); rotation point 1": {
+			matrix: Matrix{
+				{0, 0},
+				{0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['O'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'O',
@@ -748,21 +782,79 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true, true},
 					{true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CompassDirection: 2,
-				RotationCompass: RotationCompasses['O'],
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['O'],
 			},
 		},
-		"T, rotation 0": {
+		"O; starting rotation 2 (south); rotation point 1": {
+			matrix: Matrix{
+				{0, 0},
+				{0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['O'],
+			},
+		},
+		"O; starting rotation 3 (west); rotation point 1": {
+			matrix: Matrix{
+				{0, 0},
+				{0, 0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			expectedTet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['O'],
+			},
+		},
+
+		"6; starting rotation 0 (north); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
+			},
 			tet: &Tetrimino{
 				Value: 'T',
 				Minos: [][]bool{
 					{false, true, false},
 					{true, true, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 0},
 				CompassDirection: 0,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
@@ -771,12 +863,17 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true, true},
 					{false, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 0},
 				CompassDirection: 3,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 		},
-		"T, rotation 1": {
+		"6; starting rotation 1 (east); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
+			},
 			tet: &Tetrimino{
 				Value: 'T',
 				Minos: [][]bool{
@@ -784,9 +881,9 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true, true},
 					{true, false},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 1, Y: 0},
 				CompassDirection: 1,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
@@ -794,21 +891,26 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{false, true, false},
 					{true, true, true},
 				},
-				Pos:             Coordinate{X: -1, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 0},
 				CompassDirection: 0,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 		},
-		"T, rotation 2": {
+		"6; starting rotation 2 (south); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
+			},
 			tet: &Tetrimino{
 				Value: 'T',
 				Minos: [][]bool{
 					{true, true, true},
 					{false, true, false},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
@@ -817,12 +919,17 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true, true},
 					{true, false},
 				},
-				Pos:             Coordinate{X: 1, Y: -1},
+				Pos:              Coordinate{X: 1, Y: 0},
 				CompassDirection: 1,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 		},
-		"T, rotation 3": {
+		"6; starting rotation 3 (west); rotation point 1": {
+			matrix: Matrix{
+				{0, 0, 0},
+				{0, 0, 0},
+				{0, 0, 0},
+			},
 			tet: &Tetrimino{
 				Value: 'T',
 				Minos: [][]bool{
@@ -830,9 +937,9 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true, true},
 					{false, true},
 				},
-				Pos:             Coordinate{X: 0, Y: 0},
+				Pos:              Coordinate{X: 0, Y: 0},
 				CompassDirection: 3,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			expectedTet: &Tetrimino{
 				Value: 'T',
@@ -840,22 +947,21 @@ func TestTetrimino_RotateCounterClockwise_success(t *testing.T) {
 					{true, true, true},
 					{false, true, false},
 				},
-				Pos:             Coordinate{X: 0, Y: 1},
+				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 		},
 	}
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			newTet := tc.tet.DeepCopy()
 
-			result, err := newTet.rotateCounterClockwise(DefaultMatrix())
+			result, err := tc.tet.rotateCounterClockwise(tc.matrix)
 
 			assert.NoError(t, err)
 			assert.True(t, result)
-			assert.EqualValues(t, tc.expectedTet, newTet)
+			assert.EqualValues(t, tc.expectedTet, tc.tet)
 		})
 	}
 }
@@ -932,7 +1038,7 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 					Y: startingPositions['6'].Y + 20,
 				},
 				CompassDirection: 0,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			true,
 		},
@@ -953,7 +1059,7 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 					Y: 0,
 				},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			true,
 		},
@@ -972,7 +1078,7 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 					Y: 0,
 				},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			false,
 		},
@@ -989,7 +1095,7 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 					Y: 0,
 				},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			false,
 		},
@@ -1006,7 +1112,7 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 					Y: 0,
 				},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			false,
 		},
@@ -1023,7 +1129,7 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 					Y: -1,
 				},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			false,
 		},
@@ -1040,7 +1146,7 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 					Y: len(DefaultMatrix()) - 1,
 				},
 				CompassDirection: 2,
-				RotationCompass: RotationCompasses['6'],
+				RotationCompass:  RotationCompasses['6'],
 			},
 			false,
 		},
@@ -1189,20 +1295,20 @@ func TestIsMinoEmpty(t *testing.T) {
 
 func TestTetrimino_DeepCopy(t *testing.T) {
 	tet := Tetrimino{
-		Value:           byte(0),
-		Minos:           [][]bool{{false}},
-		Pos:             Coordinate{0, 0},
+		Value:            byte(0),
+		Minos:            [][]bool{{false}},
+		Pos:              Coordinate{0, 0},
 		CompassDirection: 0,
-		RotationCompass: rotationCompass{{Coordinate{0, 0}}},
+		RotationCompass:  rotationCompass{{&Coordinate{0, 0}}},
 	}
 
 	// Create a copy manually
 	manualCopy := Tetrimino{
-		Value:           byte(0),
-		Minos:           [][]bool{{false}},
-		Pos:             Coordinate{0, 0},
+		Value:            byte(0),
+		Minos:            [][]bool{{false}},
+		Pos:              Coordinate{0, 0},
 		CompassDirection: 0,
-		RotationCompass: rotationCompass{{Coordinate{0, 0}}},
+		RotationCompass:  rotationCompass{{&Coordinate{0, 0}}},
 	}
 
 	// Create a (dereferences) copy with the helper function
@@ -1218,7 +1324,7 @@ func TestTetrimino_DeepCopy(t *testing.T) {
 	tet.Minos = [][]bool{{true}}
 	tet.Pos = Coordinate{1, 1}
 	tet.CompassDirection = 1
-	tet.RotationCompass = rotationCompass{{Coordinate{1, 1}}}
+	tet.RotationCompass = rotationCompass{{&Coordinate{1, 1}}}
 
 	// Assert that the original changed but both copies stayed the same
 	assert.NotEqualValues(t, tet, manualCopy)
