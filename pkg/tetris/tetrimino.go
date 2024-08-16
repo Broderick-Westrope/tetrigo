@@ -409,8 +409,18 @@ func (t *Tetrimino) DeepCopy() *Tetrimino {
 
 	var compass rotationCompass
 	for i := range t.RotationCompass {
+		if t.RotationCompass[i] == nil {
+			compass[i] = nil
+			continue
+		}
+
 		compass[i] = make(rotationSet, len(t.RotationCompass[i]))
-		copy(compass[i], t.RotationCompass[i])
+		for j := range t.RotationCompass[i] {
+			compass[i][j] = &Coordinate{
+				X: t.RotationCompass[i][j].X,
+				Y: t.RotationCompass[i][j].Y,
+			}
+		}
 	}
 
 	return &Tetrimino{

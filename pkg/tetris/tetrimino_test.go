@@ -1299,7 +1299,9 @@ func TestTetrimino_DeepCopy(t *testing.T) {
 		Minos:            [][]bool{{false}},
 		Pos:              Coordinate{0, 0},
 		CompassDirection: 0,
-		RotationCompass:  rotationCompass{{&Coordinate{0, 0}}},
+		RotationCompass: rotationCompass{
+			{&Coordinate{0, 0}},
+		},
 	}
 
 	// Create a copy manually
@@ -1324,7 +1326,7 @@ func TestTetrimino_DeepCopy(t *testing.T) {
 	tet.Minos = [][]bool{{true}}
 	tet.Pos = Coordinate{1, 1}
 	tet.CompassDirection = 1
-	tet.RotationCompass = rotationCompass{{&Coordinate{1, 1}}}
+	tet.RotationCompass[0][0].X = 1
 
 	// Assert that the original changed but both copies stayed the same
 	assert.NotEqualValues(t, tet, manualCopy)
