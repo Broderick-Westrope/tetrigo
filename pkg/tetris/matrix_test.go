@@ -145,10 +145,10 @@ func TestMatrix_modifyCell(t *testing.T) {
 			pos:     Coordinate{1, 0},
 			wantErr: errors.New("col 1 is out of bounds"),
 		},
-		"failure - mino not want value": {
+		"failure - mino not expected value": {
 			matrix:  Matrix{{'X'}},
 			pos:     Coordinate{0, 0},
-			wantErr: errors.New("mino at row 0, col 0 is 'X' (byte value 88) not the want value"),
+			wantErr: errors.New("mino at row 0, col 0 is 'X' (byte value 88) not the expected value"),
 		},
 	}
 

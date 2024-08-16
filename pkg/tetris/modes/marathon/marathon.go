@@ -30,7 +30,7 @@ func NewGame(level, maxLevel uint) (*Game, error) {
 		matrix:           matrix,
 		nextQueue:        nq,
 		tetInPlay:        nq.Next(),
-		holdQueue:        tetris.EmptyTetrimino,
+		holdQueue:        tetris.GetEmptyTetrimino(),
 		gameOver:         false,
 		softDropStartRow: matrix.GetHeight(),
 		scoring:          tetris.NewScoring(level, maxLevel),
@@ -87,19 +87,12 @@ func (g *Game) Hold() (bool, error) {
 	}
 
 	// Reset the hold tetrimino
-	var found bool
-	for _, t := range tetris.Tetriminos {
-		if t.Value != g.holdQueue.Value {
-			continue
-		}
-		g.holdQueue = t.DeepCopy()
-		g.holdQueue.Pos.Y += g.matrix.GetSkyline()
-		found = true
-		break
+	t, err := tetris.GetTetrimino(g.holdQueue.Value)
+	if err != nil {
+		return false, err
 	}
-	if !found {
-		return false, fmt.Errorf("failed to find tetrimino with value '%v'", g.tetInPlay.Value)
-	}
+	g.holdQueue = t.DeepCopy()
+	g.holdQueue.Pos.Y += g.matrix.GetSkyline()
 
 	g.canHold = false
 	return false, nil

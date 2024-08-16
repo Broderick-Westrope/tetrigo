@@ -54,9 +54,8 @@ var startingPositions = map[byte]Coordinate{
 	'6': {X: 3, Y: -2},
 }
 
-// Tetriminos contains all seven valid Tetrimino values that can be made using four Minos.
-var Tetriminos = []Tetrimino{
-	{
+var validTetriminos = map[byte]Tetrimino{
+	'I': {
 		Value: 'I',
 		Minos: [][]bool{
 			{true, true, true, true},
@@ -64,7 +63,7 @@ var Tetriminos = []Tetrimino{
 		Pos:            startingPositions['I'],
 		RotationCoords: RotationCoords['I'],
 	},
-	{
+	'O': {
 		Value: 'O',
 		Minos: [][]bool{
 			{true, true},
@@ -73,7 +72,7 @@ var Tetriminos = []Tetrimino{
 		Pos:            startingPositions['O'],
 		RotationCoords: RotationCoords['O'],
 	},
-	{
+	'T': {
 		Value: 'T',
 		Minos: [][]bool{
 			{false, true, false},
@@ -82,7 +81,7 @@ var Tetriminos = []Tetrimino{
 		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
-	{
+	'S': {
 		Value: 'S',
 		Minos: [][]bool{
 			{false, true, true},
@@ -91,7 +90,7 @@ var Tetriminos = []Tetrimino{
 		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
-	{
+	'Z': {
 		Value: 'Z',
 		Minos: [][]bool{
 			{true, true, false},
@@ -100,7 +99,7 @@ var Tetriminos = []Tetrimino{
 		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
-	{
+	'J': {
 		Value: 'J',
 		Minos: [][]bool{
 			{true, false, false},
@@ -109,7 +108,7 @@ var Tetriminos = []Tetrimino{
 		Pos:            startingPositions['6'],
 		RotationCoords: RotationCoords['6'],
 	},
-	{
+	'L': {
 		Value: 'L',
 		Minos: [][]bool{
 			{false, false, true},
@@ -120,10 +119,31 @@ var Tetriminos = []Tetrimino{
 	},
 }
 
-// EmptyTetrimino is a tetrimino with no cells or value. To be used for the starting (empty) hold.
-var EmptyTetrimino = &Tetrimino{
-	Minos: [][]bool{},
-	Value: 0,
+// GetValidTetriminos returns a slice containing all seven valid Tetriminos (I, O, T, S, Z, J, L)
+func GetValidTetriminos() []Tetrimino {
+	result := make([]Tetrimino, 0, len(validTetriminos))
+	for _, t := range validTetriminos {
+		result = append(result, *t.DeepCopy())
+	}
+	return result
+}
+
+// GetTetrimino returns the Tetrmino with the given value.
+// Valid values include: I, O, T, S, Z, J, L.
+func GetTetrimino(value byte) (*Tetrimino, error) {
+	result, ok := validTetriminos[value]
+	if !ok {
+		return nil, errors.New("invalid value")
+	}
+	return result.DeepCopy(), nil
+}
+
+// GetEmptyTetrimino returns a tetrimino with no minos or value. To be used for the starting (empty) hold.
+func GetEmptyTetrimino() *Tetrimino {
+	return &Tetrimino{
+		Minos: [][]bool{},
+		Value: 0,
+	}
 }
 
 // MoveDown moves the tetrimino down one row.
