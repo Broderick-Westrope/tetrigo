@@ -1348,64 +1348,6 @@ func TestTetrimino_CanBePlaced(t *testing.T) {
 	}
 }
 
-func Test_IsOutOfBoundsHorizontally(t *testing.T) {
-	tt := map[string]struct {
-		tetPosX int
-		cellCol int
-		expects bool
-	}{
-		"out left": {
-			0, -1, true,
-		},
-		"in left": {
-			-1, 1, false,
-		},
-		"in right": {
-			10, -1, false,
-		},
-		"out right": {
-			10, 0, true,
-		},
-	}
-
-	for name, tc := range tt {
-		t.Run(name, func(t *testing.T) {
-			result := isOutOfBoundsHorizontally(tc.tetPosX, tc.cellCol, DefaultMatrix())
-
-			assert.EqualValues(t, result, tc.expects)
-		})
-	}
-}
-
-func Test_IsOutOfBoundsVertically(t *testing.T) {
-	tt := map[string]struct {
-		tetPosY int
-		cellRow int
-		expects bool
-	}{
-		"out up": {
-			0, -1, true,
-		},
-		"in up": {
-			-1, 1, false,
-		},
-		"in down": {
-			40, -1, false,
-		},
-		"out down": {
-			40, 0, true,
-		},
-	}
-
-	for name, tc := range tt {
-		t.Run(name, func(t *testing.T) {
-			result := isOutOfBoundsVertically(tc.tetPosY, tc.cellRow, DefaultMatrix())
-
-			assert.Equal(t, tc.expects, result)
-		})
-	}
-}
-
 func TestPositiveMod(t *testing.T) {
 	errResultIsNan := errors.New("result is NaN")
 

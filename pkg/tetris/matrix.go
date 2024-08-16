@@ -52,7 +52,7 @@ func (m *Matrix) DeepCopy() *Matrix {
 
 func (m *Matrix) isLineComplete(row int) bool {
 	for _, cell := range (*m)[row] {
-		if m.isCellEmpty(cell) {
+		if isCellEmpty(cell) {
 			return false
 		}
 	}
@@ -79,7 +79,7 @@ func (m *Matrix) RemoveTetrimino(tet *Tetrimino) error {
 // AddTetrimino adds the given Tetrimino to the Matrix.
 // It returns an error if the Tetrimino is out of bounds or if the Tetrimino overlaps with an occupied mino.
 func (m *Matrix) AddTetrimino(tet *Tetrimino) error {
-	return m.modifyCell(tet.Minos, tet.Pos, tet.Value, m.isCellEmpty)
+	return m.modifyCell(tet.Minos, tet.Pos, tet.Value, isCellEmpty)
 }
 
 func (m *Matrix) modifyCell(minos [][]bool, pos Coordinate, newValue byte, isExpectedValue func(byte) bool) error {
@@ -142,7 +142,7 @@ func (m *Matrix) isOutOfBoundsVertically(row int) bool {
 	return row < 0 || row >= len(*m)
 }
 
-func (m *Matrix) isCellEmpty(cell byte) bool {
+func isCellEmpty(cell byte) bool {
 	return cell == 0 || cell == 'G'
 }
 
@@ -153,7 +153,7 @@ func (m *Matrix) canPlaceInCell(row, col int) bool {
 	if m.isOutOfBoundsVertically(row) {
 		return false
 	}
-	if !m.isCellEmpty((*m)[row][col]) {
+	if !isCellEmpty((*m)[row][col]) {
 		return false
 	}
 	return true

@@ -373,7 +373,7 @@ func (t *Tetrimino) IsOverlapping(matrix Matrix) bool {
 			if !t.Minos[row][col] {
 				continue
 			}
-			if !matrix.isCellEmpty(matrix[row+t.Pos.Y][col+t.Pos.X]) {
+			if !isCellEmpty(matrix[row+t.Pos.Y][col+t.Pos.X]) {
 				return true
 			}
 		}

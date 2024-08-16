@@ -257,3 +257,61 @@ func TestMatrix_RemoveCompletedLines(t *testing.T) {
 		})
 	}
 }
+
+func TestMatrix_IsOutOfBoundsHorizontally(t *testing.T) {
+	tt := map[string]struct {
+		col     int
+		expects bool
+	}{
+		"out left": {
+			-1, true,
+		},
+		"in left": {
+			0, false,
+		},
+		"in right": {
+			9, false,
+		},
+		"out right": {
+			10, true,
+		},
+	}
+
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			m := DefaultMatrix()
+			result := m.isOutOfBoundsHorizontally(tc.col)
+
+			assert.EqualValues(t, result, tc.expects)
+		})
+	}
+}
+
+func TestMatrix_IsOutOfBoundsVertically(t *testing.T) {
+	tt := map[string]struct {
+		row     int
+		expects bool
+	}{
+		"out up": {
+			-1, true,
+		},
+		"in up": {
+			0, false,
+		},
+		"in down": {
+			39, false,
+		},
+		"out down": {
+			40, true,
+		},
+	}
+
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			m := DefaultMatrix()
+			result := m.isOutOfBoundsVertically(tc.row)
+
+			assert.Equal(t, tc.expects, result)
+		})
+	}
+}
