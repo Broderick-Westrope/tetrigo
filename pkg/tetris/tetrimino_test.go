@@ -2,7 +2,6 @@ package tetris
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,562 +10,250 @@ import (
 // TODO: tests to add:
 // - TestTetrimino_MoveDown failure cases
 
-func TestTetrimino_MoveDown_success(t *testing.T) {
-	for _, tet := range Tetriminos {
-		maxRow := 40 - len(tet.Minos)
-		maxCol := 10 - len(tet.Minos[0])
-		for row := 0; row < maxRow; row++ {
-			for col := 0; col < maxCol; col++ {
-				name := fmt.Sprintf("value %s, row %d, col %d", string(tet.Value), row, col)
-				t.Run(name, func(t *testing.T) {
-					matrix := DefaultMatrix()
-					startingCoord := Coordinate{X: col, Y: row}
-					tet.Pos = startingCoord
-					err := matrix.AddTetrimino(&tet)
-					if !assert.NoError(t, err) {
-						return
-					}
-
-					err = tet.MoveDown(&matrix)
-
-					assert.NoError(t, err)
-					assert.Equal(t, tet.Pos.Y, startingCoord.Y+1)
-				})
-			}
-		}
-	}
-}
-
-func TestTetrimino_MoveLeft(t *testing.T) {
+func TestTetrimino_MoveDown(t *testing.T) {
 	tt := map[string]struct {
-		matrix      Matrix
-		startingTet Tetrimino
-		wantMatrix  Matrix
-		wantErr     bool
+		tet    *Tetrimino
+		matrix Matrix
+		want   bool
 	}{
-		"success - can, empty matrix": {
+		"true": {
+			tet: &Tetrimino{
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: 0, Y: 0},
+			},
 			matrix: Matrix{
-				{0, 'T', 'T', 'T'},
-				{0, 0, 'T', 0},
+				{0},
+				{0},
 			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 1, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{'T', 'T', 'T', 0},
-				{0, 'T', 0, 0},
-			},
-			wantErr: false,
+			want: true,
 		},
-		"success - can, perfect fit": {
+		"false - blocking cell": {
+			tet: &Tetrimino{
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: 0, Y: 0},
+			},
 			matrix: Matrix{
-				{'#', 0, 'T', 'T', 'T'},
-				{'#', '#', 0, 'T', 0},
+				{0},
+				{'#'},
 			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 2, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{'#', 'T', 'T', 'T', 0},
-				{'#', '#', 'T', 0, 0},
-			},
-			wantErr: false,
+			want: false,
 		},
-		"success - can, ghost cells": {
+		"false - out of bounds": {
+			tet: &Tetrimino{
+				Minos: [][]bool{{true}},
+				Pos:   Coordinate{X: 0, Y: 0},
+			},
 			matrix: Matrix{
-				{'#', 'G', 'T', 'T', 'T'},
-				{'#', '#', 'G', 'T', 0},
+				{0},
 			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 2, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{'#', 'T', 'T', 'T', 0},
-				{'#', '#', 'T', 0, 0},
-			},
-			wantErr: false,
+			want: false,
 		},
-		"success - cannot, blocking tetrimino": {
-			matrix: Matrix{
-				{'#', 'T', 'T', 'T'},
-				{'#', 0, 'T', 0},
-			},
-			startingTet: Tetrimino{
-				Value: 'T',
+		"false - blocking mino; uneven edge": {
+			tet: &Tetrimino{
 				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 1, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{'#', 'T', 'T', 'T'},
-				{'#', 0, 'T', 0},
-			},
-			wantErr: false,
-		},
-		"success - cannot, end of matrix": {
-			matrix: Matrix{
-				{'T', 'T', 'T'},
-				{0, 'T', 0},
-			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
+					{true, true},
+					{false, true},
 				},
 				Pos: Coordinate{X: 0, Y: 0},
 			},
-			wantMatrix: Matrix{
-				{'T', 'T', 'T'},
-				{0, 'T', 0},
-			},
-			wantErr: false,
-		},
-		"failure - wrong value": {
 			matrix: Matrix{
-				{0, 'X', 'X', 'X'},
-				{0, 0, 'X', 0},
+				{0, 0},
+				{'#', 0},
+				{0, 0},
 			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 1, Y: 0},
-			},
-			wantMatrix: Matrix{},
-			wantErr:    true,
+			want: false,
 		},
 	}
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			err := tc.startingTet.MoveLeft(tc.matrix)
+			originalMatrix := *tc.matrix.DeepCopy()
+			originalY := tc.tet.Pos.Y
 
-			if tc.wantErr {
-				assert.NotNil(t, err)
-				return
+			moved := tc.tet.MoveDown(tc.matrix)
+
+			assert.Equal(t, tc.want, moved)
+			assert.EqualValues(t, originalMatrix, tc.matrix)
+
+			if tc.want {
+				assert.Equal(t, originalY+1, tc.tet.Pos.Y)
+			} else {
+				assert.Equal(t, originalY, tc.tet.Pos.Y)
 			}
-			assert.NoError(t, err)
-			assert.ElementsMatch(t, tc.matrix, tc.wantMatrix)
+		})
+	}
+}
+
+func TestTetrimino_MoveLeft(t *testing.T) {
+	tt := map[string]struct {
+		matrix Matrix
+		tet    Tetrimino
+		want   bool
+	}{
+		"true - empty matrix": {
+			matrix: Matrix{
+				{0, 0},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 1, Y: 0},
+			},
+			want: true,
+		},
+		"true - perfect fit": {
+			matrix: Matrix{
+				{'#', 0, 0},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 2, Y: 0},
+			},
+			want: true,
+		},
+		"true - ghost cell": {
+			matrix: Matrix{
+				{'G', 0},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 1, Y: 0},
+			},
+			want: true,
+		},
+		"false - blocking cell": {
+			matrix: Matrix{
+				{'#', 0},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 1, Y: 0},
+			},
+			want: false,
+		},
+		"false - out of bounds": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 0, Y: 0},
+			},
+			want: false,
+		},
+	}
+
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			originalMatrix := *tc.matrix.DeepCopy()
+			originalX := tc.tet.Pos.X
+
+			moved := tc.tet.MoveLeft(tc.matrix)
+
+			assert.Equal(t, tc.want, moved)
+			assert.EqualValues(t, originalMatrix, tc.matrix)
+
+			if tc.want {
+				assert.Equal(t, originalX-1, tc.tet.Pos.X)
+			} else {
+				assert.Equal(t, originalX, tc.tet.Pos.X)
+			}
 		})
 	}
 }
 
 func TestTetrimino_MoveRight(t *testing.T) {
 	tt := map[string]struct {
-		matrix      Matrix
-		startingTet Tetrimino
-		wantMatrix  Matrix
-		wantErr     bool
+		matrix Matrix
+		tet    Tetrimino
+		want   bool
 	}{
-		"success - can, empty matrix": {
-			matrix: Matrix{
-				{'T', 'T', 'T', 0},
-				{0, 'T', 0, 0},
-			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 0, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{0, 'T', 'T', 'T'},
-				{0, 0, 'T', 0},
-			},
-			wantErr: false,
-		},
-		"success - can, perfect fit": {
-			matrix: Matrix{
-				{'T', 'T', 'T', 0, '#'},
-				{0, 'T', 0, '#'},
-			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 0, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{0, 'T', 'T', 'T', '#'},
-				{0, 0, 'T', '#'},
-			},
-			wantErr: false,
-		},
-		"success - can, ghost cells": {
-			matrix: Matrix{
-				{'T', 'T', 'T', 'G', '#'},
-				{0, 'T', 'G', '#'},
-			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 0, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{0, 'T', 'T', 'T', '#'},
-				{0, 0, 'T', '#'},
-			},
-			wantErr: false,
-		},
-		"success - cannot, blocking tetrimino": {
-			matrix: Matrix{
-				{'T', 'T', 'T', '#'},
-				{0, 'T', '#'},
-			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 0, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{'T', 'T', 'T', '#'},
-				{0, 'T', '#'},
-			},
-			wantErr: false,
-		},
-		"success - cannot, end of matrix": {
-			matrix: Matrix{
-				{0, 0, 0, 0, 0, 0, 0, 'T', 'T', 'T'},
-				{0, 0, 0, 0, 0, 0, 0, 0, 'T', 0},
-			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 7, Y: 0},
-			},
-			wantMatrix: Matrix{
-				{0, 0, 0, 0, 0, 0, 0, 'T', 'T', 'T'},
-				{0, 0, 0, 0, 0, 0, 0, 0, 'T', 0},
-			},
-			wantErr: false,
-		},
-		"failure - wrong value": {
-			matrix: Matrix{
-				{'X', 'X', 'X', 0},
-				{0, 'X', 0, 0},
-			},
-			startingTet: Tetrimino{
-				Value: 'T',
-				Minos: [][]bool{
-					{true, true, true},
-					{false, true, false},
-				},
-				Pos: Coordinate{X: 0, Y: 0},
-			},
-			wantMatrix: Matrix{},
-			wantErr:    true,
-		},
-	}
-
-	for name, tc := range tt {
-		t.Run(name, func(t *testing.T) {
-			err := tc.startingTet.MoveRight(tc.matrix)
-
-			if tc.wantErr {
-				assert.NotNil(t, err)
-				return
-			}
-			assert.NoError(t, err)
-			assert.ElementsMatch(t, tc.matrix, tc.wantMatrix)
-		})
-	}
-}
-
-func TestTetrimino_CanMoveDown(t *testing.T) {
-	tt := map[string]struct {
-		tet      *Tetrimino
-		matrix   Matrix
-		expected bool
-	}{
-		"I, can, top of matrix": {
-			tet: &Tetrimino{
-				Value:           'I',
-				Minos:           [][]bool{{true}, {true}, {true}, {true}},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CurrentRotation: 1,
-				RotationCoords:  RotationCoords['I'],
-			},
-			matrix:   DefaultMatrix(),
-			expected: true,
-		},
-		"Z, can, starting position": {
-			tet: &Tetrimino{
-				Value: 'Z',
-				Minos: [][]bool{
-					{true, true, false},
-					{false, true, true},
-				},
-				Pos:             Coordinate{X: 3, Y: 18},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['6'],
-			},
-			matrix:   DefaultMatrix(),
-			expected: true,
-		},
-		"S, cannot, blocking tetrimino": {
-			tet: &Tetrimino{
-				Value: 'S',
-				Minos: [][]bool{
-					{false, true, true},
-					{true, true, false},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['6'],
-			},
-			matrix: Matrix{
-				{0, 0, 0},
-				{0, 0, 0},
-				{'X', 0, 0},
-			},
-			expected: false,
-		},
-		"O, cannot, bottom of matrix": {
-			tet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 38},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['O'],
-			},
-			matrix:   DefaultMatrix(),
-			expected: false,
-		},
-		"GitHub Issue #1": {
-			tet: &Tetrimino{
-				Value: 'J',
-				Minos: [][]bool{
-					{true, true},
-					{false, true},
-					{false, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CurrentRotation: 3,
-				RotationCoords:  RotationCoords['J'],
-			},
+		"true - empty matrix": {
 			matrix: Matrix{
 				{0, 0},
-				{'X', 0},
-				{0, 0},
 			},
-			expected: false,
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 0, Y: 0},
+			},
+			want: true,
+		},
+		"true - perfect fit": {
+			matrix: Matrix{
+				{0, 0, '#'},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 0, Y: 0},
+			},
+			want: true,
+		},
+		"true - ghost cell": {
+			matrix: Matrix{
+				{0, 'G'},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 0, Y: 0},
+			},
+			want: true,
+		},
+		"false - blocking cell": {
+			matrix: Matrix{
+				{0, '#'},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 0, Y: 0},
+			},
+			want: false,
+		},
+		"false - out of bounds": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: Tetrimino{
+				Minos: [][]bool{
+					{true},
+				},
+				Pos: Coordinate{X: 0, Y: 0},
+			},
+			want: false,
 		},
 	}
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			err := tc.matrix.AddTetrimino(tc.tet)
-			if !assert.NoError(t, err) {
-				return
+			originalMatrix := *tc.matrix.DeepCopy()
+			originalX := tc.tet.Pos.X
+
+			moved := tc.tet.MoveRight(tc.matrix)
+
+			assert.Equal(t, tc.want, moved)
+			assert.EqualValues(t, originalMatrix, tc.matrix)
+
+			if tc.want {
+				assert.Equal(t, originalX+1, tc.tet.Pos.X)
+			} else {
+				assert.Equal(t, originalX, tc.tet.Pos.X)
 			}
-
-			result := tc.tet.canMoveDown(tc.matrix)
-
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
-
-func TestTetrimino_CanMoveLeft(t *testing.T) {
-	tt := map[string]struct {
-		tet      *Tetrimino
-		matrix   Matrix
-		expected bool
-	}{
-		"Z, can, starting position": {
-			tet: &Tetrimino{
-				Value: 'Z',
-				Minos: [][]bool{
-					{true, true, false},
-					{false, true, true},
-				},
-				Pos:             Coordinate{X: 3, Y: 18},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['6'],
-			},
-			matrix:   DefaultMatrix(),
-			expected: true,
-		},
-		"O, cannot, blocking tetrimino": {
-			tet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 1, Y: 0},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['O'],
-			},
-			matrix: Matrix{
-				{'X', 0, 0},
-				{0, 0, 0},
-			},
-			expected: false,
-		},
-		"O, cannot, end of matrix": {
-			tet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 38},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['O'],
-			},
-			matrix:   DefaultMatrix(),
-			expected: false,
-		},
-		"GitHub Issue #1": {
-			tet: &Tetrimino{
-				Value: 'L',
-				Minos: [][]bool{
-					{false, false, true},
-					{true, true, true},
-				},
-				Pos:             Coordinate{X: 1, Y: 0},
-				CurrentRotation: 3,
-				RotationCoords:  RotationCoords['J'],
-			},
-			matrix: Matrix{
-				{'X', 'X', 'X', 0},
-				{0, 0, 0, 0},
-			},
-			expected: false,
-		},
-	}
-
-	for name, tc := range tt {
-		t.Run(name, func(t *testing.T) {
-			err := tc.matrix.AddTetrimino(tc.tet)
-			if !assert.NoError(t, err) {
-				return
-			}
-
-			result := tc.tet.canMoveLeft(tc.matrix)
-
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
-
-func TestTetrimino_CanMoveRight(t *testing.T) {
-	tt := map[string]struct {
-		tet      *Tetrimino
-		matrix   Matrix
-		expected bool
-	}{
-		"Z, can, starting position": {
-			tet: &Tetrimino{
-				Value: 'Z',
-				Minos: [][]bool{
-					{true, true, false},
-					{false, true, true},
-				},
-				Pos:             Coordinate{X: 3, Y: 18},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['6'],
-			},
-			matrix:   DefaultMatrix(),
-			expected: true,
-		},
-		"O, cannot, blocking tetrimino": {
-			tet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['O'],
-			},
-			matrix: Matrix{
-				{0, 0, 'X'},
-				{0, 0, 0},
-			},
-			expected: false,
-		},
-		"O, cannot, end of matrix": {
-			tet: &Tetrimino{
-				Value: 'O',
-				Minos: [][]bool{
-					{true, true},
-					{true, true},
-				},
-				Pos:             Coordinate{X: 8, Y: 38},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['O'],
-			},
-			matrix:   DefaultMatrix(),
-			expected: false,
-		},
-		"GitHub Issue #1": {
-			tet: &Tetrimino{
-				Value: 'J',
-				Minos: [][]bool{
-					{true, false, false},
-					{true, true, true},
-				},
-				Pos:             Coordinate{X: 0, Y: 0},
-				CurrentRotation: 0,
-				RotationCoords:  RotationCoords['J'],
-			},
-			matrix: Matrix{
-				{0, 'X', 'X', 'X'},
-				{0, 0, 0, 0},
-			},
-			expected: false,
-		},
-	}
-
-	for name, tc := range tt {
-		t.Run(name, func(t *testing.T) {
-			err := tc.matrix.AddTetrimino(tc.tet)
-			if !assert.NoError(t, err) {
-				return
-			}
-
-			result := tc.tet.canMoveRight(tc.matrix)
-
-			assert.Equal(t, tc.expected, result)
 		})
 	}
 }

@@ -346,16 +346,16 @@ func TestScoring_ProcessAction(t *testing.T) {
 			s.ProcessAction(tc.a)
 
 			if s.total != tc.expectedTotal {
-				t.Errorf("Total: expected %d, got %d", tc.expectedTotal, s.total)
+				t.Errorf("Total: want %d, got %d", tc.expectedTotal, s.total)
 			}
 
 			if s.backToBack != tc.expectedBackToBack {
-				t.Errorf("BackToBack: expected %t, got %t", tc.expectedBackToBack, s.backToBack)
+				t.Errorf("BackToBack: want %t, got %t", tc.expectedBackToBack, s.backToBack)
 			}
 
 			expectedLines := tc.expectedTotal / 100
 			if s.lines != expectedLines {
-				t.Errorf("Lines: expected %d, got %d", expectedLines, s.lines)
+				t.Errorf("Lines: want %d, got %d", expectedLines, s.lines)
 			}
 
 			var expectedLevel uint
@@ -366,7 +366,7 @@ func TestScoring_ProcessAction(t *testing.T) {
 			}
 
 			if s.level != expectedLevel {
-				t.Errorf("Level: expected %d, got %d", expectedLevel, s.level)
+				t.Errorf("Level: want %d, got %d", expectedLevel, s.level)
 			}
 		})
 	}

@@ -81,7 +81,7 @@ func TestMatrix_IsLineComplete(t *testing.T) {
 		name := fmt.Sprintf("row %d", row)
 		t.Run(name, func(t *testing.T) {
 			if actual := matrix.isLineComplete(row); actual != tc.expected {
-				t.Errorf("expected %v, got %v", tc.expected, actual)
+				t.Errorf("want %v, got %v", tc.expected, actual)
 			}
 		})
 	}
@@ -145,10 +145,10 @@ func TestMatrix_modifyCell(t *testing.T) {
 			pos:     Coordinate{1, 0},
 			wantErr: errors.New("col 1 is out of bounds"),
 		},
-		"failure - mino not expected value": {
+		"failure - mino not want value": {
 			matrix:  Matrix{{'X'}},
 			pos:     Coordinate{0, 0},
-			wantErr: errors.New("mino at row 0, col 0 is 'X' (byte value 88) not the expected value"),
+			wantErr: errors.New("mino at row 0, col 0 is 'X' (byte value 88) not the want value"),
 		},
 	}
 
