@@ -49,6 +49,27 @@ Or you can install into another directory:
 env GOBIN=/bin go install github.com/Broderick-Westrope/tetrigo/cmd/tetrigo@latest
 ```
 
+## Usage
+
+### Controls
+
+The default game controls are as follows:
+
+- **Move Left**: `A`
+- **Move Right**: `D`
+- **Toggle Soft Drop On/Off**: `S`
+- **Hard Drop**: `W`
+- **Rotate Clockwise**: `E`
+- **Rotate Counter-Clockwise**: `Q`
+- **Hold Tetrimino / Submit menu option**: `Space` or `Enter`
+- **Pause Game / Exit**: `Escape`
+- **Force Quit game**: `Ctrl+C`
+- **Show Controls Help**: `?`
+
+The game controls can be changed in the configuration file.
+
+The menu, leaderboard, etc can be navigated using the arrow keys (moving), escape (exit), and enter (submit). These controls are not configurable.
+
 ## Configuration
 
 ### CLI
