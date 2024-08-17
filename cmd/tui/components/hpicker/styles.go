@@ -17,12 +17,12 @@ type Styles struct {
 func DefaultStyles() Styles {
 	return Styles{
 		NextIndicator:     " >",
-		NextStyle:         lipgloss.NewStyle().Foreground(lipgloss.Color("#FF00FF")),
-		NextDisabledStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000")),
+		NextStyle:         lipgloss.NewStyle(),
+		NextDisabledStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("241")),
 
 		PrevIndicator:     "< ",
-		PrevStyle:         lipgloss.NewStyle().Foreground(lipgloss.Color("#FF00FF")),
-		PrevDisabledStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000")),
+		PrevStyle:         lipgloss.NewStyle(),
+		PrevDisabledStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("241")),
 
 		SelectionStyle: lipgloss.NewStyle(),
 	}

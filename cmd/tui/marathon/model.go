@@ -37,6 +37,7 @@ var gameOverMsg = ` _____   ___  ___  ___ _____   _____  _   _ ___________
 var _ tea.Model = &Model{}
 
 type Model struct {
+	playerName     string
 	styles         *Styles
 	help           help.Model
 	keys           *keyMap
@@ -55,6 +56,7 @@ func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
 	}
 
 	m := &Model{
+		playerName:     in.PlayerName,
 		styles:         defaultStyles(),
 		help:           help.New(),
 		keys:           constructKeyMap(keys),
@@ -141,7 +143,7 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Exit, m.keys.Hold):
 			newEntry := &data.Score{
 				GameMode: "marathon",
-				Name:     "Player",
+				Name:     m.playerName,
 				Time:     m.timerStopwatch.Elapsed(),
 				Score:    int(m.game.GetTotalScore()),
 				Lines:    int(m.game.GetLinesCleared()),

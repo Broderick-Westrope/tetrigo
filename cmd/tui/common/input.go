@@ -3,14 +3,16 @@ package common
 import "github.com/Broderick-Westrope/tetrigo/internal/data"
 
 type MarathonInput struct {
-	Level    uint
-	MaxLevel uint
+	Level      uint
+	MaxLevel   uint
+	PlayerName string
 }
 
-func NewMarathonInput(level, maxLevel uint) *MarathonInput {
+func NewMarathonInput(level, maxLevel uint, playerName string) *MarathonInput {
 	return &MarathonInput{
-		Level:    level,
-		MaxLevel: maxLevel,
+		Level:      level,
+		MaxLevel:   maxLevel,
+		PlayerName: playerName,
 	}
 }
 

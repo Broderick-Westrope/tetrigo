@@ -20,16 +20,17 @@ func constructKeyMap(keys *common.Keys) *keyMap {
 	return &keyMap{
 		Exit:  common.ConstructKeyBinding(exitKeys, "exit"),
 		Help:  common.ConstructKeyBinding(keys.Help, "help"),
-		Left:  common.ConstructKeyBinding(keys.Left, "move left"),
-		Right: common.ConstructKeyBinding(keys.Right, "move right"),
-		Up:    common.ConstructKeyBinding(keys.Down, "toggle soft drop"),
-		Down:  common.ConstructKeyBinding(keys.Up, "hard drop"),
-		Start: common.ConstructKeyBinding(keys.Submit, "hold"),
+		Left:  common.ConstructKeyBinding([]string{"left"}, "move left"),
+		Right: common.ConstructKeyBinding([]string{"right"}, "move right"),
+		Up:    common.ConstructKeyBinding([]string{"up"}, "move up"),
+		Down:  common.ConstructKeyBinding([]string{"down"}, "move down"),
+		Start: common.ConstructKeyBinding(keys.Submit, "start"),
 	}
 }
 
 func (k *keyMap) ShortHelp() []key.Binding {
 	return []key.Binding{
+		k.Start,
 		k.Exit,
 		k.Help,
 	}

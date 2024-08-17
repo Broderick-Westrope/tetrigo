@@ -9,7 +9,7 @@ type styles struct {
 
 func defaultStyles() *styles {
 	s := styles{
-		settingSelected: lipgloss.NewStyle().Padding(1, 2),
+		settingSelected: lipgloss.NewStyle().Padding(0, 2),
 	}
 	s.settingUnselected = s.settingSelected.Copy().Foreground(lipgloss.Color("241"))
 	return &s

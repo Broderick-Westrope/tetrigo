@@ -25,6 +25,10 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *common.Keys) (Model
 	var err error
 	newEntryId := 0
 	if in.NewEntry != nil {
+		if in.NewEntry.Name == "" {
+			in.NewEntry.Name = "Anonymous"
+		}
+
 		newEntryId, err = repo.Save(in.NewEntry)
 		if err != nil {
 			return Model{}, err

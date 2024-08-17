@@ -3,6 +3,7 @@ package hpicker
 import (
 	"strconv"
 
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -17,16 +18,16 @@ type Model struct {
 	// options is a list of the possible options for this component.
 	options []string
 	// keymap encodes the keybindings recognized by the component.
-	keymap KeyMap
+	keymap *KeyMap
 	styles Styles
 }
 
 type Option func(*Model)
 
-func NewModel(options []string, opts ...Option) *Model {
+func NewModel(options []string, keys *common.Keys, opts ...Option) *Model {
 	m := &Model{
 		options: options,
-		keymap:  DefaultKeyMap(),
+		keymap:  ConstructKeyMap(keys),
 		styles:  DefaultStyles(),
 	}
 
@@ -68,14 +69,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the cursor to a string.
 func (m *Model) View() string {
 	var prev lipgloss.Style
-	if m.isFirstPage() {
+	if m.isFirst() {
 		prev = m.styles.PrevDisabledStyle
 	} else {
 		prev = m.styles.PrevStyle
 	}
 
 	var next lipgloss.Style
-	if m.isLastPage() {
+	if m.isLast() {
 		next = m.styles.NextDisabledStyle
 	} else {
 		next = m.styles.NextStyle
@@ -90,22 +91,26 @@ func (m *Model) View() string {
 
 // Prev is a helper function for navigating one option backward. It will not go page beyond the first option (i.e. option 0).
 func (m *Model) Prev() {
-	if !m.isFirstPage() {
+	if !m.isFirst() {
 		m.selected--
 	}
 }
 
 // Next is a helper function for navigating one option forward. It will not go beyond the last option (i.e. len(options) - 1).
 func (m *Model) Next() {
-	if !m.isLastPage() {
+	if !m.isLast() {
 		m.selected++
 	}
 }
 
-func (m *Model) isFirstPage() bool {
+func (m *Model) isFirst() bool {
 	return m.selected == 0
 }
 
-func (m *Model) isLastPage() bool {
+func (m *Model) isLast() bool {
 	return m.selected == len(m.options)-1
+}
+
+func (m *Model) GetSelection() string {
+	return m.options[m.selected]
 }

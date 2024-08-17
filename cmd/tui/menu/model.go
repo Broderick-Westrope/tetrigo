@@ -2,11 +2,11 @@ package menu
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/components/hpicker"
-
-	//"github.com/Broderick-Westrope/tetrigo/internal/starter"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tui/components/textinput"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,53 +21,43 @@ const titleStr = `
   /_/ /_____/ /_/ /_/ |_/___/\____/\____/  
 `
 
-type option interface{}
-
-type setting struct {
-	name    string
-	options []option
-	index   int
-}
-
 var _ tea.Model = Model{}
 
 type Model struct {
-	picker       *hpicker.Model
-	settings     []setting
-	settingIndex int
-	game         tea.Model
+	items    []item
+	selected int
+	game     tea.Model
 
 	keys   *keyMap
 	styles *styles
 	help   help.Model
 }
 
+type item struct {
+	label     string
+	model     tea.Model
+	hideLabel bool
+}
+
 func NewModel(_ *common.MenuInput, keys *common.Keys) *Model {
-	m := Model{
-		picker: hpicker.NewModel(nil, hpicker.WithRange(1, 15)),
-		settings: []setting{
-			{
-				name:    "Level",
-				options: []option{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-				index:   0,
-			},
-			{
-				name:    "Players",
-				options: []option{uint(1)},
-				index:   0,
-			},
-			{
-				name:    "Mode",
-				options: []option{"Marathon"},
-				index:   0,
-			},
+	nameInput := textinput.NewModel("Enter your name", 20, 20)
+	modePicker := hpicker.NewModel([]string{"Marathon"}, keys)
+	playersPicker := hpicker.NewModel(nil, keys, hpicker.WithRange(1, 1))
+	levelPicker := hpicker.NewModel(nil, keys, hpicker.WithRange(1, 15))
+
+	return &Model{
+		items: []item{
+			{label: "Name", model: nameInput, hideLabel: true},
+			{label: "Mode", model: modePicker},
+			{label: "Players", model: playersPicker},
+			{label: "Level", model: levelPicker},
 		},
-		settingIndex: 0,
-		keys:         constructKeyMap(keys),
-		styles:       defaultStyles(),
-		help:         help.New(),
+		selected: 0,
+
+		keys:   constructKeyMap(keys),
+		styles: defaultStyles(),
+		help:   help.New(),
 	}
-	return &m
 }
 
 func (m Model) Init() tea.Cmd {
@@ -80,30 +70,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
 			return m, tea.Quit
-		case key.Matches(msg, m.keys.Left):
-			//m.settingIndex--
-			//if m.settingIndex < 0 {
-			//	m.settingIndex = len(m.settings) - 1
-			//}
-			m.picker.Prev()
-			return m, nil
-		case key.Matches(msg, m.keys.Right):
-			//m.settingIndex++
-			//if m.settingIndex >= len(m.settings) {
-			//	m.settingIndex = 0
-			//}
-			m.picker.Next()
-			return m, nil
 		case key.Matches(msg, m.keys.Up):
-			m.settings[m.settingIndex].index--
-			if m.settings[m.settingIndex].index < 0 {
-				m.settings[m.settingIndex].index = len(m.settings[m.settingIndex].options) - 1
+			if m.selected > 0 {
+				m.selected--
 			}
+			return m, nil
 		case key.Matches(msg, m.keys.Down):
-			m.settings[m.settingIndex].index++
-			if m.settings[m.settingIndex].index >= len(m.settings[m.settingIndex].options) {
-				m.settings[m.settingIndex].index = 0
+			if m.selected < len(m.items)-1 {
+				m.selected++
 			}
+			return m, nil
 		case key.Matches(msg, m.keys.Start):
 			cmd, err := m.startGame()
 			if err != nil {
@@ -112,68 +88,89 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
+			return m, nil
 		}
 	}
 
-	return m, nil
+	var cmd tea.Cmd
+	m.items[m.selected].model, cmd = m.items[m.selected].model.Update(msg)
+
+	return m, cmd
 }
 
 func (m Model) View() string {
-	//settings := make([]string, len(m.settings))
-	//for i := range m.settings {
-	//	settings[i] = m.renderSetting(i, i == m.settingIndex)
-	//}
-	//settingsStr := lipgloss.JoinHorizontal(lipgloss.Top, settings...)
-	settingsStr := m.picker.View()
+	items := make([]string, len(m.items))
+	for i := range m.items {
+		items[i] = m.renderItem(i) + "\n"
+	}
+	settingsStr := lipgloss.JoinVertical(lipgloss.Center, items...)
 
-	output := lipgloss.JoinVertical(lipgloss.Center, titleStr, settingsStr)
-	output += "\n" + m.help.View(m.keys)
+	output := lipgloss.JoinVertical(lipgloss.Center,
+		titleStr,
+		"\n",
+		settingsStr,
+		"\n\n",
+		m.help.View(m.keys),
+	)
 
 	return output
 }
 
-func (m Model) renderSetting(index int, isSelected bool) string {
-	output := fmt.Sprintf("%v:\n", m.settings[index].name)
-	for i, option := range m.settings[index].options {
-		if i == m.settings[index].index {
-			output += " > "
-		} else {
-			output += "   "
-		}
-		output += fmt.Sprintf("%v", option)
-		if i < len(m.settings[index].options)-1 {
-			output += "\n"
-		}
+func (m Model) renderItem(index int) string {
+	i := m.items[index]
+	output := i.model.View()
+	if !i.hideLabel {
+		label := lipgloss.NewStyle().Width(12).AlignHorizontal(lipgloss.Left).Render(i.label + ":")
+		output = lipgloss.NewStyle().Width(12).AlignHorizontal(lipgloss.Right).Render(output)
+		output = lipgloss.JoinHorizontal(lipgloss.Left, label, output)
 	}
-	if isSelected {
+
+	if index == m.selected {
 		return m.styles.settingSelected.Render(output)
 	}
+
 	return m.styles.settingUnselected.Render(output)
 }
 
 func (m Model) startGame() (tea.Cmd, error) {
 	var level uint
+	var players uint
 	var mode string
-	// var players uint
-	for _, s := range m.settings {
-		switch s.name {
+	var playerName string
+
+	for _, i := range m.items {
+		switch i.label {
 		case "Level":
-			intLevel := s.options[s.index].(int)
+			value := i.model.(*hpicker.Model).GetSelection()
+			intLevel, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert level string %q to int", value)
+			}
 			level = uint(intLevel)
-		// case "Players":
-		// 	players = setting.options[setting.index].(uint)
+		case "Players":
+			value := i.model.(*hpicker.Model).GetSelection()
+			intPlayers, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert players string %q to int", value)
+			}
+			players = uint(intPlayers)
 		case "Mode":
-			mode = s.options[s.index].(string)
+			mode = i.model.(*hpicker.Model).GetSelection()
+		case "Name":
+			playerName = i.model.(textinput.Model).Child.Value()
+		default:
+			return nil, fmt.Errorf("invalid item label: %q", i.label)
 		}
 	}
 
+	// TODO: use players
+	_ = players
+
 	switch mode {
 	case "Marathon":
-		in := &common.MarathonInput{
-			Level: level,
-		}
+		in := common.NewMarathonInput(level, 15, playerName)
 		return common.SwitchModeCmd(common.MODE_MARATHON, in), nil
 	default:
-		return nil, fmt.Errorf("invalid mode: %v", mode)
+		return nil, fmt.Errorf("invalid mode: %q", mode)
 	}
 }

@@ -17,7 +17,8 @@ var cli struct {
 	} `cmd:"" help:"Play the game" default:"1"`
 
 	Marathon struct {
-		Level uint `help:"Level to start at" short:"l" default:"1"`
+		Level uint   `help:"Level to start at" short:"l" default:"1"`
+		Name  string `help:"Name of the player" default:"Anonymous"`
 	} `cmd:"" help:"Play marathon mode"`
 
 	Leaderboard struct {
@@ -70,7 +71,7 @@ func getSwitchModeInput(starterMode common.Mode) (common.SwitchModeInput, error)
 	case common.MODE_MENU:
 		return common.NewMenuInput(), nil
 	case common.MODE_MARATHON:
-		return common.NewMarathonInput(cli.Marathon.Level, 15), nil
+		return common.NewMarathonInput(cli.Marathon.Level, 15, cli.Marathon.Name), nil
 	case common.MODE_LEADERBOARD:
 		return common.NewLeaderboardInput(cli.Leaderboard.GameMode), nil
 	default:
