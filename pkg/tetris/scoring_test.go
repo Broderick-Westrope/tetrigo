@@ -23,13 +23,14 @@ func TestNewScoring(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			s := NewScoring(tc.level, tc.maxLevel)
+			s := NewScoring(tc.level, tc.maxLevel, true)
 
 			assert.Equal(t, tc.level, s.level)
 			assert.Equal(t, tc.maxLevel, s.maxLevel)
 			assert.Equal(t, uint(0), s.total)
 			assert.Equal(t, uint(0), s.lines)
 			assert.False(t, s.backToBack)
+			assert.True(t, s.endOnMaxLevel)
 		})
 	}
 }
