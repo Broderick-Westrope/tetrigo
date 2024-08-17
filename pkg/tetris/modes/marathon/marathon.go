@@ -20,7 +20,7 @@ type Game struct {
 	fall             *tetris.Fall      // The system for calculating the fall speed
 }
 
-func NewGame(level, maxLevel uint, ghostEnabled bool) (*Game, error) {
+func NewGame(level, maxLevel uint, gameEnds bool, ghostEnabled bool) (*Game, error) {
 	matrix, err := tetris.NewMatrix(40, 10)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func NewGame(level, maxLevel uint, ghostEnabled bool) (*Game, error) {
 		holdQueue:        tetris.GetEmptyTetrimino(),
 		gameOver:         false,
 		softDropStartRow: matrix.GetHeight(),
-		scoring:          tetris.NewScoring(level, maxLevel),
+		scoring:          tetris.NewScoring(level, maxLevel, gameEnds),
 		fall:             tetris.NewFall(level),
 	}
 
@@ -135,6 +135,9 @@ func (g *Game) TickLower() (bool, error) {
 	if !lockedDown {
 		return false, nil
 	}
+	if g.gameOver {
+		return true, nil
+	}
 
 	if g.fall.IsSoftDrop {
 		linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
@@ -158,6 +161,7 @@ func (g *Game) TickLower() (bool, error) {
 
 // lowerTetInPlay moves the current Tetrimino down one row if possible.
 // If it cannot be moved down this will instead remove completed lines, calculate scores & fall speed and return true (representing a Lock Down).
+// If the max score is reached and the game is configured to end on max level, the Game.gameOver value will be set to true.
 func (g *Game) lowerTetInPlay() (bool, error) {
 	if g.tetInPlay.MoveDown(g.matrix) {
 		return false, nil
@@ -172,7 +176,12 @@ func (g *Game) lowerTetInPlay() (bool, error) {
 	if !action.IsValid() {
 		return false, fmt.Errorf("invalid action received %q", action.String())
 	}
-	g.scoring.ProcessAction(action)
+
+	gameOver := g.scoring.ProcessAction(action)
+	if gameOver {
+		g.gameOver = true
+	}
+
 	g.fall.CalculateFallSpeeds(g.scoring.Level())
 
 	return true, nil
@@ -216,6 +225,7 @@ func (g *Game) setupNewTetInPlay() (bool, error) {
 
 func (g *Game) HardDrop() (bool, error) {
 	startRow := g.tetInPlay.Pos.Y
+
 	for {
 		lockedDown, err := g.lowerTetInPlay()
 		if err != nil {
@@ -225,6 +235,10 @@ func (g *Game) HardDrop() (bool, error) {
 			break
 		}
 	}
+	if g.gameOver {
+		return true, nil
+	}
+
 	linesCleared := g.tetInPlay.Pos.Y - startRow
 	g.scoring.AddHardDrop(uint(linesCleared))
 

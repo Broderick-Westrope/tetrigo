@@ -1,17 +1,19 @@
 package tetris
 
 type Scoring struct {
-	level      uint
-	maxLevel   uint
-	total      uint
-	lines      uint
-	backToBack bool
+	level         uint
+	maxLevel      uint
+	endOnMaxLevel bool
+	total         uint
+	lines         uint
+	backToBack    bool
 }
 
-func NewScoring(level, maxLevel uint) *Scoring {
+func NewScoring(level, maxLevel uint, endOnMaxLevel bool) *Scoring {
 	return &Scoring{
-		level:    level,
-		maxLevel: maxLevel,
+		level:         level,
+		maxLevel:      maxLevel,
+		endOnMaxLevel: endOnMaxLevel,
 	}
 }
 
@@ -35,9 +37,9 @@ func (s *Scoring) AddHardDrop(lines uint) {
 	s.total += lines * 2
 }
 
-func (s *Scoring) ProcessAction(a Action) {
+func (s *Scoring) ProcessAction(a Action) bool {
 	if a == Actions.NONE {
-		return
+		return s.isGameOver()
 	}
 
 	points := float64(a.GetPoints())
@@ -59,7 +61,13 @@ func (s *Scoring) ProcessAction(a Action) {
 		s.level++
 		if s.maxLevel > 0 && s.level >= s.maxLevel {
 			s.level = s.maxLevel
-			return
+			return s.isGameOver()
 		}
 	}
+
+	return s.isGameOver()
+}
+
+func (s *Scoring) isGameOver() bool {
+	return s.level >= s.maxLevel && s.endOnMaxLevel
 }
