@@ -16,7 +16,7 @@ import (
 
 type CLI struct {
 	Config string `help:"Path to config file" default:"config.toml" type:"path"`
-	DSN    string `help:"Database source name" default:"data.db"`
+	DB     string `help:"Path to database file" default:"tetrigo.db"`
 
 	Menu        MenuCmd        `cmd:"" help:"Start in the menu" default:"1"`
 	Marathon    MarathonCmd    `cmd:"" help:"Play in marathon mode"`
@@ -53,7 +53,7 @@ func main() {
 		fmt.Printf("Invalid command: %s\n", ctx.Command())
 	}
 
-	db, err := data.NewDB(cli.DSN)
+	db, err := data.NewDB(cli.DB)
 	if err != nil {
 		log.Printf("error opening database: %v", err)
 		os.Exit(1)
