@@ -8,11 +8,12 @@ import (
 
 // A Tetrimino is a geometric Tetris shape formed by four Minos connected along their sides.
 type Tetrimino struct {
-	Value           byte         // The value of the Tetrimino. This is the character that will be used to represent the Tetrimino in the matrix.
-	Minos           [][]bool     // A 2D slice of cells that make up the Tetrimino. True means the mino is occupied by a Mino.
-	Pos             Coordinate   // The top left mino of the Tetrimino. Used as a reference point for movement and rotation.
-	CurrentRotation int          // The index of the current rotation in the RotationCoords slice.
-	RotationCoords  []Coordinate // The coordinates used during rotation to control the axis.
+	Value byte       // The value of the Tetrimino. This is the character that will be used to represent the Tetrimino in the matrix.
+	Minos [][]bool   // A 2D slice of cells that make up the Tetrimino. True means the mino is occupied by a Mino.
+	Pos   Coordinate // The top left mino of the Tetrimino. Used as a reference point for movement and rotation.
+
+	CompassDirection int // The index of the current rotation in the RotationCompass (ie. North, South, East, West).
+	RotationCompass  rotationCompass
 }
 
 // Coordinate represents a point on a 2D plane.
@@ -20,28 +21,62 @@ type Coordinate struct {
 	X, Y int
 }
 
-// RotationCoords is a map of Tetrimino values to the coordinates used for rotation.
+// A rotatationCompass contains a rotationSet corresponding to each of the four compass directions in the order N, E, S, W.
+// These compass directions represent the four rotations of a Tetrimino.
+type rotationCompass [4]rotationSet
+
+// A rotationSet contains coordinates to be used for a single rotation/compass direction.
+// If the first coordinate cannot be used the next will be attempted.
+// This continues until there are no more coordinates to fall back on (in which case rotation is not possible).
+// This is part of the Super Rotation System (SRS).
+type rotationSet []*Coordinate
+
+// RotationCompasses is a map of Tetrimino values to the coordinates used for rotation.
 // Each slice should contain a coordinate for north, east, south, and west in that order.
 // These are added to (clockwise) or subtracted from (counter-clockwise) the Tetrimino's position when rotating to ensure it rotates around the correct axis.
-var RotationCoords = map[byte][]Coordinate{
+var RotationCompasses = map[byte]rotationCompass{
 	'I': {
-		{X: -1, Y: 1},
-		{X: 2, Y: -1},
-		{X: -2, Y: 2},
-		{X: 1, Y: -2},
+		{ // North
+			{X: -1, Y: 1}, {X: 0, Y: 1}, {X: -3, Y: 1}, {X: 0, Y: 3}, {X: -3, Y: 0},
+		},
+		{ // East
+			{X: 2, Y: -1}, {X: 0, Y: -1}, {X: 3, Y: -1}, {X: 0, Y: 0}, {X: 3, Y: -3},
+		},
+		{ // South
+			{X: -2, Y: 2}, {X: -3, Y: 2}, {X: 0, Y: 2}, {X: -3, Y: 0}, {X: 0, Y: 3},
+		},
+		{ // West
+			{X: 1, Y: -2}, {X: 3, Y: -2}, {X: 0, Y: -2}, {X: 3, Y: -3}, {X: 0, Y: 0},
+		},
 	},
 	'O': {
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
-		{X: 0, Y: 0},
+		{ // North
+			{X: 0, Y: 0},
+		},
+		{ // East
+			{X: 0, Y: 0},
+		},
+		{ // South
+			{X: 0, Y: 0},
+		},
+		{ // West
+			{X: 0, Y: 0},
+		},
 	},
-	// All tetriminos with 6 cells (T, S, Z, J, L) have the same rotation coordinates:
+	// All tetriminos with a 2x3 grid (6 total) of minos (T, S, Z, J, L) have the same rotation compass:
 	'6': {
-		{X: 0, Y: 0},
-		{X: 1, Y: 0},
-		{X: -1, Y: 1},
-		{X: 0, Y: -1},
+		{ // North
+			{X: 0, Y: 0}, {X: -1, Y: 0}, {X: -1, Y: 1}, {X: 0, Y: -2}, {X: -1, Y: -2},
+		},
+		{ // East
+			{X: 1, Y: 0}, {X: 0, Y: 0}, {X: 0, Y: -1}, {X: 1, Y: 2}, {X: 0, Y: 2},
+		},
+		{ // South
+			{X: -1, Y: 1}, {X: 0, Y: 1}, {X: 0, Y: 2}, {X: -1, Y: -1}, {X: 0, Y: -1},
+		},
+		{ // West
+			{X: 0, Y: -1}, {X: 1, Y: -1}, {X: 1, Y: -2}, {X: 0, Y: 1}, {X: 1, Y: 1},
+		},
 	},
 }
 
@@ -54,179 +89,155 @@ var startingPositions = map[byte]Coordinate{
 	'6': {X: 3, Y: -2},
 }
 
-// Tetriminos contains all seven valid Tetrimino values that can be made using four Minos.
-var Tetriminos = []Tetrimino{
-	{
+var validTetriminos = map[byte]Tetrimino{
+	'I': {
 		Value: 'I',
 		Minos: [][]bool{
 			{true, true, true, true},
 		},
-		Pos:            startingPositions['I'],
-		RotationCoords: RotationCoords['I'],
+		Pos:             startingPositions['I'],
+		RotationCompass: RotationCompasses['I'],
 	},
-	{
+	'O': {
 		Value: 'O',
 		Minos: [][]bool{
 			{true, true},
 			{true, true},
 		},
-		Pos:            startingPositions['O'],
-		RotationCoords: RotationCoords['O'],
+		Pos:             startingPositions['O'],
+		RotationCompass: RotationCompasses['O'],
 	},
-	{
+	'T': {
 		Value: 'T',
 		Minos: [][]bool{
 			{false, true, false},
 			{true, true, true},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
-	{
+	'S': {
 		Value: 'S',
 		Minos: [][]bool{
 			{false, true, true},
 			{true, true, false},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
-	{
+	'Z': {
 		Value: 'Z',
 		Minos: [][]bool{
 			{true, true, false},
 			{false, true, true},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
-	{
+	'J': {
 		Value: 'J',
 		Minos: [][]bool{
 			{true, false, false},
 			{true, true, true},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
-	{
+	'L': {
 		Value: 'L',
 		Minos: [][]bool{
 			{false, false, true},
 			{true, true, true},
 		},
-		Pos:            startingPositions['6'],
-		RotationCoords: RotationCoords['6'],
+		Pos:             startingPositions['6'],
+		RotationCompass: RotationCompasses['6'],
 	},
 }
 
-// EmptyTetrimino is a tetrimino with no cells or value. To be used for the starting (empty) hold.
-var EmptyTetrimino = &Tetrimino{
-	Minos: [][]bool{},
-	Value: 0,
+// GetValidTetriminos returns a slice containing all seven valid Tetriminos (I, O, T, S, Z, J, L)
+func GetValidTetriminos() []Tetrimino {
+	result := make([]Tetrimino, 0, len(validTetriminos))
+	for _, t := range validTetriminos {
+		result = append(result, *t.DeepCopy())
+	}
+	return result
+}
+
+// GetTetrimino returns the Tetrmino with the given value.
+// Valid values include: I, O, T, S, Z, J, L.
+func GetTetrimino(value byte) (*Tetrimino, error) {
+	result, ok := validTetriminos[value]
+	if !ok {
+		return nil, errors.New("invalid value")
+	}
+	return result.DeepCopy(), nil
+}
+
+// GetEmptyTetrimino returns a tetrimino with no minos or value. To be used for the starting (empty) hold.
+func GetEmptyTetrimino() *Tetrimino {
+	return &Tetrimino{
+		Minos: [][]bool{},
+		Value: 0,
+	}
 }
 
 // MoveDown moves the tetrimino down one row.
-// If the tetrimino cannot move down, it will be added to the matrix and a new tetrimino will be returned.
-func (t *Tetrimino) MoveDown(matrix *Matrix) error {
-	err := matrix.RemoveTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to remove cells: %w", err)
+// This does not modify the matrix.
+// If the tetrimino cannot move down, it will not be modified and false will be returned.
+func (t *Tetrimino) MoveDown(matrix Matrix) bool {
+	for col := range t.Minos[0] {
+		for row := len(t.Minos) - 1; row >= 0; row-- {
+			if !t.Minos[row][col] {
+				continue
+			}
+			if !matrix.canPlaceInCell(row+t.Pos.Y+1, col+t.Pos.X) {
+				return false
+			}
+			break
+		}
 	}
+
 	t.Pos.Y++
-	err = matrix.AddTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to add cells: %w", err)
-	}
-	return nil
+	return true
 }
 
 // MoveLeft moves the tetrimino left one column.
-// If the tetrimino cannot move left, nothing will happen.
-func (t *Tetrimino) MoveLeft(matrix Matrix) error {
-	if !t.canMoveLeft(matrix) {
-		return nil
+// This does not modify the matrix.
+// If the tetrimino cannot move left false will be returned.
+func (t *Tetrimino) MoveLeft(matrix Matrix) bool {
+	for row := range t.Minos {
+		for col := range t.Minos[row] {
+			if !t.Minos[row][col] {
+				continue
+			}
+			if !matrix.canPlaceInCell(row+t.Pos.Y, col+t.Pos.X-1) {
+				return false
+			}
+			break
+		}
 	}
-	err := matrix.RemoveTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to remove cells: %w", err)
-	}
+
 	t.Pos.X--
-	err = matrix.AddTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to add cells: %w", err)
-	}
-	return nil
+	return true
 }
 
 // MoveRight moves the tetrimino right one column.
-// If the tetrimino cannot move right, nothing will happen.
-func (t *Tetrimino) MoveRight(matrix Matrix) error {
-	if !t.canMoveRight(matrix) {
-		return nil
-	}
-	err := matrix.RemoveTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to remove cells: %w", err)
-	}
-	t.Pos.X++
-	err = matrix.AddTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to add cells: %w", err)
-	}
-	return nil
-}
-
-// Returns true if the tetrimino can move down one row.
-// This gets the lowest mino in each column of the tetrimino, and checks if it is at the bottom of the matrix or if the mino below is occupied.
-func (t *Tetrimino) CanMoveDown(matrix Matrix) bool {
-	for col := range t.Minos[0] {
-		for row := len(t.Minos) - 1; row >= 0; row-- {
-			if t.Minos[row][col] {
-				if row+t.Pos.Y+1 >= len(matrix) {
-					return false
-				}
-				if !isMinoEmpty(matrix[row+t.Pos.Y+1][col+t.Pos.X]) {
-					return false
-				}
-				break
-			}
-		}
-	}
-	return true
-}
-
-func (t *Tetrimino) canMoveLeft(matrix Matrix) bool {
-	for row := range t.Minos {
-		for col := range t.Minos[row] {
-			if t.Minos[row][col] {
-				if col+t.Pos.X-1 < 0 {
-					return false
-				}
-				if !isMinoEmpty(matrix[row+t.Pos.Y][col+t.Pos.X-1]) {
-					return false
-				}
-				break
-			}
-		}
-	}
-	return true
-}
-
-func (t *Tetrimino) canMoveRight(matrix Matrix) bool {
+// This does not modify the matrix.
+// If the tetrimino cannot move right false will be returned.
+func (t *Tetrimino) MoveRight(matrix Matrix) bool {
 	for row := range t.Minos {
 		for col := len(t.Minos[row]) - 1; col >= 0; col-- {
-			if t.Minos[row][col] {
-				if col+t.Pos.X+1 >= len(matrix[0]) {
-					return false
-				}
-				if !isMinoEmpty(matrix[row+t.Pos.Y][col+t.Pos.X+1]) {
-					return false
-				}
-				break
+			if !t.Minos[row][col] {
+				continue
 			}
+			if !matrix.canPlaceInCell(row+t.Pos.Y, col+t.Pos.X+1) {
+				return false
+			}
+			break
 		}
 	}
+
+	t.Pos.X++
 	return true
 }
 
@@ -237,34 +248,26 @@ func (t *Tetrimino) Rotate(matrix Matrix, clockwise bool) error {
 
 	rotated := t.DeepCopy()
 	var err error
+	var foundValid bool
 	if clockwise {
-		err = rotated.rotateClockwise()
+		foundValid, err = rotated.rotateClockwise(matrix)
 	} else {
-		err = rotated.rotateCounterClockwise()
+		foundValid, err = rotated.rotateCounterClockwise(matrix)
 	}
 	if err != nil {
 		return fmt.Errorf("failed to rotate tetrimino: %w", err)
 	}
 
-	err = matrix.RemoveTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to remove cells: %w", err)
-	}
-
-	if rotated.canBePlaced(matrix) {
+	if foundValid {
 		t.Pos = rotated.Pos
 		t.Minos = rotated.Minos
-		t.CurrentRotation = rotated.CurrentRotation
+		t.CompassDirection = rotated.CompassDirection
 	}
 
-	err = matrix.AddTetrimino(t)
-	if err != nil {
-		return fmt.Errorf("failed to add cells: %w", err)
-	}
 	return nil
 }
 
-func (t *Tetrimino) rotateClockwise() error {
+func (t *Tetrimino) rotateClockwise(matrix Matrix) (bool, error) {
 	// Reverse the order of the rows
 	for i, j := 0, len(t.Minos)-1; i < j; i, j = i+1, j-1 {
 		t.Minos[i], t.Minos[j] = t.Minos[j], t.Minos[i]
@@ -273,18 +276,25 @@ func (t *Tetrimino) rotateClockwise() error {
 	t.transpose()
 
 	var err error
-	t.CurrentRotation, err = positiveMod(t.CurrentRotation+1, len(t.RotationCoords))
+	t.CompassDirection, err = positiveMod(t.CompassDirection+1, len(t.RotationCompass))
 	if err != nil {
-		return fmt.Errorf("failed to get positive mod: %w", err)
+		return false, fmt.Errorf("failed to get positive mod: %w", err)
 	}
 
-	t.Pos.X += t.RotationCoords[t.CurrentRotation].X
-	t.Pos.Y += t.RotationCoords[t.CurrentRotation].Y
+	originalX, originalY := t.Pos.X, t.Pos.Y
+	for _, coord := range t.RotationCompass[t.CompassDirection] {
+		t.Pos.X = originalX + coord.X
+		t.Pos.Y = originalY + coord.Y
 
-	return nil
+		if t.isValid(matrix) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
-func (t *Tetrimino) rotateCounterClockwise() error {
+func (t *Tetrimino) rotateCounterClockwise(matrix Matrix) (bool, error) {
 	// Reverse the order of the columns
 	for _, row := range t.Minos {
 		for i, j := 0, len(row)-1; i < j; i, j = i+1, j-1 {
@@ -294,16 +304,28 @@ func (t *Tetrimino) rotateCounterClockwise() error {
 
 	t.transpose()
 
-	t.Pos.X -= t.RotationCoords[t.CurrentRotation].X
-	t.Pos.Y -= t.RotationCoords[t.CurrentRotation].Y
+	foundValid := false
+	originalX, originalY := t.Pos.X, t.Pos.Y
+	for _, coord := range t.RotationCompass[t.CompassDirection] {
+		t.Pos.X = originalX - coord.X
+		t.Pos.Y = originalY - coord.Y
 
-	var err error
-	t.CurrentRotation, err = positiveMod(t.CurrentRotation-1, len(t.RotationCoords))
-	if err != nil {
-		return fmt.Errorf("failed to get positive mod: %w", err)
+		if t.isValid(matrix) {
+			foundValid = true
+			break
+		}
+	}
+	if !foundValid {
+		return false, nil
 	}
 
-	return nil
+	var err error
+	t.CompassDirection, err = positiveMod(t.CompassDirection-1, len(t.RotationCompass))
+	if err != nil {
+		return false, fmt.Errorf("failed to get positive mod: %w", err)
+	}
+
+	return true, nil
 }
 
 func (t *Tetrimino) transpose() {
@@ -321,35 +343,20 @@ func (t *Tetrimino) transpose() {
 	t.Minos = result
 }
 
-// canBePlaced returns true if the given Tetrimino is within the bounds of the matrix and does not overlap with any occupied cells.
+// isValid returns true if the given Tetrimino is within the bounds of the matrix and does not overlap with any occupied cells.
 // The Tetrimino being checked should not be in the Matrix yet.
-func (t *Tetrimino) canBePlaced(matrix Matrix) bool {
-	for cellRow := range t.Minos {
-		for cellCol := range t.Minos[cellRow] {
-			if t.Minos[cellRow][cellCol] {
-				if isOutOfBoundsHorizontally(t.Pos.X, cellCol, matrix) {
-					return false
-				}
-				if isOutOfBoundsVertically(t.Pos.Y, cellRow, matrix) {
-					return false
-				}
-				if !isMinoEmpty(matrix[t.Pos.Y+cellRow][t.Pos.X+cellCol]) {
-					return false
-				}
+func (t *Tetrimino) isValid(matrix Matrix) bool {
+	for row := range t.Minos {
+		for col := range t.Minos[row] {
+			if !t.Minos[row][col] {
+				continue
+			}
+			if !matrix.canPlaceInCell(row+t.Pos.Y, col+t.Pos.X) {
+				return false
 			}
 		}
 	}
 	return true
-}
-
-func isOutOfBoundsHorizontally(tetPosX, cellCol int, matrix Matrix) bool {
-	tetPosX += cellCol
-	return tetPosX < 0 || tetPosX >= len(matrix[0])
-}
-
-func isOutOfBoundsVertically(tetPosY, cellRow int, matrix Matrix) bool {
-	tetPosY += cellRow
-	return tetPosY < 0 || tetPosY >= len(matrix)
 }
 
 func positiveMod(dividend, divisor int) (int, error) {
@@ -372,10 +379,6 @@ func deepCopyMinos(cells [][]bool) [][]bool {
 	return cellsCopy
 }
 
-func isMinoEmpty(cell byte) bool {
-	return cell == 0 || cell == 'G'
-}
-
 func (t *Tetrimino) DeepCopy() *Tetrimino {
 	var cells [][]bool
 	if t.Minos == nil {
@@ -384,20 +387,28 @@ func (t *Tetrimino) DeepCopy() *Tetrimino {
 		cells = deepCopyMinos(t.Minos)
 	}
 
-	var rotationCoords []Coordinate
-	if t.RotationCoords == nil {
-		rotationCoords = nil
-	} else {
-		rotationCoords = make([]Coordinate, len(t.RotationCoords))
-		copy(rotationCoords, t.RotationCoords)
+	var compass rotationCompass
+	for i := range t.RotationCompass {
+		if t.RotationCompass[i] == nil {
+			compass[i] = nil
+			continue
+		}
+
+		compass[i] = make(rotationSet, len(t.RotationCompass[i]))
+		for j := range t.RotationCompass[i] {
+			compass[i][j] = &Coordinate{
+				X: t.RotationCompass[i][j].X,
+				Y: t.RotationCompass[i][j].Y,
+			}
+		}
 	}
 
 	return &Tetrimino{
-		Value:           t.Value,
-		Minos:           cells,
-		Pos:             t.Pos,
-		CurrentRotation: t.CurrentRotation,
-		RotationCoords:  rotationCoords,
+		Value:            t.Value,
+		Minos:            cells,
+		Pos:              t.Pos,
+		CompassDirection: t.CompassDirection,
+		RotationCompass:  compass,
 	}
 }
 
@@ -422,11 +433,11 @@ func (t *Tetrimino) IsAboveSkyline(skyline int) bool {
 func (t *Tetrimino) IsOverlapping(matrix Matrix) bool {
 	for col := range t.Minos[0] {
 		for row := range t.Minos {
-			if t.Minos[row][col] {
-				if !isMinoEmpty(matrix[row+t.Pos.Y][col+t.Pos.X]) {
-					return true
-				}
-				break
+			if !t.Minos[row][col] {
+				continue
+			}
+			if !isCellEmpty(matrix[row+t.Pos.Y][col+t.Pos.X]) {
+				return true
 			}
 		}
 	}

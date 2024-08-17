@@ -37,13 +37,22 @@ func (m *Matrix) GetSkyline() int {
 }
 
 // GetVisible returns the Matrix without the buffer zone at the top (ie. the visible portion of the Matrix).
-func (m *Matrix) GetVisible() [][]byte {
+func (m *Matrix) GetVisible() Matrix {
 	return (*m)[20:]
+}
+
+func (m *Matrix) DeepCopy() *Matrix {
+	duplicate := make(Matrix, len(*m))
+	for i := range *m {
+		duplicate[i] = make([]byte, len((*m)[i]))
+		copy(duplicate[i], (*m)[i])
+	}
+	return &duplicate
 }
 
 func (m *Matrix) isLineComplete(row int) bool {
 	for _, cell := range (*m)[row] {
-		if isMinoEmpty(cell) {
+		if isCellEmpty(cell) {
 			return false
 		}
 	}
@@ -70,7 +79,7 @@ func (m *Matrix) RemoveTetrimino(tet *Tetrimino) error {
 // AddTetrimino adds the given Tetrimino to the Matrix.
 // It returns an error if the Tetrimino is out of bounds or if the Tetrimino overlaps with an occupied mino.
 func (m *Matrix) AddTetrimino(tet *Tetrimino) error {
-	return m.modifyCell(tet.Minos, tet.Pos, tet.Value, isMinoEmpty)
+	return m.modifyCell(tet.Minos, tet.Pos, tet.Value, isCellEmpty)
 }
 
 func (m *Matrix) modifyCell(minos [][]bool, pos Coordinate, newValue byte, isExpectedValue func(byte) bool) error {
@@ -123,4 +132,29 @@ func (m *Matrix) RemoveCompletedLines(tet *Tetrimino) Action {
 		return Actions.TETRIS
 	}
 	return Actions.UNKNOWN
+}
+
+func (m *Matrix) isOutOfBoundsHorizontally(col int) bool {
+	return col < 0 || col >= len((*m)[0])
+}
+
+func (m *Matrix) isOutOfBoundsVertically(row int) bool {
+	return row < 0 || row >= len(*m)
+}
+
+func isCellEmpty(cell byte) bool {
+	return cell == 0 || cell == 'G'
+}
+
+func (m *Matrix) canPlaceInCell(row, col int) bool {
+	if m.isOutOfBoundsHorizontally(col) {
+		return false
+	}
+	if m.isOutOfBoundsVertically(row) {
+		return false
+	}
+	if !isCellEmpty((*m)[row][col]) {
+		return false
+	}
+	return true
 }

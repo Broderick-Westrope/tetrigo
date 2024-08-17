@@ -6,30 +6,25 @@
 
 A Golang implementation of Tetris, attempting to follow the official [2009 Tetris Design Guideline](https://github.com/Broderick-Westrope/tetrigo/tree/main/docs/2009-Tetris-Design-Guideline.pdf).
 
-This project is a work in progress. I have separated the included TUI (Terminal User Interface) from the game logic. This allows others to use the core logic to make their own game variants and other user interfaces.
+This project is a work in progress. It consists of three main components:
+1. `pkg/tetris/`: The core Tetris logic, including things like Tetrminimos, the Matrix, and scoring. This can be used to create game modes with your own ruleset and requirements.
+2. `pkg/tetris/modes/`: The functionality for different Tetris game modes. This can be used to easily create a Tetris game with your own UI but without needing to know the ruleset.
+3. `cmd/tui/`: A TUI (Text User Interface) allowing you to play it out of the box. It also serves as a demonstration on how to use the packages and how to create a TUI using [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
 Please feel free to open issues with suggestions, bugs, etc.
 
 ## TODO
 
-Tasks marked with "MVP" are required for the "Minimum Viable Product". These are the tasks I want to complete before the next round of refactoring, thorough testing, etc.
-
-- (MVP) Game over conditions
-    - Game over screen
-- (MVP) High Score system
 - (MVP) Ghost piece
-- More game modes
-    - Sprint
-    - Ultra 
 - Multiplayer
-- ~~Configuration file~~
+- Do more with the configuration file
 - Check for lockdown 0.5s after landing on a surface
-    - Also on soft drop, but not on hard drop
+    - Also on soft drop, but not on hard drop.
     - This resets after each movement & rotation, for a total of 15 movements/rotations.
-    - See "Extended Placement Lock Down"
-- ~~Drop one row immediately if nothing is blocking~~
-- ~~Pause ('P' key?)~~
-- ~~Fix Tetrimino rotation axis~~
+    - See "Extended Placement Lock Down" in the design guidelines.
 - Implement SRS (Super Rotation System)
-- ~~Score points from soft & hard drops~~
-- T-Spins
+- Score points from T-Spins
+- More game modes
+  - Sprint
+  - Ultra 
+- Multiplayer

@@ -27,7 +27,7 @@ func TestNewNextQueue(t *testing.T) {
 			}
 
 			for _, e := range b.elements {
-				for _, tet := range Tetriminos {
+				for _, tet := range GetValidTetriminos() {
 					if tet.Value != e.Value {
 						continue
 					}

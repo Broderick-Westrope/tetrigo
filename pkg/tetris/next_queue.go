@@ -45,12 +45,13 @@ func (nq *NextQueue) fill() {
 		return
 	}
 
-	perm := rand.Perm(len(Tetriminos))
+	tetriminos := GetValidTetriminos()
+	perm := rand.Perm(len(tetriminos))
 	for _, i := range perm {
 		if len(nq.elements) == 14 {
 			// This should be impossible whilst there are only 7 Tetriminos and we check that there is space for 7 in the queue
 			return
 		}
-		nq.elements = append(nq.elements, Tetriminos[i])
+		nq.elements = append(nq.elements, tetriminos[i])
 	}
 }
