@@ -13,6 +13,18 @@ This project is a work in progress. It consists of three main components:
 
 Please feel free to open issues with suggestions, bugs, etc.
 
+## Contents
+
+- [Installation](#installation)
+  - [Binary](#binary)
+  - [Build From Source](#build-from-source)
+- [Usage](#usage)
+  - [Controls](#controls)
+- [Configuration](#configuration)
+  - [CLI](#cli)
+  - [TOML](#toml)
+- [Data](#data)
+
 ## Installation
 
 Tetrigo can be installed by downloading the binary or by building from source. See the instructions below for your preferred method.
@@ -50,6 +62,8 @@ env GOBIN=/bin go install github.com/Broderick-Westrope/tetrigo/cmd/tetrigo@late
 ```
 
 ## Usage
+
+For general information on how to play Tetris see [this beginners guide](https://tetris.com/article/33/tetris-tips-for-beginners).
 
 ### Controls
 
