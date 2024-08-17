@@ -50,7 +50,7 @@ type Model struct {
 }
 
 func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
-	game, err := marathon.NewGame(in.Level, in.MaxLevel)
+	game, err := marathon.NewGame(in.Level, in.MaxLevel, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create marathon game: %w", err)
 	}
@@ -178,10 +178,16 @@ func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Left):
-			m.game.MoveLeft()
+			err := m.game.MoveLeft()
+			if err != nil {
+				panic(fmt.Errorf("failed to move left: %w", err))
+			}
 			return m, nil
 		case key.Matches(msg, m.keys.Right):
-			m.game.MoveRight()
+			err := m.game.MoveRight()
+			if err != nil {
+				panic(fmt.Errorf("failed to move right: %w", err))
+			}
 			return m, nil
 		case key.Matches(msg, m.keys.Clockwise):
 			err := m.game.Rotate(true)

@@ -1,6 +1,7 @@
 package marathon
 
 import (
+	"errors"
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
@@ -12,6 +13,13 @@ func (g *Game) IsGameOver() bool {
 
 func (g *Game) GetVisibleMatrix() (tetris.Matrix, error) {
 	matrix := g.matrix.DeepCopy()
+
+	if g.ghostTet != nil {
+		err := matrix.AddTetrimino(g.ghostTet)
+		if err != nil && !errors.Is(err, tetris.ErrUnexpectedMatrixCellValue) {
+			return nil, err
+		}
+	}
 
 	if err := matrix.AddTetrimino(g.tetInPlay); err != nil {
 		return nil, err

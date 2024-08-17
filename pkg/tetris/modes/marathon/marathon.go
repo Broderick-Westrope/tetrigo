@@ -11,6 +11,7 @@ type Game struct {
 	matrix           tetris.Matrix     // The Matrix of cells on which the game is played
 	nextQueue        *tetris.NextQueue // The queue of upcoming Tetriminos
 	tetInPlay        *tetris.Tetrimino // The current Tetrimino in play
+	ghostTet         *tetris.Tetrimino // The ghost Tetrimino
 	holdQueue        *tetris.Tetrimino // The Tetrimino that is being held
 	canHold          bool              // Whether the player can hold the current Tetrimino
 	gameOver         bool              // Whether the game is over
@@ -19,7 +20,7 @@ type Game struct {
 	fall             *tetris.Fall      // The system for calculating the fall speed
 }
 
-func NewGame(level, maxLevel uint) (*Game, error) {
+func NewGame(level, maxLevel uint, ghostEnabled bool) (*Game, error) {
 	matrix, err := tetris.NewMatrix(40, 10)
 	if err != nil {
 		return nil, err
@@ -37,6 +38,10 @@ func NewGame(level, maxLevel uint) (*Game, error) {
 		fall:             tetris.NewFall(level),
 	}
 
+	if ghostEnabled {
+		g.ghostTet = g.tetInPlay
+	}
+
 	gameOver, err := g.setupNewTetInPlay()
 	if err != nil {
 		return nil, err
@@ -48,16 +53,37 @@ func NewGame(level, maxLevel uint) (*Game, error) {
 	return g, nil
 }
 
-func (g *Game) MoveLeft() {
+func (g *Game) MoveLeft() error {
 	_ = g.tetInPlay.MoveLeft(g.matrix)
+
+	err := g.updateGhost()
+	if err != nil {
+		return fmt.Errorf("failed to update ghost: %w", err)
+	}
+	return nil
 }
 
-func (g *Game) MoveRight() {
+func (g *Game) MoveRight() error {
 	_ = g.tetInPlay.MoveRight(g.matrix)
+
+	err := g.updateGhost()
+	if err != nil {
+		return fmt.Errorf("failed to update ghost: %w", err)
+	}
+	return nil
 }
 
 func (g *Game) Rotate(clockwise bool) error {
-	return g.tetInPlay.Rotate(g.matrix, clockwise)
+	err := g.tetInPlay.Rotate(g.matrix, clockwise)
+	if err != nil {
+		return err
+	}
+
+	err = g.updateGhost()
+	if err != nil {
+		return fmt.Errorf("failed to update ghost: %w", err)
+	}
+	return nil
 }
 
 // Hold will swap the current Tetrimino with the hold Tetrimino.
@@ -180,6 +206,11 @@ func (g *Game) setupNewTetInPlay() (bool, error) {
 		g.softDropStartRow = g.tetInPlay.Pos.Y
 	}
 
+	err := g.updateGhost()
+	if err != nil {
+		return false, fmt.Errorf("failed to update ghost: %w", err)
+	}
+
 	return false, nil
 }
 
@@ -221,4 +252,21 @@ func (g *Game) ToggleSoftDrop() time.Duration {
 	}
 	g.softDropStartRow = g.matrix.GetSkyline()
 	return g.fall.DefaultInterval
+}
+
+func (g *Game) updateGhost() error {
+	if g.ghostTet == nil {
+		return nil
+	}
+
+	g.ghostTet = g.tetInPlay.DeepCopy()
+	g.ghostTet.Value = 'G'
+
+	for {
+		if !g.ghostTet.MoveDown(g.matrix) {
+			break
+		}
+	}
+
+	return nil
 }

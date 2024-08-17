@@ -1,6 +1,9 @@
 package tetris
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // Matrix represents the board of cells on which the game is played.
 type Matrix [][]byte
@@ -16,7 +19,7 @@ func DefaultMatrix() Matrix {
 // NewMatrix creates a new Matrix with the given height and width.
 func NewMatrix(height, width uint) (Matrix, error) {
 	if height <= 20 {
-		return nil, ErrBufferZoneTooSmall
+		return nil, errors.New("matrix height must be greater than 20 to allow for a buffer zone of 20 lines")
 	}
 
 	matrix := make(Matrix, height)
@@ -98,8 +101,9 @@ func (m *Matrix) modifyCell(minos [][]bool, pos Coordinate, newValue byte, isExp
 
 				minoValue := (*m)[minoAbsRow][minoAbsCol]
 				if !isExpectedValue(minoValue) {
-					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected value",
+					err := fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected value",
 						minoAbsRow, minoAbsCol, string(minoValue), minoValue)
+					return errors.Join(err, ErrUnexpectedMatrixCellValue)
 				}
 				(*m)[minoAbsRow][minoAbsCol] = newValue
 			}
