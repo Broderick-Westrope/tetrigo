@@ -166,3 +166,4 @@ config.toml
 cover.out
 # Database files
 **/*.db
+dist/
