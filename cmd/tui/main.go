@@ -78,7 +78,7 @@ func getSwitchModeInput(starterMode common.Mode) (common.SwitchModeInput, error)
 	case common.MODE_MENU:
 		return common.NewMenuInput(), nil
 	case common.MODE_MARATHON:
-		return common.NewMarathonInput(cli.Marathon.Level, 15, cli.Marathon.Name), nil
+		return common.NewMarathonInput(cli.Marathon.Level, cli.Marathon.Name), nil
 	case common.MODE_LEADERBOARD:
 		return common.NewLeaderboardInput(cli.Leaderboard.GameMode), nil
 	default:

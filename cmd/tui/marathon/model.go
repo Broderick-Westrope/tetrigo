@@ -50,7 +50,7 @@ type Model struct {
 }
 
 func NewModel(in *common.MarathonInput, keys *common.Keys, cfg *config.Config) (*Model, error) {
-	game, err := marathon.NewGame(in.Level, in.MaxLevel, cfg.GhostEnabled)
+	game, err := marathon.NewGame(in.Level, cfg.MaxLevel, cfg.GhostEnabled)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create marathon game: %w", err)
 	}

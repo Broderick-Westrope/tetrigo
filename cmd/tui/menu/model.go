@@ -168,7 +168,7 @@ func (m Model) startGame() (tea.Cmd, error) {
 
 	switch mode {
 	case "Marathon":
-		in := common.NewMarathonInput(level, 15, playerName)
+		in := common.NewMarathonInput(level, playerName)
 		return common.SwitchModeCmd(common.MODE_MARATHON, in), nil
 	default:
 		return nil, fmt.Errorf("invalid mode: %q", mode)

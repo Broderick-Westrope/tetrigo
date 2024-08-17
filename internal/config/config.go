@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/BurntSushi/toml"
@@ -45,8 +46,8 @@ func GetConfig(path string) (*Config, error) {
 	c.NextQueueLength = 5
 	c.GhostEnabled = true
 	c.LockDownMode = "Extended"
-	c.MaxLevel = 20
-	c.GameEnds = true
+	c.MaxLevel = 15
+	c.GameEnds = false
 
 	c.Theme.Colours.TetriminoCells.I = "#64C4EB"
 	c.Theme.Colours.TetriminoCells.O = "#F1D448"
@@ -70,19 +71,20 @@ func GetConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	if !c.isValid() {
-		return nil, errors.New("invalid config")
+	err = c.validate()
+	if err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
 	return &c, nil
 }
 
-func (c *Config) isValid() bool {
+func (c *Config) validate() error {
 	if c.NextQueueLength < 0 || c.NextQueueLength > 7 {
-		return false
+		return fmt.Errorf("NextQueueLength '%d' must be between 0 and 7", c.NextQueueLength)
 	}
 	if c.LockDownMode != "Extended" && c.LockDownMode != "Infinite" && c.LockDownMode != "Classic" {
-		return false
+		return fmt.Errorf("LockDownMode '%s' must be one of 'Extended', 'Infinite', or 'Classic'", c.LockDownMode)
 	}
-	return true
+	return nil
 }
