@@ -22,7 +22,6 @@ Please feel free to open issues with suggestions, bugs, etc.
     - Also on soft drop, but not on hard drop.
     - This resets after each movement & rotation, for a total of 15 movements/rotations.
     - See "Extended Placement Lock Down" in the design guidelines.
-- Implement SRS (Super Rotation System)
 - Score points from T-Spins
 - More game modes
   - Sprint
