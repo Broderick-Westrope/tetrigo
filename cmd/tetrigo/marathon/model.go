@@ -49,7 +49,7 @@ type Model struct {
 	nextQueueLength int
 }
 
-func NewModel(in *common.MarathonInput, keys *common.Keys, cfg *config.Config) (*Model, error) {
+func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
 	game, err := marathon.NewGame(in.Level, cfg.MaxLevel, cfg.EndOnMaxLevel, cfg.GhostEnabled)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create marathon game: %w", err)
@@ -57,9 +57,9 @@ func NewModel(in *common.MarathonInput, keys *common.Keys, cfg *config.Config) (
 
 	m := &Model{
 		playerName:      in.PlayerName,
-		styles:          CreateStyles(&cfg.Theme),
+		styles:          CreateStyles(cfg.Theme),
 		help:            help.New(),
-		keys:            constructKeyMap(keys),
+		keys:            constructKeyMap(cfg.Keys),
 		timerStopwatch:  stopwatch.NewWithInterval(time.Millisecond * 3),
 		isPaused:        false,
 		game:            game,
@@ -67,7 +67,7 @@ func NewModel(in *common.MarathonInput, keys *common.Keys, cfg *config.Config) (
 	}
 	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
-	m.styles = CreateStyles(&cfg.Theme)
+	m.styles = CreateStyles(cfg.Theme)
 
 	return m, nil
 }

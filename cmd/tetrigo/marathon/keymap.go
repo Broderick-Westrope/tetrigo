@@ -2,6 +2,7 @@ package marathon
 
 import (
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/charmbracelet/bubbles/key"
 )
 
@@ -18,15 +19,15 @@ type keyMap struct {
 	Hold             key.Binding
 }
 
-func constructKeyMap(keys *common.Keys) *keyMap {
+func constructKeyMap(keys *config.Keys) *keyMap {
 	return &keyMap{
 		ForceQuit:        common.ConstructKeyBinding(keys.ForceQuit, "force quit"),
 		Exit:             common.ConstructKeyBinding(keys.Exit, "exit"),
 		Help:             common.ConstructKeyBinding(keys.Help, "help"),
 		Left:             common.ConstructKeyBinding(keys.Left, "move left"),
 		Right:            common.ConstructKeyBinding(keys.Right, "move right"),
-		Clockwise:        common.ConstructKeyBinding(keys.RightRotate, "rotate clockwise"),
-		CounterClockwise: common.ConstructKeyBinding(keys.LeftRotate, "rotate counter-clockwise"),
+		Clockwise:        common.ConstructKeyBinding(keys.RotateClockwise, "rotate clockwise"),
+		CounterClockwise: common.ConstructKeyBinding(keys.RotateCounterClockwise, "rotate counter-clockwise"),
 		SoftDrop:         common.ConstructKeyBinding(keys.Down, "toggle soft drop"),
 		HardDrop:         common.ConstructKeyBinding(keys.Up, "hard drop"),
 		Hold:             common.ConstructKeyBinding(keys.Submit, "hold"),

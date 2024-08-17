@@ -15,53 +15,21 @@ type Config struct {
 	MaxLevel        uint   // The maximum level to reach before the game ends or the level stops increasing . 0+ (0 = no max level)
 	EndOnMaxLevel   bool   // Whether the game ends when the max level is reached
 
-	// The styling for the game in all modes
-	Theme Theme
-}
-
-type Theme struct {
-	Colours struct {
-		TetriminoCells struct {
-			I string
-			O string
-			T string
-			S string
-			Z string
-			J string
-			L string
-		}
-		EmptyCell string
-		GhostCell string
-	}
-	Characters struct {
-		Tetriminos string
-		EmptyCell  string
-		GhostCell  string
-	}
+	Theme *Theme // The styling for the game in all modes
+	Keys  *Keys  // The keybindings for the game
 }
 
 func GetConfig(path string) (*Config, error) {
-	var c Config
+	c := Config{
+		NextQueueLength: 5,
+		GhostEnabled:    true,
+		LockDownMode:    "Extended",
+		MaxLevel:        15,
+		EndOnMaxLevel:   false,
 
-	c.NextQueueLength = 5
-	c.GhostEnabled = true
-	c.LockDownMode = "Extended"
-	c.MaxLevel = 15
-	c.EndOnMaxLevel = false
-
-	c.Theme.Colours.TetriminoCells.I = "#64C4EB"
-	c.Theme.Colours.TetriminoCells.O = "#F1D448"
-	c.Theme.Colours.TetriminoCells.T = "#A15398"
-	c.Theme.Colours.TetriminoCells.S = "#64B452"
-	c.Theme.Colours.TetriminoCells.Z = "#DC3A35"
-	c.Theme.Colours.TetriminoCells.J = "#5C65A8"
-	c.Theme.Colours.TetriminoCells.L = "#E07F3A"
-	c.Theme.Colours.EmptyCell = "#303040"
-	c.Theme.Colours.GhostCell = "white"
-
-	c.Theme.Characters.Tetriminos = "██"
-	c.Theme.Characters.EmptyCell = "▕ "
-	c.Theme.Characters.GhostCell = "░░"
+		Theme: defaultTheme(),
+		Keys:  defaultKeys(),
+	}
 
 	_, err := toml.DecodeFile(path, &c)
 	if err != nil {

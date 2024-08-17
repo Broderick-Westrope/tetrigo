@@ -10,6 +10,7 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/marathon"
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/menu"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -37,19 +38,19 @@ func NewInput(mode common.Mode, switchIn common.SwitchModeInput, db *sql.DB, cfg
 var _ tea.Model = &Model{}
 
 type Model struct {
-	child  tea.Model
-	db     *sql.DB
-	keys   *common.Keys
-	styles *styles
-	cfg    *config.Config
+	child        tea.Model
+	db           *sql.DB
+	styles       *styles
+	cfg          *config.Config
+	forceQuitKey key.Binding
 }
 
 func NewModel(in *Input) (*Model, error) {
 	m := &Model{
-		db:     in.db,
-		cfg:    in.cfg,
-		keys:   common.DefaultKeys(),
-		styles: defaultStyles(),
+		db:           in.db,
+		cfg:          in.cfg,
+		styles:       defaultStyles(),
+		forceQuitKey: key.NewBinding(key.WithKeys(in.cfg.Keys.ForceQuit...)),
 	}
 
 	err := m.setChild(in.mode, in.switchIn)
@@ -65,6 +66,11 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, m.forceQuitKey):
+			return m, tea.Quit
+		}
 	case common.SwitchModeMsg:
 		err := m.setChild(msg.Target, msg.Input)
 		if err != nil {
@@ -101,13 +107,13 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
-		m.child = menu.NewModel(menuIn, m.keys)
+		m.child = menu.NewModel(menuIn, m.cfg.Keys)
 	case common.MODE_MARATHON:
 		marathonIn, ok := switchIn.(*common.MarathonInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
-		child, err := marathon.NewModel(marathonIn, m.keys, m.cfg)
+		child, err := marathon.NewModel(marathonIn, m.cfg)
 		if err != nil {
 			return err
 		}
@@ -117,7 +123,7 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
-		child, err := leaderboard.NewModel(leaderboardIn, m.db, m.keys)
+		child, err := leaderboard.NewModel(leaderboardIn, m.db, m.cfg.Keys)
 		if err != nil {
 			return err
 		}

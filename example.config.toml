@@ -20,3 +20,15 @@ L = "#E07F3A"
 Tetriminos = "██"
 EmptyCell = "▕ "
 GhostCell = "░░"
+
+[Keys] # Keybindings to control the game. Note, these keys do not control the menu.
+ForceQuit = ["ctrl+c"]
+Exit = ["esc"]
+Help = ["h"]
+Submit = [" ", "enter"]
+Up = ["w"]
+Down = ["s"]
+Left = ["a"]
+Right = ["d"]
+RotateCounterClockwise = ["q"]
+RotateClockwise = ["e"]

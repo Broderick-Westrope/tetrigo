@@ -2,6 +2,7 @@ package menu
 
 import (
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/charmbracelet/bubbles/key"
 )
 
@@ -15,7 +16,7 @@ type keyMap struct {
 	Start key.Binding
 }
 
-func constructKeyMap(keys *common.Keys) *keyMap {
+func constructKeyMap(keys *config.Keys) *keyMap {
 	exitKeys := append(keys.Exit, keys.ForceQuit...)
 	return &keyMap{
 		Exit:  common.ConstructKeyBinding(exitKeys, "exit"),

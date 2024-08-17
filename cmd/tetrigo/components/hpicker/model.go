@@ -3,7 +3,7 @@ package hpicker
 import (
 	"strconv"
 
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -24,7 +24,7 @@ type Model struct {
 
 type Option func(*Model)
 
-func NewModel(options []string, keys *common.Keys, opts ...Option) *Model {
+func NewModel(options []string, keys *config.Keys, opts ...Option) *Model {
 	m := &Model{
 		options: options,
 		keymap:  ConstructKeyMap(keys),
