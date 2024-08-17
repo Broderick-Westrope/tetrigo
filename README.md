@@ -15,13 +15,12 @@ Please feel free to open issues with suggestions, bugs, etc.
 
 ## TODO
 
-- (MVP) Ghost piece
-- Multiplayer
 - Do more with the configuration file
+  - Add option for disabling the ghost piece
 - Check for lockdown 0.5s after landing on a surface
-    - Also on soft drop, but not on hard drop.
-    - This resets after each movement & rotation, for a total of 15 movements/rotations.
-    - See "Extended Placement Lock Down" in the design guidelines.
+  - Also on soft drop, but not on hard drop.
+  - This resets after each movement & rotation, for a total of 15 movements/rotations.
+  - See "Extended Placement Lock Down" in the design guidelines.
 - Score points from T-Spins
 - More game modes
   - Sprint
