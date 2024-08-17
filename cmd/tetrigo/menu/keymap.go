@@ -1,8 +1,6 @@
 package menu
 
 import (
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/charmbracelet/bubbles/key"
 )
 
@@ -16,16 +14,15 @@ type keyMap struct {
 	Start key.Binding
 }
 
-func constructKeyMap(keys *config.Keys) *keyMap {
-	exitKeys := append(keys.Exit, keys.ForceQuit...)
+func defaultKeyMap() *keyMap {
 	return &keyMap{
-		Exit:  common.ConstructKeyBinding(exitKeys, "exit"),
-		Help:  common.ConstructKeyBinding(keys.Help, "help"),
-		Left:  common.ConstructKeyBinding([]string{"left"}, "move left"),
-		Right: common.ConstructKeyBinding([]string{"right"}, "move right"),
-		Up:    common.ConstructKeyBinding([]string{"up"}, "move up"),
-		Down:  common.ConstructKeyBinding([]string{"down"}, "move down"),
-		Start: common.ConstructKeyBinding(keys.Submit, "start"),
+		Exit:  key.NewBinding(key.WithKeys("esc"), key.WithHelp("escape", "exit")),
+		Help:  key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")),
+		Left:  key.NewBinding(key.WithKeys("left"), key.WithHelp("left arrow", "move left")),
+		Right: key.NewBinding(key.WithKeys("right"), key.WithHelp("right arrow", "move right")),
+		Up:    key.NewBinding(key.WithKeys("up"), key.WithHelp("up arrow", "move up")),
+		Down:  key.NewBinding(key.WithKeys("down"), key.WithHelp("down arrow", "move down")),
+		Start: key.NewBinding(key.WithKeys("enter"), key.WithHelp("enter", "start")),
 	}
 }
 

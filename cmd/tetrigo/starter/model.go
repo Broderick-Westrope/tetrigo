@@ -107,7 +107,7 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
-		m.child = menu.NewModel(menuIn, m.cfg.Keys)
+		m.child = menu.NewModel(menuIn)
 	case common.MODE_MARATHON:
 		marathonIn, ok := switchIn.(*common.MarathonInput)
 		if !ok {
@@ -123,7 +123,7 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
-		child, err := leaderboard.NewModel(leaderboardIn, m.db, m.cfg.Keys)
+		child, err := leaderboard.NewModel(leaderboardIn, m.db)
 		if err != nil {
 			return err
 		}

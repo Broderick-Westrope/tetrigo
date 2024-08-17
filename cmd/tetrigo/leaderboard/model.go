@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
@@ -20,7 +19,7 @@ type Model struct {
 	table table.Model
 }
 
-func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *config.Keys) (Model, error) {
+func NewModel(in *common.LeaderboardInput, db *sql.DB) (Model, error) {
 	repo := data.NewLeaderboardRepository(db)
 
 	var err error
@@ -42,7 +41,7 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB, keys *config.Keys) (Model
 	}
 
 	return Model{
-		keys:  constructKeyMap(keys),
+		keys:  defaultKeyMap(),
 		repo:  repo,
 		table: getLeaderboardTable(scores, newEntryId),
 	}, nil

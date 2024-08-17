@@ -7,7 +7,6 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/components/hpicker"
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/components/textinput"
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -40,11 +39,11 @@ type item struct {
 	hideLabel bool
 }
 
-func NewModel(_ *common.MenuInput, keys *config.Keys) *Model {
+func NewModel(_ *common.MenuInput) *Model {
 	nameInput := textinput.NewModel("Enter your name", 20, 20)
-	modePicker := hpicker.NewModel([]string{"Marathon"}, keys)
-	playersPicker := hpicker.NewModel(nil, keys, hpicker.WithRange(1, 1))
-	levelPicker := hpicker.NewModel(nil, keys, hpicker.WithRange(1, 15))
+	modePicker := hpicker.NewModel([]string{"Marathon"})
+	playersPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 1))
+	levelPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 15))
 
 	return &Model{
 		items: []item{
@@ -55,7 +54,7 @@ func NewModel(_ *common.MenuInput, keys *config.Keys) *Model {
 		},
 		selected: 0,
 
-		keys:   constructKeyMap(keys),
+		keys:   defaultKeyMap(),
 		styles: defaultStyles(),
 		help:   help.New(),
 	}
