@@ -4,26 +4,22 @@
 
 ![app demo](./docs/readme-demo.gif)
 
-A Golang implementation of Tetris, attempting to follow the official [2009 Tetris Design Guideline](./docs/2009-Tetris-Design-Guideline.pdf).
+A Golang implementation of Tetris, following the official [2009 Tetris Design Guideline](./docs/2009-Tetris-Design-Guideline.pdf).
 
-This project is a work in progress. It consists of three main components:
-1. `pkg/tetris/`: The core Tetris logic, including things like Tetrminimos, the Matrix, and scoring. This can be used to create game modes with your own ruleset and requirements.
-2. `pkg/tetris/modes/`: The functionality for different Tetris game modes. This can be used to easily create a Tetris game with your own UI but without needing to know the ruleset.
-3. `cmd/tetrigo/`: A TUI (Text User Interface) allowing you to play it out of the box. It also serves as a demonstration on how to use the packages and how to create a TUI using [Bubble Tea](https://github.com/charmbracelet/bubbletea).
+This project consists of three main components, depending on what your goals are:
+1. "I just want to play Tetris": The TUI (Text User Interface) in `cmd/tetrigo/` is for you.
+2. "I want to create my own Tetris game/UI": The packages in `pkg/tetris/modes/` are for you.
+3. "I want to create my own Tetris game mode": The packages in `pkg/tetris/` are for you.
 
-Please feel free to open issues with suggestions, bugs, etc.
+You can find more information on these sections in the [development](#development) section. If you have a suggestion, bug, or feature request, please open a GitHub issue.
 
 ## Contents
 
 - [Installation](#installation)
-  - [Binary](#binary)
-  - [Build From Source](#build-from-source)
 - [Usage](#usage)
-  - [Controls](#controls)
 - [Configuration](#configuration)
-  - [CLI](#cli)
-  - [TOML](#toml)
 - [Data](#data)
+- [Development](#development)
 
 ## Installation
 
@@ -127,10 +123,57 @@ The game data is stored in a SQLite database. By default, the database is stored
 ./tetrigo --db=/path/to/data.db
 ```
 
-## TODO
+## Development
 
-- Check for lockdown 0.5s after landing on a surface
-  - Also on soft drop, but not on hard drop.
+This project consists of three main components:
+1. `cmd/tetrigo/`: A TUI (Text User Interface) allowing you to play it out of the box. It also serves as a demonstration on how to use the packages and how to create a TUI using [Bubble Tea](https://github.com/charmbracelet/bubbletea).
+2. `pkg/tetris/modes/`: The functionality for different Tetris game modes. This can be used to easily create a Tetris game with your own UI but without needing to know the ruleset.
+3. `pkg/tetris/`: The core Tetris logic, including things like Tetrminimos, the Matrix, and scoring. This can be used to create game modes with your own ruleset and requirements.
+
+[Task](https://taskfile.dev/) is the build tool used in this project. The Task config lives in [Taskfile.yaml](./Taskfile.yaml). Once the Task CLI is installed, you can see all available tasks by running:
+```bash
+task -l
+```
+
+You can run the TUI using the `run` task:
+```bash
+task run
+```
+
+### Building
+
+You can build the project using the `build` task:
+```bash
+task build
+```
+
+This will create a binary in the `bin/` directory which can be run using the instructions in the [Installation](#installation) section.
+
+### Testing
+
+Tests can be run using the `test` task:
+```bash
+task test
+```
+
+You can also use the `cover` task to generate and open a coverage report:
+```bash
+task cover
+```
+
+The ordered priorities for testing are:
+1. `pkg/tetris/`
+2. `pkg/tetris/modes/`
+3. `cmd/tetrigo/`
+
+### TODO
+
+- Add more tests
+  - Finish Super Rotation System testing in [tetrimino_test.go](./pkg/tetris/tetrimino_test.go).
+  - Add tests for scoring endOnMaxLevel.
+- Add the remaining Lock Down options.
+- Check for Lock Down 0.5s after landing on a surface
+  - Also on Soft Drop, but not on Hard Drop.
   - This resets after each movement & rotation, for a total of 15 movements/rotations.
   - See "Extended Placement Lock Down" in the design guidelines.
 - Score points from T-Spins
