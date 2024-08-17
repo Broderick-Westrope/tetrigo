@@ -8,11 +8,11 @@ import (
 )
 
 type Config struct {
-	QueueLength  int    // The number of tetriminos to display in the queue. 0-7
-	GhostEnabled bool   // TODO: Whether or not a ghost piece will be displayed beneath the current tetrimino
-	LockDownMode string // TODO: What mode to use when locking down a tetrimino. Choices are Extended (default), Infinite, or Classic
-	MaxLevel     uint   // The maximum level to reach before the game ends or the level stops increasing . 0+ (0 = no max level)
-	GameEnds     bool   // TODO: Whether or not the game ends when the max level is reached
+	NextQueueLength int    // The number of tetriminos to display in the Next Queue. 0-7
+	GhostEnabled    bool   // Whether a ghost piece will be displayed beneath the current tetrimino
+	LockDownMode    string // TODO: What mode to use when locking down a tetrimino. Choices are Extended (default), Infinite, or Classic
+	MaxLevel        uint   // The maximum level to reach before the game ends or the level stops increasing . 0+ (0 = no max level)
+	GameEnds        bool   // TODO: Whether or not the game ends when the max level is reached
 
 	// The styling for the game in all modes
 	Theme Theme
@@ -42,7 +42,7 @@ type Theme struct {
 func GetConfig(path string) (*Config, error) {
 	var c Config
 
-	c.QueueLength = 5
+	c.NextQueueLength = 5
 	c.GhostEnabled = true
 	c.LockDownMode = "Extended"
 	c.MaxLevel = 20
@@ -78,7 +78,7 @@ func GetConfig(path string) (*Config, error) {
 }
 
 func (c *Config) isValid() bool {
-	if c.QueueLength < 0 || c.QueueLength > 7 {
+	if c.NextQueueLength < 0 || c.NextQueueLength > 7 {
 		return false
 	}
 	if c.LockDownMode != "Extended" && c.LockDownMode != "Infinite" && c.LockDownMode != "Classic" {

@@ -9,6 +9,7 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/leaderboard"
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/marathon"
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/menu"
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -21,13 +22,15 @@ type Input struct {
 	mode     common.Mode
 	switchIn common.SwitchModeInput
 	db       *sql.DB
+	cfg      *config.Config
 }
 
-func NewInput(mode common.Mode, switchIn common.SwitchModeInput, db *sql.DB) *Input {
+func NewInput(mode common.Mode, switchIn common.SwitchModeInput, db *sql.DB, cfg *config.Config) *Input {
 	return &Input{
 		mode:     mode,
 		switchIn: switchIn,
 		db:       db,
+		cfg:      cfg,
 	}
 }
 
@@ -38,11 +41,13 @@ type Model struct {
 	db     *sql.DB
 	keys   *common.Keys
 	styles *styles
+	cfg    *config.Config
 }
 
 func NewModel(in *Input) (*Model, error) {
 	m := &Model{
 		db:     in.db,
+		cfg:    in.cfg,
 		keys:   common.DefaultKeys(),
 		styles: defaultStyles(),
 	}
@@ -102,7 +107,7 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
-		child, err := marathon.NewModel(marathonIn, m.keys)
+		child, err := marathon.NewModel(marathonIn, m.keys, m.cfg)
 		if err != nil {
 			return err
 		}

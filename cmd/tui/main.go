@@ -7,6 +7,7 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
 	"github.com/Broderick-Westrope/tetrigo/cmd/tui/starter"
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/alecthomas/kong"
 	tea "github.com/charmbracelet/bubbletea"
@@ -46,6 +47,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	cfg, err := config.GetConfig("config.toml")
+	if err != nil {
+		log.Printf("error getting config: %v", err)
+		os.Exit(1)
+	}
+
 	switchIn, err := getSwitchModeInput(starterMode)
 	if err != nil {
 		log.Printf("error getting switch mode input: %v", err)
@@ -53,7 +60,7 @@ func main() {
 	}
 
 	model, err := starter.NewModel(
-		starter.NewInput(starterMode, switchIn, db),
+		starter.NewInput(starterMode, switchIn, db, cfg),
 	)
 	if err != nil {
 		log.Printf("error creating starter model: %v", err)

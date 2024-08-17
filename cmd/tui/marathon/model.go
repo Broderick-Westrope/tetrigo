@@ -37,42 +37,37 @@ var gameOverMsg = ` _____   ___  ___  ___ _____   _____  _   _ ___________
 var _ tea.Model = &Model{}
 
 type Model struct {
-	playerName     string
-	styles         *Styles
-	help           help.Model
-	keys           *keyMap
-	timerStopwatch stopwatch.Model
-	cfg            *config.Config
-	isPaused       bool
-	fallStopwatch  stopwatch.Model
-	game           *marathon.Game
-	isGameOver     bool
+	playerName      string
+	styles          *Styles
+	help            help.Model
+	keys            *keyMap
+	timerStopwatch  stopwatch.Model
+	isPaused        bool
+	fallStopwatch   stopwatch.Model
+	game            *marathon.Game
+	isGameOver      bool
+	nextQueueLength int
 }
 
-func NewModel(in *common.MarathonInput, keys *common.Keys) (*Model, error) {
-	game, err := marathon.NewGame(in.Level, in.MaxLevel, true)
+func NewModel(in *common.MarathonInput, keys *common.Keys, cfg *config.Config) (*Model, error) {
+	game, err := marathon.NewGame(in.Level, in.MaxLevel, cfg.GhostEnabled)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create marathon game: %w", err)
 	}
 
 	m := &Model{
-		playerName:     in.PlayerName,
-		styles:         defaultStyles(),
-		help:           help.New(),
-		keys:           constructKeyMap(keys),
-		timerStopwatch: stopwatch.NewWithInterval(time.Millisecond * 3),
-		isPaused:       false,
-		// TODO: set using config
-		game: game,
+		playerName:      in.PlayerName,
+		styles:          CreateStyles(&cfg.Theme),
+		help:            help.New(),
+		keys:            constructKeyMap(keys),
+		timerStopwatch:  stopwatch.NewWithInterval(time.Millisecond * 3),
+		isPaused:        false,
+		game:            game,
+		nextQueueLength: cfg.NextQueueLength,
 	}
 	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
-	cfg, err := config.GetConfig("config.toml")
-	if err != nil {
-		return nil, fmt.Errorf("failed to load config: %w", err)
-	}
 	m.styles = CreateStyles(&cfg.Theme)
-	m.cfg = cfg
 
 	return m, nil
 }
@@ -342,7 +337,7 @@ func (m *Model) holdView() string {
 func (m *Model) bagView() string {
 	output := "Next:\n"
 	for i, t := range m.game.GetBagTetriminos() {
-		if i >= m.cfg.QueueLength {
+		if i >= m.nextQueueLength {
 			break
 		}
 		output += "\n" + m.renderTetrimino(&t, 1)
@@ -368,15 +363,15 @@ func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 func (m *Model) renderCell(cell byte) string {
 	switch cell {
 	case 0:
-		return m.styles.ColIndicator.Render(m.cfg.Theme.Characters.EmptyCell)
+		return m.styles.EmptyCell.Render(m.styles.CellChar.Empty)
 	case 1:
 		return "  "
 	case 'G':
-		return m.styles.GhostCell.Render(m.cfg.Theme.Characters.GhostCell)
+		return m.styles.GhostCell.Render(m.styles.CellChar.Ghost)
 	default:
-		cellStyle, ok := m.styles.TetriminoStyles[cell]
+		cellStyle, ok := m.styles.TetriminoCellStyles[cell]
 		if ok {
-			return cellStyle.Render(m.cfg.Theme.Characters.Tetriminos)
+			return cellStyle.Render(m.styles.CellChar.Tetriminos)
 		}
 	}
 	return "??"
