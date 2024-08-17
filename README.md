@@ -2,9 +2,9 @@
 
 *teh·tree·go*
 
-![app demo](./docs/assets/readme-demo.gif)
+![app demo](./docs/readme-demo.gif)
 
-A Golang implementation of Tetris, attempting to follow the official [2009 Tetris Design Guideline](https://github.com/Broderick-Westrope/tetrigo/tree/main/docs/2009-Tetris-Design-Guideline.pdf).
+A Golang implementation of Tetris, attempting to follow the official [2009 Tetris Design Guideline](./docs/2009-Tetris-Design-Guideline.pdf).
 
 This project is a work in progress. It consists of three main components:
 1. `pkg/tetris/`: The core Tetris logic, including things like Tetrminimos, the Matrix, and scoring. This can be used to create game modes with your own ruleset and requirements.
@@ -95,9 +95,23 @@ To see more options for starting the game you can run:
 
 ### TOML
 
-More complex configuration can be done using a TOML file. By default, Tetrigo will look for the file `config.toml` in the working directory. If none is found sensible defaults will be used.
+More complex configuration can be done using a TOML file. If no config file is found sensible defaults will be used.
+
+By default, Tetrigo will look for the file `config.toml` in the working directory. You can specify a different file using the `--config` flag.
+
+```bash
+./tetrigo --config=/path/to/config.toml
+```
 
 An example configuration file is provided in [`example.config.toml`](./example.config.toml).
+
+## Data
+
+The game data is stored in a SQLite database. By default, the database is stored in the working directory as `tetrigo.db`. You can specify a different file using the `--db` flag.
+
+```bash
+./tetrigo --db=/path/to/data.db
+```
 
 ## TODO
 
