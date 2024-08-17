@@ -10,21 +10,28 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/alecthomas/kong"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-var cli struct {
-	Menu struct {
-	} `cmd:"" help:"Play the game" default:"1"`
+type CLI struct {
+	Config string `help:"Path to config file" default:"config.toml" type:"path"`
+	DSN    string `help:"Database source name" default:"data.db"`
 
-	Marathon struct {
-		Level uint   `help:"Level to start at" short:"l" default:"1"`
-		Name  string `help:"Name of the player" default:"Anonymous"`
-	} `cmd:"" help:"Play marathon mode"`
+	Menu        MenuCmd        `cmd:"" help:"Start in the menu" default:"1"`
+	Marathon    MarathonCmd    `cmd:"" help:"Play in marathon mode"`
+	Leaderboard LeaderboardCmd `cmd:"" help:"Start on the leaderboard"`
+}
 
-	Leaderboard struct {
-		GameMode string `help:"Game mode to display" default:"marathon"`
-	} `cmd:"" help:"View the leaderboard for a given mode"`
+type MenuCmd struct{}
+
+type MarathonCmd struct {
+	Level uint   `help:"Level to start at" short:"l" default:"1"`
+	Name  string `help:"Name of the player" default:"Anonymous"`
+}
+
+type LeaderboardCmd struct {
+	GameMode string `help:"Game mode to display" default:"marathon"`
 }
 
 var subcommandToStarterMode = map[string]common.Mode{
@@ -34,26 +41,31 @@ var subcommandToStarterMode = map[string]common.Mode{
 }
 
 func main() {
-	ctx := kong.Parse(&cli)
+	cli := CLI{}
+	ctx := kong.Parse(&cli,
+		kong.Name("tetrigo"),
+		kong.Description("A tetris TUI written in Go"),
+		kong.UsageOnError(),
+	)
 
 	starterMode, ok := subcommandToStarterMode[ctx.Command()]
 	if !ok {
 		fmt.Printf("Invalid command: %s\n", ctx.Command())
 	}
 
-	db, err := data.NewDB("data.db")
+	db, err := data.NewDB(cli.DSN)
 	if err != nil {
 		log.Printf("error opening database: %v", err)
 		os.Exit(1)
 	}
 
-	cfg, err := config.GetConfig("config.toml")
+	cfg, err := config.GetConfig(cli.Config)
 	if err != nil {
 		log.Printf("error getting config: %v", err)
 		os.Exit(1)
 	}
 
-	switchIn, err := getSwitchModeInput(starterMode)
+	switchIn, err := cli.getSwitchModeInput(starterMode)
 	if err != nil {
 		log.Printf("error getting switch mode input: %v", err)
 		os.Exit(1)
@@ -73,7 +85,7 @@ func main() {
 	}
 }
 
-func getSwitchModeInput(starterMode common.Mode) (common.SwitchModeInput, error) {
+func (cli CLI) getSwitchModeInput(starterMode common.Mode) (common.SwitchModeInput, error) {
 	switch starterMode {
 	case common.MODE_MENU:
 		return common.NewMenuInput(), nil
