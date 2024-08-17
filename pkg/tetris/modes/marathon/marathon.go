@@ -20,7 +20,7 @@ type Game struct {
 	fall             *tetris.Fall      // The system for calculating the fall speed
 }
 
-func NewGame(level, maxLevel uint, gameEnds bool, ghostEnabled bool) (*Game, error) {
+func NewGame(level, maxLevel uint, endOnMaxLevel bool, ghostEnabled bool) (*Game, error) {
 	matrix, err := tetris.NewMatrix(40, 10)
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func NewGame(level, maxLevel uint, gameEnds bool, ghostEnabled bool) (*Game, err
 		holdQueue:        tetris.GetEmptyTetrimino(),
 		gameOver:         false,
 		softDropStartRow: matrix.GetHeight(),
-		scoring:          tetris.NewScoring(level, maxLevel, gameEnds),
+		scoring:          tetris.NewScoring(level, maxLevel, endOnMaxLevel),
 		fall:             tetris.NewFall(level),
 	}
 

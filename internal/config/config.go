@@ -13,7 +13,7 @@ type Config struct {
 	GhostEnabled    bool   // Whether a ghost piece will be displayed beneath the current tetrimino
 	LockDownMode    string // TODO: What mode to use when locking down a tetrimino. Choices are Extended (default), Infinite, or Classic
 	MaxLevel        uint   // The maximum level to reach before the game ends or the level stops increasing . 0+ (0 = no max level)
-	GameEnds        bool   // Whether the game ends when the max level is reached
+	EndOnMaxLevel   bool   // Whether the game ends when the max level is reached
 
 	// The styling for the game in all modes
 	Theme Theme
@@ -47,7 +47,7 @@ func GetConfig(path string) (*Config, error) {
 	c.GhostEnabled = true
 	c.LockDownMode = "Extended"
 	c.MaxLevel = 15
-	c.GameEnds = false
+	c.EndOnMaxLevel = false
 
 	c.Theme.Colours.TetriminoCells.I = "#64C4EB"
 	c.Theme.Colours.TetriminoCells.O = "#F1D448"
