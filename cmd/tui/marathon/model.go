@@ -235,6 +235,7 @@ func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 		if msg.ID != m.fallStopwatch.ID() {
 			break
 		}
+		m.fallStopwatch.Interval = m.game.GetDefaultFallInterval()
 		gameOver, err := m.game.TickLower()
 		if err != nil {
 			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))

@@ -101,9 +101,12 @@ func (m *Matrix) modifyCell(minos [][]bool, pos Coordinate, newValue byte, isExp
 
 				minoValue := (*m)[minoAbsRow][minoAbsCol]
 				if !isExpectedValue(minoValue) {
-					err := fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected value",
-						minoAbsRow, minoAbsCol, string(minoValue), minoValue)
-					return errors.Join(err, ErrUnexpectedMatrixCellValue)
+					// TODO: Perhaps there is a better way to do this:
+					// Add in ghost minos is an exception. Occasionally the ghost mino will be placed on top of a mino (eg. when playing at the skyline).
+					if newValue != 'G' {
+						return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected value",
+							minoAbsRow, minoAbsCol, string(minoValue), minoValue)
+					}
 				}
 				(*m)[minoAbsRow][minoAbsCol] = newValue
 			}

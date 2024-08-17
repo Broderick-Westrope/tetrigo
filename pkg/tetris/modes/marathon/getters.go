@@ -1,7 +1,6 @@
 package marathon
 
 import (
-	"errors"
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
@@ -16,7 +15,7 @@ func (g *Game) GetVisibleMatrix() (tetris.Matrix, error) {
 
 	if g.ghostTet != nil {
 		err := matrix.AddTetrimino(g.ghostTet)
-		if err != nil && !errors.Is(err, tetris.ErrUnexpectedMatrixCellValue) {
+		if err != nil {
 			return nil, err
 		}
 	}
