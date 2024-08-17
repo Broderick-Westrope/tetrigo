@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/cmd/tui/helpers"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/helpers"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"

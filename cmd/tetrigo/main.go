@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Broderick-Westrope/tetrigo/cmd/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/cmd/tui/starter"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
+	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/starter"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/alecthomas/kong"
