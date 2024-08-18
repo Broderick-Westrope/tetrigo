@@ -1,6 +1,7 @@
 package marathon
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -42,35 +43,22 @@ func NewGame(level, maxLevel uint, endOnMaxLevel bool, ghostEnabled bool) (*Game
 		g.ghostTet = g.tetInPlay
 	}
 
-	gameOver, err := g.setupNewTetInPlay()
-	if err != nil {
-		return nil, err
-	}
+	gameOver := g.setupNewTetInPlay()
 	if gameOver {
-		return nil, fmt.Errorf("game over before it began")
+		return nil, errors.New("game over before it began")
 	}
 
 	return g, nil
 }
 
-func (g *Game) MoveLeft() error {
+func (g *Game) MoveLeft() {
 	_ = g.tetInPlay.MoveLeft(g.matrix)
-
-	err := g.updateGhost()
-	if err != nil {
-		return fmt.Errorf("failed to update ghost: %w", err)
-	}
-	return nil
+	g.updateGhost()
 }
 
-func (g *Game) MoveRight() error {
+func (g *Game) MoveRight() {
 	_ = g.tetInPlay.MoveRight(g.matrix)
-
-	err := g.updateGhost()
-	if err != nil {
-		return fmt.Errorf("failed to update ghost: %w", err)
-	}
-	return nil
+	g.updateGhost()
 }
 
 func (g *Game) Rotate(clockwise bool) error {
@@ -79,15 +67,13 @@ func (g *Game) Rotate(clockwise bool) error {
 		return err
 	}
 
-	err = g.updateGhost()
-	if err != nil {
-		return fmt.Errorf("failed to update ghost: %w", err)
-	}
+	g.updateGhost()
 	return nil
 }
 
 // Hold will swap the current Tetrimino with the hold Tetrimino.
-// If the hold Tetrimino is empty, the current Tetrimino is placed in the hold slot and the setupNewTetInPlay Tetrimino is drawn.
+// If the hold Tetrimino is empty, the current Tetrimino is placed in the hold slot and
+// the setupNewTetInPlay Tetrimino is drawn.
 // If not allowed to hold, no action is taken.
 // If true is returned the game is over.
 func (g *Game) Hold() (bool, error) {
@@ -104,10 +90,7 @@ func (g *Game) Hold() (bool, error) {
 	}
 
 	// Add it to the board
-	gameOver, err := g.setupNewTetInPlay()
-	if err != nil {
-		return false, err
-	}
+	gameOver := g.setupNewTetInPlay()
 	if gameOver {
 		return true, nil
 	}
@@ -124,7 +107,8 @@ func (g *Game) Hold() (bool, error) {
 	return false, nil
 }
 
-// TickLower moves the current Tetrimino down one row. This should be triggered at a regular interval calculated using Fall.
+// TickLower moves the current Tetrimino down one row.
+// This should be triggered at a regular interval calculated using Fall.
 // If the Tetrimino cannot move down, it is locked in place and true is returned.
 // Game Over is updated if needed.
 func (g *Game) TickLower() (bool, error) {
@@ -147,11 +131,7 @@ func (g *Game) TickLower() (bool, error) {
 	}
 
 	g.tetInPlay = g.nextQueue.Next()
-	gameOver, err := g.setupNewTetInPlay()
-	if err != nil {
-		panic(fmt.Errorf("failed to get setupNewTetInPlay tetrimino (tick): %w", err))
-	}
-
+	gameOver := g.setupNewTetInPlay()
 	if gameOver {
 		g.gameOver = gameOver
 	}
@@ -160,8 +140,10 @@ func (g *Game) TickLower() (bool, error) {
 }
 
 // lowerTetInPlay moves the current Tetrimino down one row if possible.
-// If it cannot be moved down this will instead remove completed lines, calculate scores & fall speed and return true (representing a Lock Down).
-// If the max score is reached and the game is configured to end on max level, the Game.gameOver value will be set to true.
+// If it cannot be moved down this will instead remove completed lines, calculate scores and
+// fall speed and return true (representing a Lock Down).
+// If the max score is reached and the game is configured to end on max level,
+// the Game.gameOver value will be set to true.
 func (g *Game) lowerTetInPlay() (bool, error) {
 	if g.tetInPlay.MoveDown(g.matrix) {
 		return false, nil
@@ -177,7 +159,10 @@ func (g *Game) lowerTetInPlay() (bool, error) {
 		return false, fmt.Errorf("invalid action received %q", action.String())
 	}
 
-	gameOver := g.scoring.ProcessAction(action)
+	gameOver, err := g.scoring.ProcessAction(action)
+	if err != nil {
+		return false, fmt.Errorf("failed to process action: %w", err)
+	}
 	if gameOver {
 		g.gameOver = true
 	}
@@ -194,18 +179,18 @@ func (g *Game) lowerTetInPlay() (bool, error) {
 //   - Set Game.canHold to true.
 //
 // It does not modify Game.tetInPlay. If true is returned the game is over.
-func (g *Game) setupNewTetInPlay() (bool, error) {
+func (g *Game) setupNewTetInPlay() bool {
 	// Block Out
 	if g.tetInPlay.IsOverlapping(g.matrix) {
 		g.gameOver = true
-		return true, nil
+		return true
 	}
 
 	if !g.tetInPlay.MoveDown(g.matrix) {
 		// Lock Out
 		if g.tetInPlay.IsAboveSkyline(g.matrix.GetSkyline()) {
 			g.gameOver = true
-			return true, nil
+			return true
 		}
 	}
 
@@ -215,12 +200,8 @@ func (g *Game) setupNewTetInPlay() (bool, error) {
 		g.softDropStartRow = g.tetInPlay.Pos.Y
 	}
 
-	err := g.updateGhost()
-	if err != nil {
-		return false, fmt.Errorf("failed to update ghost: %w", err)
-	}
-
-	return false, nil
+	g.updateGhost()
+	return false
 }
 
 func (g *Game) HardDrop() (bool, error) {
@@ -243,9 +224,9 @@ func (g *Game) HardDrop() (bool, error) {
 	g.scoring.AddHardDrop(uint(linesCleared))
 
 	g.tetInPlay = g.nextQueue.Next()
-	gameOver, err := g.setupNewTetInPlay()
-	if err != nil {
-		return gameOver, fmt.Errorf("failed to get setupNewTetInPlay tetrimino (hard drop): %w", err)
+	gameOver := g.setupNewTetInPlay()
+	if gameOver {
+		g.gameOver = gameOver
 	}
 
 	return gameOver, nil
@@ -268,9 +249,9 @@ func (g *Game) ToggleSoftDrop() time.Duration {
 	return g.fall.DefaultInterval
 }
 
-func (g *Game) updateGhost() error {
+func (g *Game) updateGhost() {
 	if g.ghostTet == nil {
-		return nil
+		return
 	}
 
 	g.ghostTet = g.tetInPlay.DeepCopy()
@@ -281,6 +262,4 @@ func (g *Game) updateGhost() error {
 			break
 		}
 	}
-
-	return nil
 }

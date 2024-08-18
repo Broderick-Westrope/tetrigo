@@ -35,9 +35,9 @@ type LeaderboardCmd struct {
 }
 
 var subcommandToStarterMode = map[string]common.Mode{
-	"menu":        common.MODE_MENU,
-	"marathon":    common.MODE_MARATHON,
-	"leaderboard": common.MODE_LEADERBOARD,
+	"menu":        common.ModeMenu,
+	"marathon":    common.ModeMarathon,
+	"leaderboard": common.ModeLeaderboard,
 }
 
 func main() {
@@ -50,7 +50,7 @@ func main() {
 
 	starterMode, ok := subcommandToStarterMode[ctx.Command()]
 	if !ok {
-		fmt.Printf("Invalid command: %s\n", ctx.Command())
+		log.Printf("Invalid command: %s\n", ctx.Command())
 	}
 
 	db, err := data.NewDB(cli.DB)
@@ -80,18 +80,18 @@ func main() {
 	}
 
 	if _, err = tea.NewProgram(model, tea.WithAltScreen()).Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
+		log.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	}
 }
 
 func (cli CLI) getSwitchModeInput(starterMode common.Mode) (common.SwitchModeInput, error) {
 	switch starterMode {
-	case common.MODE_MENU:
+	case common.ModeMenu:
 		return common.NewMenuInput(), nil
-	case common.MODE_MARATHON:
+	case common.ModeMarathon:
 		return common.NewMarathonInput(cli.Marathon.Level, cli.Marathon.Name), nil
-	case common.MODE_LEADERBOARD:
+	case common.ModeLeaderboard:
 		return common.NewLeaderboardInput(cli.Leaderboard.GameMode), nil
 	default:
 		return nil, fmt.Errorf("invalid starter mode: %v", starterMode)

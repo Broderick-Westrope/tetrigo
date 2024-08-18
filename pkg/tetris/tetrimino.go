@@ -8,12 +8,13 @@ import (
 
 // A Tetrimino is a geometric Tetris shape formed by four Minos connected along their sides.
 type Tetrimino struct {
-	Value byte       // The value of the Tetrimino. This is the character that will be used to represent the Tetrimino in the matrix.
+	// The value of the Tetrimino. This is the character that will be used to represent the Tetrimino in the matrix.
+	Value byte
 	Minos [][]bool   // A 2D slice of cells that make up the Tetrimino. True means the mino is occupied by a Mino.
 	Pos   Coordinate // The top left mino of the Tetrimino. Used as a reference point for movement and rotation.
 
 	CompassDirection int // The index of the current rotation in the RotationCompass (ie. North, South, East, West).
-	RotationCompass  rotationCompass
+	RotationCompass  RotationCompass
 }
 
 // Coordinate represents a point on a 2D plane.
@@ -21,20 +22,22 @@ type Coordinate struct {
 	X, Y int
 }
 
-// A rotatationCompass contains a rotationSet corresponding to each of the four compass directions in the order N, E, S, W.
+// A RotationCompass contains a RotationSet corresponding to each of the four
+// compass directions in the order N, E, S, W.
 // These compass directions represent the four rotations of a Tetrimino.
-type rotationCompass [4]rotationSet
+type RotationCompass [4]RotationSet
 
-// A rotationSet contains coordinates to be used for a single rotation/compass direction.
+// A RotationSet contains coordinates to be used for a single rotation/compass direction.
 // If the first coordinate cannot be used the next will be attempted.
 // This continues until there are no more coordinates to fall back on (in which case rotation is not possible).
 // This is part of the Super Rotation System (SRS).
-type rotationSet []*Coordinate
+type RotationSet []*Coordinate
 
 // RotationCompasses is a map of Tetrimino values to the coordinates used for rotation.
 // Each slice should contain a coordinate for north, east, south, and west in that order.
-// These are added to (clockwise) or subtracted from (counter-clockwise) the Tetrimino's position when rotating to ensure it rotates around the correct axis.
-var RotationCompasses = map[byte]rotationCompass{
+// These are added to (clockwise) or subtracted from (counter-clockwise) the Tetrimino's
+// position when rotating to ensure it rotates around the correct axis.
+var RotationCompasses = map[byte]RotationCompass{
 	'I': {
 		{ // North
 			{X: -1, Y: 1}, {X: 0, Y: 1}, {X: -3, Y: 1}, {X: 0, Y: 3}, {X: -3, Y: 0},
@@ -154,7 +157,8 @@ var validTetriminos = map[byte]Tetrimino{
 	},
 }
 
-// GetValidTetriminos returns a slice containing all seven valid Tetriminos (I, O, T, S, Z, J, L)
+// GetValidTetriminos returns a slice containing all seven
+// valid Tetriminos (I, O, T, S, Z, J, L).
 func GetValidTetriminos() []Tetrimino {
 	result := make([]Tetrimino, 0, len(validTetriminos))
 	for _, t := range validTetriminos {
@@ -335,15 +339,16 @@ func (t *Tetrimino) transpose() {
 	for i := range result {
 		result[i] = make([]bool, yl)
 	}
-	for i := 0; i < xl; i++ {
-		for j := 0; j < yl; j++ {
+	for i := range xl {
+		for j := range yl {
 			result[i][j] = t.Minos[j][i]
 		}
 	}
 	t.Minos = result
 }
 
-// isValid returns true if the given Tetrimino is within the bounds of the matrix and does not overlap with any occupied cells.
+// isValid returns true if the given Tetrimino is within the bounds of the matrix and
+// does not overlap with any occupied cells.
 // The Tetrimino being checked should not be in the Matrix yet.
 func (t *Tetrimino) isValid(matrix Matrix) bool {
 	for row := range t.Minos {
@@ -387,14 +392,14 @@ func (t *Tetrimino) DeepCopy() *Tetrimino {
 		cells = deepCopyMinos(t.Minos)
 	}
 
-	var compass rotationCompass
+	var compass RotationCompass
 	for i := range t.RotationCompass {
 		if t.RotationCompass[i] == nil {
 			compass[i] = nil
 			continue
 		}
 
-		compass[i] = make(rotationSet, len(t.RotationCompass[i]))
+		compass[i] = make(RotationSet, len(t.RotationCompass[i]))
 		for j := range t.RotationCompass[i] {
 			compass[i][j] = &Coordinate{
 				X: t.RotationCompass[i][j].X,
@@ -429,7 +434,8 @@ func (t *Tetrimino) IsAboveSkyline(skyline int) bool {
 }
 
 // IsOverlapping checks whether the Tetrimino would be overlapping with an occupied Mino if it were on the Matrix.
-// The Tetrmino should not yet be added to the Matrix, otherwise this will always return true as a Tetrimino is always overlapping with itself.
+// The Tetrmino should not yet be added to the Matrix, otherwise this will always return
+// true as a Tetrimino is always overlapping with itself.
 func (t *Tetrimino) IsOverlapping(matrix Matrix) bool {
 	for col := range t.Minos[0] {
 		for row := range t.Minos {

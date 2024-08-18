@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_NewMatrix(t *testing.T) {
@@ -37,7 +38,7 @@ func Test_NewMatrix(t *testing.T) {
 				assert.EqualError(t, tc.wantErr, err.Error())
 				return
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tc.want, got)
 		})
 	}
@@ -126,56 +127,56 @@ func TestMatrix_RemoveCompletedLines(t *testing.T) {
 			matrix:     Matrix{{0}, {'X'}},
 			posY:       0,
 			cells:      [][]bool{{}},
-			wantAction: Actions.NONE,
+			wantAction: Actions.None,
 			wantMatrix: Matrix{{0}, {'X'}},
 		},
 		"single; tet height 1": {
 			matrix:     Matrix{{0}, {'X'}},
 			posY:       1,
 			cells:      [][]bool{{}},
-			wantAction: Actions.SINGLE,
+			wantAction: Actions.Single,
 			wantMatrix: Matrix{{0}, {0}},
 		},
 		"single; tet height 2": {
 			matrix:     Matrix{{0}, {'X'}},
 			posY:       0,
 			cells:      [][]bool{{}, {}},
-			wantAction: Actions.SINGLE,
+			wantAction: Actions.Single,
 			wantMatrix: Matrix{{0}, {0}},
 		},
 		"double; tet height 2": {
 			matrix:     Matrix{{0}, {'X'}, {'X'}},
 			posY:       1,
 			cells:      [][]bool{{}, {}},
-			wantAction: Actions.DOUBLE,
+			wantAction: Actions.Double,
 			wantMatrix: Matrix{{0}, {0}, {0}},
 		},
 		"double; tet height 4": {
 			matrix:     Matrix{{0}, {0}, {'X'}, {'X'}},
 			posY:       0,
 			cells:      [][]bool{{}, {}, {}, {}},
-			wantAction: Actions.DOUBLE,
+			wantAction: Actions.Double,
 			wantMatrix: Matrix{{0}, {0}, {0}, {0}},
 		},
 		"triple; tet height 3": {
 			matrix:     Matrix{{'X'}, {'X'}, {'X'}},
 			posY:       0,
 			cells:      [][]bool{{}, {}, {}},
-			wantAction: Actions.TRIPLE,
+			wantAction: Actions.Triple,
 			wantMatrix: Matrix{{0}, {0}, {0}},
 		},
 		"tetris; tet height 4": {
 			matrix:     Matrix{{'X'}, {'X'}, {'X'}, {'X'}},
 			posY:       0,
 			cells:      [][]bool{{}, {}, {}, {}},
-			wantAction: Actions.TETRIS,
+			wantAction: Actions.Tetris,
 			wantMatrix: Matrix{{0}, {0}, {0}, {0}},
 		},
 		"unknown; tet height 5": {
 			matrix:     Matrix{{'X'}, {'X'}, {'X'}, {'X'}, {'X'}},
 			posY:       0,
 			cells:      [][]bool{{}, {}, {}, {}, {}},
-			wantAction: Actions.UNKNOWN,
+			wantAction: Actions.Unknown,
 			wantMatrix: Matrix{{0}, {0}, {0}, {0}, {0}},
 		},
 	}
@@ -219,7 +220,7 @@ func TestMatrix_isOutOfBoundsHorizontally(t *testing.T) {
 			m := DefaultMatrix()
 			result := m.isOutOfBoundsHorizontally(tc.col)
 
-			assert.EqualValues(t, result, tc.want)
+			assert.EqualValues(t, tc.want, result)
 		})
 	}
 }
@@ -375,7 +376,7 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
 		})
 	}
@@ -451,7 +452,7 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 				return
 			}
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
 		})
 	}

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TODO: tests to add:
@@ -348,7 +349,7 @@ func TestTetrimino_Rotate(t *testing.T) {
 				},
 				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 0,
-				RotationCompass:  rotationCompass{},
+				RotationCompass:  RotationCompass{},
 			},
 			wantTet: &Tetrimino{
 				Value: 'I',
@@ -357,7 +358,7 @@ func TestTetrimino_Rotate(t *testing.T) {
 				},
 				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 0,
-				RotationCompass:  rotationCompass{},
+				RotationCompass:  RotationCompass{},
 			},
 		},
 		"failure - no valid rotation; counter clockwise": {
@@ -375,7 +376,7 @@ func TestTetrimino_Rotate(t *testing.T) {
 				},
 				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 0,
-				RotationCompass:  rotationCompass{},
+				RotationCompass:  RotationCompass{},
 			},
 			wantTet: &Tetrimino{
 				Value: 'I',
@@ -384,7 +385,7 @@ func TestTetrimino_Rotate(t *testing.T) {
 				},
 				Pos:              Coordinate{X: 0, Y: 1},
 				CompassDirection: 0,
-				RotationCompass:  rotationCompass{},
+				RotationCompass:  RotationCompass{},
 			},
 		},
 	}
@@ -393,7 +394,7 @@ func TestTetrimino_Rotate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			err := tc.tet.Rotate(tc.matrix, tc.clockwise)
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.EqualValues(t, tc.wantTet, tc.tet)
 		})
 	}
@@ -1352,7 +1353,7 @@ func TestTetrimino_rotateClockwise(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result, err := tc.tet.rotateClockwise(tc.matrix)
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			if tc.wantTet != nil {
 				assert.EqualValues(t, tc.wantTet, tc.tet)
 				assert.True(t, result)
@@ -1709,7 +1710,7 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result, err := tc.tet.rotateCounterClockwise(tc.matrix)
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.True(t, result)
 			assert.EqualValues(t, tc.wantTet, tc.tet)
 		})
@@ -1847,7 +1848,7 @@ func TestTetrimino_isValid(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result := tc.tet.isValid(tc.matrix)
 
-			assert.EqualValues(t, result, tc.want)
+			assert.EqualValues(t, tc.want, result)
 		})
 	}
 }
@@ -1889,10 +1890,10 @@ func Test_positiveMod(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result, err := positiveMod(tc.dividend, tc.divisor)
 			if tc.wantErr != nil {
-				assert.EqualError(t, err, tc.wantErr.Error())
+				require.EqualError(t, err, tc.wantErr.Error())
 				assert.Equal(t, tc.want, result)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
 		})
 	}
@@ -1936,7 +1937,7 @@ func TestTetrimino_DeepCopy(t *testing.T) {
 		Minos:            [][]bool{{false}},
 		Pos:              Coordinate{0, 0},
 		CompassDirection: 0,
-		RotationCompass: rotationCompass{
+		RotationCompass: RotationCompass{
 			{&Coordinate{0, 0}},
 		},
 	}
@@ -1947,7 +1948,7 @@ func TestTetrimino_DeepCopy(t *testing.T) {
 		Minos:            [][]bool{{false}},
 		Pos:              Coordinate{0, 0},
 		CompassDirection: 0,
-		RotationCompass:  rotationCompass{{&Coordinate{0, 0}}},
+		RotationCompass:  RotationCompass{{&Coordinate{0, 0}}},
 	}
 
 	// Create a (dereferences) copy with the helper function

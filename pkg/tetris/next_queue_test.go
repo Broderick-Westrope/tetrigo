@@ -136,7 +136,7 @@ func TestNextQueue_Fill(t *testing.T) {
 				startLine: 40,
 			}
 
-			for i := 0; i < tc.timesToFill; i++ {
+			for range tc.timesToFill {
 				nq.fill()
 			}
 

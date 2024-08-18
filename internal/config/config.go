@@ -9,14 +9,26 @@ import (
 )
 
 type Config struct {
-	NextQueueLength int    // The number of tetriminos to display in the Next Queue. 0-7
-	GhostEnabled    bool   // Whether a ghost piece will be displayed beneath the current tetrimino
-	LockDownMode    string // TODO: What mode to use when locking down a tetrimino. Choices are Extended (default), Infinite, or Classic
-	MaxLevel        uint   // The maximum level to reach before the game ends or the level stops increasing . 0+ (0 = no max level)
-	EndOnMaxLevel   bool   // Whether the game ends when the max level is reached
+	// The number of tetriminos to display in the Next Queue.
+	NextQueueLength int `toml:"next_queue_length"`
 
-	Theme *Theme // The styling for the game in all modes
-	Keys  *Keys  // The keybindings for the game
+	// Whether a ghost piece will be displayed beneath the current tetrimino.
+	GhostEnabled bool `toml:"ghost_enabled"`
+
+	// TODO: What mode to use when locking down a tetrimino.
+	LockDownMode string `toml:"lock_down_mode"`
+
+	// The maximum level to reach before the game ends or the level stops increasing.
+	MaxLevel uint `toml:"max_level"`
+
+	// Whether the game ends when the max level is reached.
+	EndOnMaxLevel bool `toml:"end_on_max_level"`
+
+	// The styling for the game in all modes
+	Theme *Theme `toml:"theme"`
+
+	// The keybindings for the game
+	Keys *Keys `toml:"keys"`
 }
 
 func GetConfig(path string) (*Config, error) {

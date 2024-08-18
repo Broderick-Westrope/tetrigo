@@ -26,34 +26,37 @@ const (
 
 var (
 	actionToStrMap = map[action]string{
-		actionNone:            "NONE",
-		actionSingle:          "SINGLE",
-		actionDouble:          "DOUBLE",
-		actionTriple:          "TRIPLE",
-		actionTetris:          "TETRIS",
-		actionMiniTSpin:       "MINI_T_SPIN",
-		actionMiniTSpinSingle: "MINI_T_SPIN_SINGLE",
-		actionTSpin:           "T_SPIN",
-		actionTSpinSingle:     "T_SPIN_SINGLE",
-		actionTSpinDouble:     "T_SPIN_DOUBLE",
-		actionTSpinTriple:     "T_SPIN_TRIPLE",
+		actionUnknown:         "Unknown",
+		actionNone:            "None",
+		actionSingle:          "Single",
+		actionDouble:          "Double",
+		actionTriple:          "Triple",
+		actionTetris:          "Tetris",
+		actionMiniTSpin:       "MiniTSpin",
+		actionMiniTSpinSingle: "MiniTSpinSingle",
+		actionTSpin:           "TSpin",
+		actionTSpinSingle:     "TSpinSingle",
+		actionTSpinDouble:     "TSpinDouble",
+		actionTSpinTriple:     "TSpinTriple",
 	}
 
 	strToActionMap = map[string]action{
-		"NONE":               actionNone,
-		"SINGLE":             actionSingle,
-		"DOUBLE":             actionDouble,
-		"TRIPLE":             actionTriple,
-		"TETRIS":             actionTetris,
-		"MINI_T_SPIN":        actionMiniTSpin,
-		"MINI_T_SPIN_SINGLE": actionMiniTSpinSingle,
-		"T_SPIN":             actionTSpin,
-		"T_SPIN_SINGLE":      actionTSpinSingle,
-		"T_SPIN_DOUBLE":      actionTSpinDouble,
-		"T_SPIN_TRIPLE":      actionTSpinTriple,
+		"Unknown":         actionUnknown,
+		"None":            actionNone,
+		"Single":          actionSingle,
+		"Double":          actionDouble,
+		"Triple":          actionTriple,
+		"Tetris":          actionTetris,
+		"MiniTSpin":       actionMiniTSpin,
+		"MiniTSpinSingle": actionMiniTSpinSingle,
+		"TSpin":           actionTSpin,
+		"TSpinSingle":     actionTSpinSingle,
+		"TSpinDouble":     actionTSpinDouble,
+		"TSpinTriple":     actionTSpinTriple,
 	}
 
 	actionToPointsMap = map[action]int{
+		actionUnknown:         0,
 		actionNone:            0,
 		actionSingle:          100,
 		actionDouble:          300,
@@ -68,14 +71,15 @@ var (
 	}
 )
 
-// String returns the string representation of the Action
+// String returns the string representation of the Action.
 func (a action) String() string {
 	return actionToStrMap[a]
 }
 
 // ParseAction attempts to parse the given value into Action.
 // It supports string, fmt.Stringer, int, int64, and int32.
-// If the value is not a valid Action or the value is not a supported type, it will return the enums unknown value (unknownAction).
+// If the value is not a valid Action or the value is not a supported type, it will
+// return the enums unknown value (unknownAction).
 func ParseAction(a any) Action {
 	switch v := a.(type) {
 	case Action:
@@ -109,51 +113,56 @@ func (a action) GetPoints() int {
 	return actionToPointsMap[a]
 }
 
-func (a action) EndsBackToBack() bool {
+func (a action) EndsBackToBack() (bool, error) {
 	switch a {
 	case actionSingle, actionDouble, actionTriple:
-		return true
+		return true, nil
+	case actionUnknown, actionNone, actionTetris, actionMiniTSpin, actionMiniTSpinSingle,
+		actionTSpin, actionTSpinSingle, actionTSpinDouble, actionTSpinTriple:
+		return false, nil
 	default:
-		return false
+		return false, fmt.Errorf("unknown action: %v", a)
 	}
 }
 
-func (a action) StartsBackToBack() bool {
+func (a action) StartsBackToBack() (bool, error) {
 	switch a {
 	case actionTetris, actionMiniTSpinSingle, actionTSpinSingle, actionTSpinDouble, actionTSpinTriple:
-		return true
+		return true, nil
+	case actionUnknown, actionNone, actionSingle, actionDouble, actionTriple, actionMiniTSpin, actionTSpin:
+		return false, nil
 	default:
-		return false
+		return false, fmt.Errorf("unknown action: %v", a)
 	}
 }
 
 type ActionContainer struct {
-	UNKNOWN            Action
-	NONE               Action
-	SINGLE             Action
-	DOUBLE             Action
-	TRIPLE             Action
-	TETRIS             Action
-	MINI_T_SPIN        Action
-	MINI_T_SPIN_SINGLE Action
-	T_SPIN             Action
-	T_SPIN_SINGLE      Action
-	T_SPIN_DOUBLE      Action
-	T_SPIN_TRIPLE      Action
+	Unknown         Action
+	None            Action
+	Single          Action
+	Double          Action
+	Triple          Action
+	Tetris          Action
+	MiniTSpin       Action
+	MiniTSpinSingle Action
+	TSpin           Action
+	TSpinSingle     Action
+	TSpinDouble     Action
+	TSpinTriple     Action
 }
 
 // Actions is a global instance of ActionContainer that contains all possible values of type Action.
 var Actions = ActionContainer{
-	UNKNOWN:            Action{actionUnknown},
-	NONE:               Action{actionNone},
-	SINGLE:             Action{actionSingle},
-	DOUBLE:             Action{actionDouble},
-	TRIPLE:             Action{actionTriple},
-	TETRIS:             Action{actionTetris},
-	MINI_T_SPIN:        Action{actionMiniTSpin},
-	MINI_T_SPIN_SINGLE: Action{actionMiniTSpinSingle},
-	T_SPIN:             Action{actionTSpin},
-	T_SPIN_SINGLE:      Action{actionTSpinSingle},
-	T_SPIN_DOUBLE:      Action{actionTSpinDouble},
-	T_SPIN_TRIPLE:      Action{actionTSpinTriple},
+	Unknown:         Action{actionUnknown},
+	None:            Action{actionNone},
+	Single:          Action{actionSingle},
+	Double:          Action{actionDouble},
+	Triple:          Action{actionTriple},
+	Tetris:          Action{actionTetris},
+	MiniTSpin:       Action{actionMiniTSpin},
+	MiniTSpinSingle: Action{actionMiniTSpinSingle},
+	TSpin:           Action{actionTSpin},
+	TSpinSingle:     Action{actionTSpinSingle},
+	TSpinDouble:     Action{actionTSpinDouble},
+	TSpinTriple:     Action{actionTSpinTriple},
 }

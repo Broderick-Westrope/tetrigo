@@ -23,13 +23,13 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB) (Model, error) {
 	repo := data.NewLeaderboardRepository(db)
 
 	var err error
-	newEntryId := 0
+	newEntryID := 0
 	if in.NewEntry != nil {
 		if in.NewEntry.Name == "" {
 			in.NewEntry.Name = "Anonymous"
 		}
 
-		newEntryId, err = repo.Save(in.NewEntry)
+		newEntryID, err = repo.Save(in.NewEntry)
 		if err != nil {
 			return Model{}, err
 		}
@@ -43,7 +43,7 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB) (Model, error) {
 	return Model{
 		keys:  defaultKeyMap(),
 		repo:  repo,
-		table: getLeaderboardTable(scores, newEntryId),
+		table: getLeaderboardTable(scores, newEntryID),
 	}, nil
 }
 
@@ -52,10 +52,8 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.keys.Exit):
+	if msg, ok := msg.(tea.KeyMsg); ok {
+		if key.Matches(msg, m.keys.Exit) {
 			return m, tea.Quit
 		}
 	}
@@ -69,7 +67,7 @@ func (m Model) View() string {
 	return m.table.View() + "\n"
 }
 
-func getLeaderboardTable(scores []data.Score, focusId int) table.Model {
+func getLeaderboardTable(scores []data.Score, focusID int) table.Model {
 	cols := []table.Column{
 		{Title: "Rank", Width: 4},
 		{Title: "Name", Width: 10},
@@ -82,7 +80,7 @@ func getLeaderboardTable(scores []data.Score, focusId int) table.Model {
 	focusIndex := 0
 	rows := make([]table.Row, len(scores))
 	for i, s := range scores {
-		if s.ID == focusId {
+		if s.ID == focusID {
 			focusIndex = i
 		}
 

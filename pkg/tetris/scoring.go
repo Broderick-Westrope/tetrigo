@@ -37,21 +37,26 @@ func (s *Scoring) AddHardDrop(lines uint) {
 	s.total += lines * 2
 }
 
-func (s *Scoring) ProcessAction(a Action) bool {
-	if a == Actions.NONE {
-		return s.isGameOver()
+func (s *Scoring) ProcessAction(a Action) (bool, error) {
+	if a == Actions.None {
+		return s.isGameOver(), nil
 	}
 
 	points := float64(a.GetPoints())
 
+	var err error
+	var result bool
 	backToBack := 0.0
-	if a.EndsBackToBack() {
+	if result, err = a.EndsBackToBack(); result {
 		s.backToBack = false
-	} else if a.StartsBackToBack() {
+	} else if result, err = a.StartsBackToBack(); result {
 		if s.backToBack {
 			backToBack = points * 0.5
 		}
 		s.backToBack = true
+	}
+	if err != nil {
+		return s.isGameOver(), err
 	}
 
 	s.total += uint(points+backToBack) * s.level
@@ -61,11 +66,11 @@ func (s *Scoring) ProcessAction(a Action) bool {
 		s.level++
 		if s.maxLevel > 0 && s.level >= s.maxLevel {
 			s.level = s.maxLevel
-			return s.isGameOver()
+			return s.isGameOver(), nil
 		}
 	}
 
-	return s.isGameOver()
+	return s.isGameOver(), nil
 }
 
 func (s *Scoring) isGameOver() bool {

@@ -3,22 +3,22 @@ package config
 type Theme struct {
 	Colours struct {
 		TetriminoCells struct {
-			I string
-			O string
-			T string
-			S string
-			Z string
-			J string
-			L string
-		}
-		EmptyCell string
-		GhostCell string
-	}
+			I string `toml:"I"`
+			O string `toml:"O"`
+			T string `toml:"T"`
+			S string `toml:"S"`
+			Z string `toml:"Z"`
+			J string `toml:"J"`
+			L string `toml:"L"`
+		} `toml:"tetrimino_cells"`
+		EmptyCell string `toml:"empty_cell"`
+		GhostCell string `toml:"ghost_cell"`
+	} `toml:"colours"`
 	Characters struct {
-		Tetriminos string
-		EmptyCell  string
-		GhostCell  string
-	}
+		Tetriminos string `toml:"tetriminos"`
+		EmptyCell  string `toml:"empty_cell"`
+		GhostCell  string `toml:"ghost_cell"`
+	} `toml:"characters"`
 }
 
 func defaultTheme() *Theme {

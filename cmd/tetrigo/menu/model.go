@@ -26,7 +26,6 @@ var _ tea.Model = Model{}
 type Model struct {
 	items    []item
 	selected int
-	game     tea.Model
 
 	keys   *keyMap
 	styles *styles
@@ -65,8 +64,7 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
 			return m, tea.Quit
@@ -169,7 +167,7 @@ func (m Model) startGame() (tea.Cmd, error) {
 	switch mode {
 	case "Marathon":
 		in := common.NewMarathonInput(level, playerName)
-		return common.SwitchModeCmd(common.MODE_MARATHON, in), nil
+		return common.SwitchModeCmd(common.ModeMarathon, in), nil
 	default:
 		return nil, fmt.Errorf("invalid mode: %q", mode)
 	}

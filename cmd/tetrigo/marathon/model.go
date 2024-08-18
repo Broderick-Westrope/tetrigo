@@ -132,10 +132,8 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 }
 
 func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.keys.Exit, m.keys.Hold):
+	if msg, ok := msg.(tea.KeyMsg); ok {
+		if key.Matches(msg, m.keys.Exit, m.keys.Hold) {
 			newEntry := &data.Score{
 				GameMode: "marathon",
 				Name:     m.playerName,
@@ -145,7 +143,7 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 				Level:    int(m.game.GetLevel()),
 			}
 
-			return m, common.SwitchModeCmd(common.MODE_LEADERBOARD,
+			return m, common.SwitchModeCmd(common.ModeLeaderboard,
 				common.NewLeaderboardInput("marathon", common.WithNewEntry(newEntry)),
 			)
 		}
@@ -155,13 +153,12 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 }
 
 func (m *Model) pausedUpdate(msg tea.Msg) (*Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
 			return m, m.togglePause()
 		case key.Matches(msg, m.keys.Hold):
-			return m, common.SwitchModeCmd(common.MODE_MENU, common.NewMenuInput())
+			return m, common.SwitchModeCmd(common.ModeMenu, common.NewMenuInput())
 		}
 	}
 
@@ -171,61 +168,7 @@ func (m *Model) pausedUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.keys.Left):
-			err := m.game.MoveLeft()
-			if err != nil {
-				panic(fmt.Errorf("failed to move left: %w", err))
-			}
-			return m, nil
-		case key.Matches(msg, m.keys.Right):
-			err := m.game.MoveRight()
-			if err != nil {
-				panic(fmt.Errorf("failed to move right: %w", err))
-			}
-			return m, nil
-		case key.Matches(msg, m.keys.Clockwise):
-			err := m.game.Rotate(true)
-			if err != nil {
-				panic(fmt.Errorf("failed to rotate clockwise: %w", err))
-			}
-			return m, nil
-		case key.Matches(msg, m.keys.CounterClockwise):
-			err := m.game.Rotate(false)
-			if err != nil {
-				panic(fmt.Errorf("failed to rotate counter-clockwise: %w", err))
-			}
-			return m, nil
-		case key.Matches(msg, m.keys.HardDrop):
-			gameOver, err := m.game.HardDrop()
-			if err != nil {
-				panic(fmt.Errorf("failed to hard drop: %w", err))
-			}
-			var cmds []tea.Cmd
-			if gameOver {
-				cmds = append(cmds, m.triggerGameOver())
-			}
-			cmds = append(cmds, m.fallStopwatch.Reset())
-			return m, tea.Batch(cmds...)
-		case key.Matches(msg, m.keys.SoftDrop):
-			m.fallStopwatch.Interval = m.game.ToggleSoftDrop()
-			// TODO: find a fix for "pausing" momentarily before soft drop begins
-			//cmds = append(cmds, func() tea.Msg {
-			//	return stopwatch.TickMsg{ID: m.fallStopwatch.ID()}
-			//})
-		case key.Matches(msg, m.keys.Hold):
-			gameOver, err := m.game.Hold()
-			if err != nil {
-				panic(fmt.Errorf("failed to hold tetrimino: %w", err))
-			}
-			var cmds []tea.Cmd
-			if gameOver {
-				cmds = append(cmds, m.triggerGameOver())
-			}
-			return m, tea.Batch(cmds...)
-		case key.Matches(msg, m.keys.Exit):
-			return m, m.togglePause()
-		}
+		return m.playingKeyMsgUpdate(msg)
 	case stopwatch.TickMsg:
 		if msg.ID != m.fallStopwatch.ID() {
 			break
@@ -242,6 +185,59 @@ func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 	}
 
+	return m, nil
+}
+
+func (m *Model) playingKeyMsgUpdate(msg tea.KeyMsg) (*Model, tea.Cmd) {
+	switch {
+	case key.Matches(msg, m.keys.Left):
+		m.game.MoveLeft()
+		return m, nil
+	case key.Matches(msg, m.keys.Right):
+		m.game.MoveRight()
+		return m, nil
+	case key.Matches(msg, m.keys.Clockwise):
+		err := m.game.Rotate(true)
+		if err != nil {
+			panic(fmt.Errorf("failed to rotate clockwise: %w", err))
+		}
+		return m, nil
+	case key.Matches(msg, m.keys.CounterClockwise):
+		err := m.game.Rotate(false)
+		if err != nil {
+			panic(fmt.Errorf("failed to rotate counter-clockwise: %w", err))
+		}
+		return m, nil
+	case key.Matches(msg, m.keys.HardDrop):
+		gameOver, err := m.game.HardDrop()
+		if err != nil {
+			panic(fmt.Errorf("failed to hard drop: %w", err))
+		}
+		var cmds []tea.Cmd
+		if gameOver {
+			cmds = append(cmds, m.triggerGameOver())
+		}
+		cmds = append(cmds, m.fallStopwatch.Reset())
+		return m, tea.Batch(cmds...)
+	case key.Matches(msg, m.keys.SoftDrop):
+		m.fallStopwatch.Interval = m.game.ToggleSoftDrop()
+		// TODO: find a fix for "pausing" momentarily before soft drop begins
+		// cmds = append(cmds, func() tea.Msg {
+		// 	return stopwatch.TickMsg{ID: m.fallStopwatch.ID()}
+		// })
+	case key.Matches(msg, m.keys.Hold):
+		gameOver, err := m.game.Hold()
+		if err != nil {
+			panic(fmt.Errorf("failed to hold tetrimino: %w", err))
+		}
+		var cmds []tea.Cmd
+		if gameOver {
+			cmds = append(cmds, m.triggerGameOver())
+		}
+		return m, tea.Batch(cmds...)
+	case key.Matches(msg, m.keys.Exit):
+		return m, m.togglePause()
+	}
 	return m, nil
 }
 
@@ -285,7 +281,10 @@ func (m *Model) matrixView() string {
 	for i := 1; i <= 20; i++ {
 		rowIndicator += fmt.Sprintf("%d\n", i)
 	}
-	return lipgloss.JoinHorizontal(lipgloss.Center, m.styles.Playfield.Render(output), m.styles.RowIndicator.Render(rowIndicator))
+	return lipgloss.JoinHorizontal(lipgloss.Center,
+		m.styles.Playfield.Render(output),
+		m.styles.RowIndicator.Render(rowIndicator),
+	)
 }
 
 func (m *Model) informationView() string {
@@ -293,11 +292,13 @@ func (m *Model) informationView() string {
 
 	var header string
 	headerStyle := lipgloss.NewStyle().Width(width).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
-	if m.game.IsGameOver() {
+
+	switch {
+	case m.game.IsGameOver():
 		header = headerStyle.Render("GAME OVER")
-	} else if m.isPaused {
+	case m.isPaused:
 		header = headerStyle.Render("PAUSED")
-	} else {
+	default:
 		header = headerStyle.Render("MARATHON")
 	}
 

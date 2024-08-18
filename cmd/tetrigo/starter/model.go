@@ -67,8 +67,7 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.forceQuitKey):
+		if key.Matches(msg, m.forceQuitKey) {
 			return m, tea.Quit
 		}
 	case common.SwitchModeMsg:
@@ -102,13 +101,13 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 	}
 
 	switch mode {
-	case common.MODE_MENU:
+	case common.ModeMenu:
 		menuIn, ok := switchIn.(*common.MenuInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
 		m.child = menu.NewModel(menuIn)
-	case common.MODE_MARATHON:
+	case common.ModeMarathon:
 		marathonIn, ok := switchIn.(*common.MarathonInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput
@@ -118,7 +117,7 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 			return err
 		}
 		m.child = child
-	case common.MODE_LEADERBOARD:
+	case common.ModeLeaderboard:
 		leaderboardIn, ok := switchIn.(*common.LeaderboardInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput

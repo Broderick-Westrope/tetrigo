@@ -44,13 +44,16 @@ func CreateStyles(theme *config.Theme) *Styles {
 		},
 		GhostCell: lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Colours.GhostCell)),
 		Hold: holdStyles{
-			View:  lipgloss.NewStyle().Width(10).Height(5).Border(lipgloss.RoundedBorder(), true, false, true, true).Align(lipgloss.Center, lipgloss.Center),
+			View: lipgloss.NewStyle().Width(10).Height(5).
+				Border(lipgloss.RoundedBorder(), true, false, true, true).
+				Align(lipgloss.Center, lipgloss.Center),
 			Label: lipgloss.NewStyle().Width(10).PaddingLeft(1).PaddingBottom(1),
 			Item:  lipgloss.NewStyle().Width(10).Height(2).Align(lipgloss.Center, lipgloss.Center),
 		},
-		Information:  lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
-		RowIndicator: lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Characters.EmptyCell)).Align(lipgloss.Left).Padding(0, 1, 0),
-		Bag:          lipgloss.NewStyle().PaddingTop(1),
+		Information: lipgloss.NewStyle().Width(13).Align(lipgloss.Left, lipgloss.Top),
+		RowIndicator: lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Characters.EmptyCell)).
+			Align(lipgloss.Left).Padding(0, 1, 0),
+		Bag: lipgloss.NewStyle().PaddingTop(1),
 		CellChar: cellCharacters{
 			Empty:      theme.Characters.EmptyCell,
 			Ghost:      theme.Characters.GhostCell,
@@ -58,5 +61,4 @@ func CreateStyles(theme *config.Theme) *Styles {
 		},
 	}
 	return &s
-
 }

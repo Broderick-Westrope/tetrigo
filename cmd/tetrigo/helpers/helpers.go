@@ -17,9 +17,10 @@ import (
 
 // Split a string into lines, additionally returning the size of the widest
 // line.
-func getLines(s string) (lines []string, widest int) {
-	lines = strings.Split(s, "\n")
+func getLines(s string) ([]string, int) {
+	lines := strings.Split(s, "\n")
 
+	var widest int
 	for _, l := range lines {
 		w := ansi.PrintableRuneWidth(l)
 		if widest < w {
@@ -82,7 +83,7 @@ func PlaceOverlay(x, y int, fg, bg string, opts ...WhitespaceOption) string {
 		pos += ansi.PrintableRuneWidth(fgLine)
 
 		right := cutLeft(bgLine, pos)
-		bgWidth := ansi.PrintableRuneWidth(bgLine)
+		bgWidth = ansi.PrintableRuneWidth(bgLine)
 		rightWidth := ansi.PrintableRuneWidth(right)
 		if rightWidth <= bgWidth-pos {
 			b.WriteString(ws.render(bgWidth - rightWidth - pos))
@@ -118,18 +119,21 @@ func cutLeft(s string, cutWidth int) string {
 			w = runewidth.RuneWidth(c)
 		}
 
-		if pos >= cutWidth {
-			if b.Len() == 0 {
-				if ab.Len() > 0 {
-					b.Write(ab.Bytes())
-				}
-				if pos-cutWidth > 1 {
-					b.WriteByte(' ')
-					continue
-				}
-			}
-			b.WriteRune(c)
+		if pos < cutWidth {
+			pos += w
+			continue
 		}
+
+		if b.Len() == 0 {
+			if ab.Len() > 0 {
+				b.Write(ab.Bytes())
+			}
+			if pos-cutWidth > 1 {
+				b.WriteByte(' ')
+				continue
+			}
+		}
+		b.WriteRune(c)
 		pos += w
 	}
 	return b.String()
@@ -137,20 +141,6 @@ func cutLeft(s string, cutWidth int) string {
 
 func clamp(v, lower, upper int) int {
 	return min(max(v, lower), upper)
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 type whitespace struct {

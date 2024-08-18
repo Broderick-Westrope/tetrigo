@@ -88,34 +88,37 @@ func (m *Matrix) AddTetrimino(tet *Tetrimino) error {
 func (m *Matrix) modifyCell(minos [][]bool, pos Coordinate, newValue byte, isExpectedValue func(byte) bool) error {
 	for row := range minos {
 		for col := range minos[row] {
-			if minos[row][col] {
-				minoAbsRow := row + pos.Y
-				minoAbsCol := col + pos.X
-
-				if minoAbsRow >= len(*m) || minoAbsRow < 0 {
-					return fmt.Errorf("row %d is out of bounds", minoAbsRow)
-				}
-				if minoAbsCol >= len((*m)[row]) || minoAbsCol < 0 {
-					return fmt.Errorf("col %d is out of bounds", minoAbsCol)
-				}
-
-				minoValue := (*m)[minoAbsRow][minoAbsCol]
-				if !isExpectedValue(minoValue) {
-					// TODO: Perhaps there is a better way to do this:
-					// Add in ghost minos is an exception. Occasionally the ghost mino will be placed on top of a mino (eg. when playing at the skyline).
-					if newValue != 'G' {
-						return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected value",
-							minoAbsRow, minoAbsCol, string(minoValue), minoValue)
-					}
-				}
-				(*m)[minoAbsRow][minoAbsCol] = newValue
+			if !minos[row][col] {
+				continue
 			}
+			minoAbsRow := row + pos.Y
+			minoAbsCol := col + pos.X
+
+			if minoAbsRow >= len(*m) || minoAbsRow < 0 {
+				return fmt.Errorf("row %d is out of bounds", minoAbsRow)
+			}
+			if minoAbsCol >= len((*m)[row]) || minoAbsCol < 0 {
+				return fmt.Errorf("col %d is out of bounds", minoAbsCol)
+			}
+
+			minoValue := (*m)[minoAbsRow][minoAbsCol]
+			if !isExpectedValue(minoValue) {
+				// TODO: Perhaps there is a better way to do this:
+				// Add in ghost minos is an exception. Occasionally the ghost mino will be
+				// placed on top of a mino (eg. when playing at the skyline).
+				if newValue != 'G' {
+					return fmt.Errorf("mino at row %d, col %d is '%s' (byte value %v) not the expected value",
+						minoAbsRow, minoAbsCol, string(minoValue), minoValue)
+				}
+			}
+			(*m)[minoAbsRow][minoAbsCol] = newValue
 		}
 	}
 	return nil
 }
 
-// RemoveCompletedLines checks each row that the given Tetrimino occupies and removes any completed lines from the Matrix.
+// RemoveCompletedLines checks each row that the given Tetrimino occupies and
+// removes any completed lines from the Matrix.
 // It returns an Action to be used for calculating the score.
 func (m *Matrix) RemoveCompletedLines(tet *Tetrimino) Action {
 	lines := 0
@@ -128,17 +131,17 @@ func (m *Matrix) RemoveCompletedLines(tet *Tetrimino) Action {
 
 	switch lines {
 	case 0:
-		return Actions.NONE
+		return Actions.None
 	case 1:
-		return Actions.SINGLE
+		return Actions.Single
 	case 2:
-		return Actions.DOUBLE
+		return Actions.Double
 	case 3:
-		return Actions.TRIPLE
+		return Actions.Triple
 	case 4:
-		return Actions.TETRIS
+		return Actions.Tetris
 	}
-	return Actions.UNKNOWN
+	return Actions.Unknown
 }
 
 func (m *Matrix) isOutOfBoundsHorizontally(col int) bool {

@@ -7,9 +7,9 @@ import (
 type Mode int
 
 const (
-	MODE_MENU = Mode(iota)
-	MODE_MARATHON
-	MODE_LEADERBOARD
+	ModeMenu = Mode(iota)
+	ModeMarathon
+	ModeLeaderboard
 )
 
 type SwitchModeMsg struct {
