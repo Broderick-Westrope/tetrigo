@@ -40,12 +40,8 @@ tasks:
   test:
     desc: Runs test suite
     aliases: [t]
-    deps: [install]
     cmds:
-      - go test {{catLines .GO_PACKAGES}}
-    vars:
-      GO_PACKAGES:
-        sh: go list ./...
+      - go test -cover ./...
 
   goreleaser:test:
     desc: Tests release process without publishing
