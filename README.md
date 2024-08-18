@@ -171,6 +171,7 @@ The ordered priorities for testing are:
 - Add more tests
   - Finish Super Rotation System testing in [tetrimino_test.go](./pkg/tetris/tetrimino_test.go).
   - Add tests for scoring endOnMaxLevel.
+  - Revisit scoring tests.
 - Add the remaining Lock Down options.
 - Check for Lock Down 0.5s after landing on a surface
   - Also on Soft Drop, but not on Hard Drop.
