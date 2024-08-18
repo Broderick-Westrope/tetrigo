@@ -7,12 +7,12 @@ tasks:
       - task: test
 
   install:
-    desc: Installs Task
+    desc: Installs Tetrigo
     aliases: [i]
     sources:
       - './**/*.go'
     cmds:
-      - go install -v ./cmd/task
+      - go install -v ./cmd/tetrigo
 
   mod:
     desc: Downloads and tidy Go modules
