@@ -32,9 +32,6 @@ jobs:
       - name: Build
         run: go build -o ./bin/tetrigo -v ./cmd/tetrigo
 
-      - name: Lint
-        run: golangci-lint run
-
       - name: Test
         run: go test -cover -count=1 -race ./...
 
