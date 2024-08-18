@@ -1,18 +1,72 @@
 version: '3'
 
 tasks:
+  default:
+    cmds:
+      - task: lint
+      - task: test
+
+  install:
+    desc: Installs Task
+    aliases: [i]
+    sources:
+      - './**/*.go'
+    cmds:
+      - go install -v ./cmd/task
+
+  mod:
+    desc: Downloads and tidy Go modules
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  lint:
+    desc: Runs golangci-lint
+    aliases: [l]
+    sources:
+      - './**/*.go'
+      - .golangci.yml
+    cmds:
+      - golangci-lint run
+
+  lint:fix:
+    desc: Runs golangci-lint and fixes any issues
+    sources:
+      - './**/*.go'
+      - .golangci.yml
+    cmds:
+      - golangci-lint run --fix
+
+  test:
+    desc: Runs test suite
+    aliases: [t]
+    deps: [install]
+    cmds:
+      - go test {{catLines .GO_PACKAGES}}
+    vars:
+      GO_PACKAGES:
+        sh: go list ./...
+
+  goreleaser:test:
+    desc: Tests release process without publishing
+    cmds:
+      - goreleaser --snapshot --clean
+
+  goreleaser:install:
+    desc: Installs goreleaser
+    cmds:
+      - go install github.com/goreleaser/goreleaser@latest
+
   build:
     desc: Build the binary
     cmds:
       - go build -v -o ./bin/ {{.CLI_ARGS}} ./...
-  test:
-    desc: Run tests
-    cmds:
-      - go test -cover {{.CLI_ARGS}} ./...
+
   run:
     desc: Run the Go project
     cmds:
       - go run ./cmd/tetrigo/ {{.CLI_ARGS}}
+
   cover:
     desc: Run tests with coverage
     cmds:
