@@ -20,7 +20,7 @@ jobs:
       - name: Set up Go ${{matrix.go-version}}
         uses: actions/setup-go@v5
         with:
-          go-version: ${{matrix.go-version}}
+          go-version: ${{matrix.go}}
         id: go
 
       - name: Check out code into the Go module directory
