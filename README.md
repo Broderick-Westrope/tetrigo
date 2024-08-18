@@ -7,9 +7,12 @@
 A Golang implementation of Tetris, following the official [2009 Tetris Design Guideline](./docs/2009-Tetris-Design-Guideline.pdf).
 
 This project consists of three main components, depending on what your goals are:
-1. "I just want to play Tetris": The TUI (Text User Interface) in `cmd/tetrigo/` is for you.
-2. "I want to create my own Tetris game/UI": The packages in `pkg/tetris/modes/` are for you.
-3. "I want to create my own Tetris game mode": The packages in `pkg/tetris/` are for you.
+- ***"I just want to play Tetris"***
+  - The TUI (Text User Interface) in `cmd/tetrigo/` is for you. See the [installation](#installation) section.
+- ***"I want to create my own Tetris game/UI"***
+  - The packages in `pkg/tetris/modes/` are for you. You can reuse these game modes with your own UI.
+- ***"I want to create my own Tetris game mode"***
+  - The packages in `pkg/tetris/` are for you. You can create your own game mode with a custom set of rules and requirements.
 
 You can find more information on these sections in the [development](#development) section. If you have a suggestion, bug, or feature request, please open a GitHub issue.
 
