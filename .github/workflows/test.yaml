@@ -1,0 +1,38 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    strategy:
+      matrix:
+        go-version: [1.23.x]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{matrix.platform}}
+    steps:
+      - name: Set up Go ${{matrix.go-version}}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{matrix.go-version}}
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
+
+      - name: Download Go modules
+        run: go mod download
+        env:
+          GOPROXY: https://proxy.golang.org
+
+      - name: Build
+        run: go build -o ./bin/tetrigo -v ./cmd/tetrigo
+
+      - name: Test
+        run: ./bin/tetrigo test --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
