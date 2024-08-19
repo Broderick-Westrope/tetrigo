@@ -1,5 +1,9 @@
 version: '3'
 
+env:
+  GOLANG_CROSS_VERSION: 'v1.22'
+  PACKAGE_NAME: 'github.com/Broderick-Westrope/tetrigo'
+
 tasks:
   default:
     cmds:
@@ -43,16 +47,6 @@ tasks:
     cmds:
       - go test -cover ./...
 
-  goreleaser:test:
-    desc: Tests release process without publishing
-    cmds:
-      - goreleaser --snapshot --clean
-
-  goreleaser:install:
-    desc: Installs goreleaser
-    cmds:
-      - go install github.com/goreleaser/goreleaser@latest
-
   build:
     desc: Build the binary
     cmds:
@@ -68,3 +62,18 @@ tasks:
     cmds:
       - go test -coverprofile=cover.out {{.CLI_ARGS}} ./...
       - go tool cover -html=cover.out
+
+  goreleaser:install:
+    desc: Installs goreleaser
+    cmds:
+      - go install github.com/goreleaser/goreleaser@latest
+
+  goreleaser:dryrun:
+    desc: Releases the project
+    cmds:
+      - ./scripts/goreleaser/dry-run.sh
+
+  goreleaser:release:
+    desc: Releases the project
+    cmds:
+      - ./scripts/goreleaser/release.sh

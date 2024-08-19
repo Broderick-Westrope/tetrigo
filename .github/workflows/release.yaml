@@ -21,10 +21,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{secrets.GH_PAT}}
+      - name: GoReleaser Dry Run
+        run: ./scripts/goreleaser-dry-run.sh
+
+      - name: Setup Environment
+        run: echo 'GITHUB_TOKEN=${{secrets.GH_PAT}}' > .release-env
+
+      - name: GoReleaser Release
+        run: ./scripts/goreleaser-release.sh
