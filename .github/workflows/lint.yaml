@@ -13,13 +13,15 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
           go-version: 1.23.x
 
-      - name: golangci-lint
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.60
