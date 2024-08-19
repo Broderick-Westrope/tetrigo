@@ -28,7 +28,7 @@ You can find more information on these sections in the [development](#developmen
 
 Tetrigo can be installed by downloading the binary or by building from source. See the instructions below for your preferred method.
 
-### Binary
+### Binary (coming very soon!)
 
 You can download the binary corresponding to your operating system from the [releases page on GitHub](https://github.com/Broderick-Westrope/tetrigo/releases).
 
