@@ -30,7 +30,7 @@ Tetrigo can be installed by downloading the binary or by building from source. S
 
 ### Binary
 
-You can download the binary corresponding to your operating system from the [releases page on GitHub].
+You can download the binary corresponding to your operating system from the [releases page on GitHub](https://github.com/Broderick-Westrope/tetrigo/releases).
 
 Once downloaded you can run the binary from the command line:
 
