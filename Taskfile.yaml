@@ -25,7 +25,7 @@ tasks:
     aliases: [l]
     sources:
       - './**/*.go'
-      - .golangci.yml
+      - .golangci.yaml
     cmds:
       - golangci-lint run
 
@@ -33,7 +33,7 @@ tasks:
     desc: Runs golangci-lint and fixes any issues
     sources:
       - './**/*.go'
-      - .golangci.yml
+      - .golangci.yaml
     cmds:
       - golangci-lint run --fix
 
