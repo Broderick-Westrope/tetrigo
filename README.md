@@ -34,9 +34,10 @@ You can download the binary corresponding to your operating system from the [rel
 
 Once downloaded you can run the binary from the command line:
 
+
 ```bash
 # Linux or macOS
-./tetrigo
+tetrigo
 
 # Windows
 tetrigo.exe
@@ -47,6 +48,16 @@ Optionally, you can move the binary to a directory in your `$PATH` to run it fro
 ### Build From Source
 
 Ensure that you have a supported version of Go properly installed and setup. You can find the minimum required version of Go in the [go.mod](./go.mod) file.
+
+Using the Makefile:
+
+```bash
+git clone https://github.com/Broderick-Westrope/tetrigo
+cd tetrigo/
+make
+sudo make install
+tetrigo
+```
 
 You can then install the latest release globally by running:
 
@@ -90,20 +101,20 @@ The menu, leaderboard, etc can be navigated using the arrow keys (moving), escap
 Starting Tetrigo with no subcommand or flags will start the game in the menu where you can manually configure simple settings like the player name and game mode:
 
 ```bash
-./tetrigo
+tetrigo
 ```
 
 You're also able to start the game directly in a game mode (eg. Marathon), skipping the menu:
 
 ```bash
 # Start the game in Marathon mode with a level of 5 and the player name "Brodie"
-./tetrigo marathon --level=5 --name=Brodie 
+tetrigo marathon --level=5 --name=Brodie 
 ```
 
 To see more options for starting the game you can run:
 
 ```bash
-./tetrigo --help
+tetrigo --help
 ```
 
 ### TOML
@@ -113,7 +124,7 @@ More complex configuration can be done using a TOML file. If no config file is f
 By default, Tetrigo will look for the file `config.toml` in the working directory. You can specify a different file using the `--config` flag.
 
 ```bash
-./tetrigo --config=/path/to/config.toml
+tetrigo --config=/path/to/config.toml
 ```
 
 An example configuration file is provided in [`example.config.toml`](./example.config.toml).
@@ -123,7 +134,7 @@ An example configuration file is provided in [`example.config.toml`](./example.c
 The game data is stored in a SQLite database. By default, the database is stored in the working directory as `tetrigo.db`. You can specify a different file using the `--db` flag.
 
 ```bash
-./tetrigo --db=/path/to/data.db
+tetrigo --db=/path/to/data.db
 ```
 
 ## Development
