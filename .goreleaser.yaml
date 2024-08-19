@@ -8,8 +8,6 @@ before:
 builds:
   - binary: tetrigo
     main: ./cmd/tetrigo
-    env:
-      - CGO_ENABLED=0
     goos:
       - windows
       - darwin
