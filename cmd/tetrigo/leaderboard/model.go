@@ -6,6 +6,7 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,6 +15,7 @@ import (
 
 type Model struct {
 	keys *keyMap
+	help help.Model
 
 	repo  *data.LeaderboardRepository
 	table table.Model
@@ -42,6 +44,7 @@ func NewModel(in *common.LeaderboardInput, db *sql.DB) (Model, error) {
 
 	return Model{
 		keys:  defaultKeyMap(),
+		help:  help.New(),
 		repo:  repo,
 		table: getLeaderboardTable(scores, newEntryID),
 	}, nil
@@ -53,8 +56,11 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
-		if key.Matches(msg, m.keys.Exit) {
-			return m, tea.Quit
+		switch {
+		case key.Matches(msg, m.keys.Exit):
+			return m, common.SwitchModeCmd(common.ModeMenu, common.NewMenuInput())
+		case key.Matches(msg, m.keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
 		}
 	}
 
@@ -64,7 +70,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return m.table.View() + "\n"
+	return m.table.View() + "\n" + m.help.View(m.keys)
 }
 
 func getLeaderboardTable(scores []data.Score, focusID int) table.Model {
