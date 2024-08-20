@@ -34,7 +34,7 @@ type Model struct {
 
 	styles   *game.Styles
 	help     help.Model
-	keys     *game.GameKeyMap
+	keys     *game.KeyMap
 	isPaused bool
 }
 
@@ -44,7 +44,7 @@ func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
 		playerName:      in.PlayerName,
 		styles:          game.CreateStyles(cfg.Theme),
 		help:            help.New(),
-		keys:            game.ConstructGameKeyMap(cfg.Keys),
+		keys:            game.ConstructKeyMap(cfg.Keys),
 		isPaused:        false,
 		nextQueueLength: cfg.NextQueueLength,
 		mode:            in.Mode,
@@ -69,6 +69,8 @@ func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
 		}
 		m.useTimer = true
 		m.gameTimer = timer.NewWithInterval(time.Minute*2, time.Millisecond*13)
+	case common.ModeMenu, common.ModeLeaderboard:
+		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	default:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	}

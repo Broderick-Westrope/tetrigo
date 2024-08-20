@@ -9,29 +9,45 @@ import (
 
 func TestNewScoring(t *testing.T) {
 	tt := map[string]struct {
-		level    uint
-		maxLevel uint
+		level         uint
+		maxLevel      uint
+		increaseLevel bool
+		endOnMaxLevel bool
+		maxLines      uint
+		endOnMaxLines bool
 	}{
-		"level 1": {
-			level:    1,
-			maxLevel: 15,
+		"0; false": {
+			level:         0,
+			maxLevel:      0,
+			increaseLevel: false,
+			endOnMaxLevel: false,
+			maxLines:      0,
+			endOnMaxLines: false,
 		},
-		"level 15": {
-			level:    15,
-			maxLevel: 15,
+		"10; true": {
+			level:         10,
+			maxLevel:      10,
+			increaseLevel: true,
+			endOnMaxLevel: true,
+			maxLines:      10,
+			endOnMaxLines: true,
 		},
 	}
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			s := NewScoring(tc.level, tc.maxLevel, true)
+			s := NewScoring(tc.level, tc.maxLevel, tc.increaseLevel, tc.endOnMaxLevel, tc.maxLines, tc.endOnMaxLines)
 
 			assert.Equal(t, tc.level, s.level)
 			assert.Equal(t, tc.maxLevel, s.maxLevel)
+			assert.Equal(t, tc.increaseLevel, s.increaseLevel)
+			assert.Equal(t, tc.endOnMaxLevel, s.endOnMaxLevel)
+			assert.Equal(t, tc.maxLines, s.maxLines)
+			assert.Equal(t, tc.endOnMaxLines, s.endOnMaxLines)
+
 			assert.Equal(t, uint(0), s.total)
 			assert.Equal(t, uint(0), s.lines)
 			assert.False(t, s.backToBack)
-			assert.True(t, s.endOnMaxLevel)
 		})
 	}
 }

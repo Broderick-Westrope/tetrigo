@@ -42,6 +42,10 @@ func NewGame(in *Input) (*Game, error) {
 	}
 	nq := tetris.NewNextQueue(matrix.GetSkyline())
 
+	scoring := tetris.NewScoring(
+		in.Level, in.MaxLevel, in.IncreaseLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines,
+	)
+
 	g := &Game{
 		matrix:           matrix,
 		nextQueue:        nq,
@@ -49,7 +53,7 @@ func NewGame(in *Input) (*Game, error) {
 		holdQueue:        tetris.GetEmptyTetrimino(),
 		gameOver:         false,
 		softDropStartRow: matrix.GetHeight(),
-		scoring:          tetris.NewScoring(in.Level, in.MaxLevel, in.IncreaseLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines),
+		scoring:          scoring,
 		fall:             tetris.NewFall(in.Level),
 	}
 

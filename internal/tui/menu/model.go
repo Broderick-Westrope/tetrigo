@@ -41,7 +41,7 @@ func NewModel(_ *common.MenuInput) *Model {
 	nameInput := textinput.NewModel("Enter your name", 20, 20)
 	modePicker := hpicker.NewModel([]hpicker.KeyValuePair{
 		{Key: "Marathon", Value: common.ModeMarathon},
-		//{Key: "Sprint (40 Lines)", Value: "sprint"},
+		// {Key: "Sprint (40 Lines)", Value: "sprint"},
 		{Key: "Ultra (Time Trial)", Value: common.ModeUltra},
 	})
 	levelPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 15))
@@ -136,14 +136,29 @@ func (m Model) startGame() (tea.Cmd, error) {
 	var mode common.Mode
 	var playerName string
 
+	errInvalidModel := fmt.Errorf("invalid model for item %q", m.items[m.selected].label)
+	errInvalidValue := fmt.Errorf("invalid value for model of item %q", m.items[m.selected].label)
+
 	for _, i := range m.items {
 		switch i.label {
 		case "Starting Level":
-			kvp := i.model.(*hpicker.Model).GetSelection()
-			level = kvp.Value.(int)
+			picker, ok := i.model.(*hpicker.Model)
+			if !ok {
+				return nil, errInvalidModel
+			}
+			level, ok = picker.GetSelection().Value.(int)
+			if !ok {
+				return nil, errInvalidValue
+			}
 		case "Mode":
-			kvp := i.model.(*hpicker.Model).GetSelection()
-			mode = kvp.Value.(common.Mode)
+			picker, ok := i.model.(*hpicker.Model)
+			if !ok {
+				return nil, errInvalidModel
+			}
+			mode, ok = picker.GetSelection().Value.(common.Mode)
+			if !ok {
+				return nil, errInvalidValue
+			}
 		case "Name":
 			playerName = i.model.(textinput.Model).Child.Value()
 		default:
@@ -158,6 +173,8 @@ func (m Model) startGame() (tea.Cmd, error) {
 	case common.ModeUltra:
 		in := common.NewSingleInput(mode, uint(level), playerName)
 		return common.SwitchModeCmd(mode, in), nil
+	case common.ModeMenu, common.ModeLeaderboard:
+		return nil, fmt.Errorf("invalid mode for starting game: %q", mode)
 	default:
 		return nil, fmt.Errorf("invalid mode from menu: %q", mode)
 	}

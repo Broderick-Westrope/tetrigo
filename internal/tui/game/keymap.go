@@ -5,7 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 )
 
-type GameKeyMap struct {
+type KeyMap struct {
 	ForceQuit        key.Binding
 	Exit             key.Binding
 	Help             key.Binding
@@ -33,8 +33,8 @@ func constructKeyBinding(keys []string, desc string) key.Binding {
 	return key.NewBinding(key.WithKeys(keys...), key.WithHelp(buildHelpKeys(keys), desc))
 }
 
-func ConstructGameKeyMap(keys *config.Keys) *GameKeyMap {
-	return &GameKeyMap{
+func ConstructKeyMap(keys *config.Keys) *KeyMap {
+	return &KeyMap{
 		ForceQuit:        constructKeyBinding(keys.ForceQuit, "force quit"),
 		Exit:             constructKeyBinding(keys.Exit, "exit"),
 		Help:             constructKeyBinding(keys.Help, "help"),
@@ -48,14 +48,14 @@ func ConstructGameKeyMap(keys *config.Keys) *GameKeyMap {
 	}
 }
 
-func (k *GameKeyMap) ShortHelp() []key.Binding {
+func (k *KeyMap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		k.Exit,
 		k.Help,
 	}
 }
 
-func (k *GameKeyMap) FullHelp() [][]key.Binding {
+func (k *KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{
 			k.Exit,
