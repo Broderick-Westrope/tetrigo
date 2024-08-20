@@ -5,11 +5,11 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/leaderboard"
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/marathon"
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/menu"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/leaderboard"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/marathon"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/menu"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
