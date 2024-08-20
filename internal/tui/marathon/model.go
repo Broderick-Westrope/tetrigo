@@ -8,6 +8,7 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/game"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/marathon"
 	"github.com/charmbracelet/bubbles/help"
@@ -17,28 +18,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var pausedMsg = `    ____                            __
-   / __ \____ ___  __________  ____/ /
-  / /_/ / __ ^/ / / / ___/ _ \/ __  /
-/ ____/ /_/ / /_/ (__  )  __/ /_/ /
-/_/    \__,_/\__,_/____/\___/\__,_/
-Press PAUSE to continue or HOLD to exit.`
-
-var gameOverMsg = `   ______                        ____                 
-  / ____/___ _____ ___  ___     / __ \_   _____  _____
- / / __/ __ ^/ __ ^__ \/ _ \   / / / / | / / _ \/ ___/
-/ /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /
-\____/\__,_/_/ /_/ /_/\___/   \____/ |___/\___/_/
-
-			Press EXIT or HOLD to continue.`
-
 var _ tea.Model = &Model{}
 
 type Model struct {
 	playerName      string
-	styles          *Styles
+	styles          *game.Styles
 	help            help.Model
-	keys            *keyMap
+	keys            *game.GameKeyMap
 	timerStopwatch  stopwatch.Model
 	isPaused        bool
 	fallStopwatch   stopwatch.Model
@@ -48,24 +34,31 @@ type Model struct {
 }
 
 func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
-	game, err := marathon.NewGame(in.Level, cfg.MaxLevel, cfg.EndOnMaxLevel, cfg.GhostEnabled)
+	gameIn := &marathon.Input{
+		Level:         in.Level,
+		MaxLevel:      cfg.MaxLevel,
+		EndOnMaxLevel: cfg.EndOnMaxLevel,
+		GhostEnabled:  cfg.GhostEnabled,
+	}
+
+	g, err := marathon.NewGame(gameIn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create marathon game: %w", err)
 	}
 
 	m := &Model{
 		playerName:      in.PlayerName,
-		styles:          CreateStyles(cfg.Theme),
+		styles:          game.CreateStyles(cfg.Theme),
 		help:            help.New(),
-		keys:            constructKeyMap(cfg.Keys),
+		keys:            game.ConstructGameKeyMap(cfg.Keys),
 		timerStopwatch:  stopwatch.NewWithInterval(time.Millisecond * 3),
 		isPaused:        false,
-		game:            game,
+		game:            g,
 		nextQueueLength: cfg.NextQueueLength,
 	}
 	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
-	m.styles = CreateStyles(cfg.Theme)
+	m.styles = game.CreateStyles(cfg.Theme)
 
 	return m, nil
 }
@@ -247,11 +240,11 @@ func (m *Model) View() string {
 	)
 
 	if m.game.IsGameOver() {
-		output = common.PlaceOverlayCenter(gameOverMsg, output)
+		output = common.OverlayGameOverMessage(output)
 	}
 
 	if m.isPaused {
-		output = common.PlaceOverlayCenter(pausedMsg, output)
+		output = common.OverlayPausedMessage(output)
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))

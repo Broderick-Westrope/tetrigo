@@ -21,7 +21,18 @@ type Game struct {
 	fall             *tetris.Fall      // The system for calculating the fall speed
 }
 
-func NewGame(level, maxLevel uint, endOnMaxLevel bool, ghostEnabled bool) (*Game, error) {
+type Input struct {
+	Level         uint // The starting level of the game.
+	MaxLevel      uint // The maximum level the game can reach. 0 means no limit.
+	EndOnMaxLevel bool // Whether the game should end when the maximum level is reached.
+
+	MaxLines      uint // The maximum number of lines to clear before the game ends. 0 means no limit.
+	EndOnMaxLines bool // Whether the game should end when the maximum number of lines is cleared.
+
+	GhostEnabled bool // Whether the ghost Tetrimino should be displayed.
+}
+
+func NewGame(in *Input) (*Game, error) {
 	matrix, err := tetris.NewMatrix(40, 10)
 	if err != nil {
 		return nil, err
@@ -35,11 +46,11 @@ func NewGame(level, maxLevel uint, endOnMaxLevel bool, ghostEnabled bool) (*Game
 		holdQueue:        tetris.GetEmptyTetrimino(),
 		gameOver:         false,
 		softDropStartRow: matrix.GetHeight(),
-		scoring:          tetris.NewScoring(level, maxLevel, endOnMaxLevel),
-		fall:             tetris.NewFall(level),
+		scoring:          tetris.NewScoring(in.Level, in.MaxLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines),
+		fall:             tetris.NewFall(in.Level),
 	}
 
-	if ghostEnabled {
+	if in.GhostEnabled {
 		g.ghostTet = g.tetInPlay
 	}
 
@@ -139,6 +150,51 @@ func (g *Game) TickLower() (bool, error) {
 	return gameOver, nil
 }
 
+func (g *Game) HardDrop() (bool, error) {
+	startRow := g.tetInPlay.Pos.Y
+
+	for {
+		lockedDown, err := g.lowerTetInPlay()
+		if err != nil {
+			return false, fmt.Errorf("failed to lower tetrimino (hard drop): %w", err)
+		}
+		if lockedDown {
+			break
+		}
+	}
+	if g.gameOver {
+		return true, nil
+	}
+
+	linesCleared := g.tetInPlay.Pos.Y - startRow
+	g.scoring.AddHardDrop(uint(linesCleared))
+
+	g.tetInPlay = g.nextQueue.Next()
+	gameOver := g.setupNewTetInPlay()
+	if gameOver {
+		g.gameOver = gameOver
+	}
+
+	return gameOver, nil
+}
+
+// ToggleSoftDrop toggles the Soft Drop state of the game.
+// If Soft Drop is enabled, the game will calculate the number of lines cleared and add them to the score.
+// The time interval for the Fall system is returned.
+func (g *Game) ToggleSoftDrop() time.Duration {
+	g.fall.ToggleSoftDrop()
+	if g.fall.IsSoftDrop {
+		g.softDropStartRow = g.tetInPlay.Pos.Y
+		return g.fall.SoftDropInterval
+	}
+	linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
+	if linesCleared > 0 {
+		g.scoring.AddSoftDrop(uint(linesCleared))
+	}
+	g.softDropStartRow = g.matrix.GetSkyline()
+	return g.fall.DefaultInterval
+}
+
 // lowerTetInPlay moves the current Tetrimino down one row if possible.
 // If it cannot be moved down this will instead remove completed lines, calculate scores and
 // fall speed and return true (representing a Lock Down).
@@ -202,51 +258,6 @@ func (g *Game) setupNewTetInPlay() bool {
 
 	g.updateGhost()
 	return false
-}
-
-func (g *Game) HardDrop() (bool, error) {
-	startRow := g.tetInPlay.Pos.Y
-
-	for {
-		lockedDown, err := g.lowerTetInPlay()
-		if err != nil {
-			return false, fmt.Errorf("failed to lower tetrimino (hard drop): %w", err)
-		}
-		if lockedDown {
-			break
-		}
-	}
-	if g.gameOver {
-		return true, nil
-	}
-
-	linesCleared := g.tetInPlay.Pos.Y - startRow
-	g.scoring.AddHardDrop(uint(linesCleared))
-
-	g.tetInPlay = g.nextQueue.Next()
-	gameOver := g.setupNewTetInPlay()
-	if gameOver {
-		g.gameOver = gameOver
-	}
-
-	return gameOver, nil
-}
-
-// ToggleSoftDrop toggles the Soft Drop state of the game.
-// If Soft Drop is enabled, the game will calculate the number of lines cleared and add them to the score.
-// The time interval for the Fall system is returned.
-func (g *Game) ToggleSoftDrop() time.Duration {
-	g.fall.ToggleSoftDrop()
-	if g.fall.IsSoftDrop {
-		g.softDropStartRow = g.tetInPlay.Pos.Y
-		return g.fall.SoftDropInterval
-	}
-	linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
-	if linesCleared > 0 {
-		g.scoring.AddSoftDrop(uint(linesCleared))
-	}
-	g.softDropStartRow = g.matrix.GetSkyline()
-	return g.fall.DefaultInterval
 }
 
 func (g *Game) updateGhost() {

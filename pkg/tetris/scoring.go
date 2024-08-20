@@ -4,16 +4,23 @@ type Scoring struct {
 	level         uint
 	maxLevel      uint
 	endOnMaxLevel bool
-	total         uint
+
 	lines         uint
-	backToBack    bool
+	maxLines      uint
+	endOnMaxLines bool
+
+	total      uint
+	backToBack bool
 }
 
-func NewScoring(level, maxLevel uint, endOnMaxLevel bool) *Scoring {
+func NewScoring(level, maxLevel uint, endOnMaxLevel bool, maxLines uint, endOnMaxLines bool) *Scoring {
 	return &Scoring{
 		level:         level,
 		maxLevel:      maxLevel,
 		endOnMaxLevel: endOnMaxLevel,
+
+		maxLines:      maxLines,
+		endOnMaxLines: endOnMaxLines,
 	}
 }
 
@@ -62,6 +69,10 @@ func (s *Scoring) ProcessAction(a Action) (bool, error) {
 	s.total += uint(points+backToBack) * s.level
 	s.lines += uint((points + backToBack) / 100)
 
+	if s.maxLines > 0 && s.lines > s.maxLines {
+		s.lines = s.maxLines
+	}
+
 	for s.lines >= s.level*5 {
 		s.level++
 		if s.maxLevel > 0 && s.level >= s.maxLevel {
@@ -74,5 +85,6 @@ func (s *Scoring) ProcessAction(a Action) (bool, error) {
 }
 
 func (s *Scoring) isGameOver() bool {
-	return s.level >= s.maxLevel && s.endOnMaxLevel
+	return s.level >= s.maxLevel && s.endOnMaxLevel ||
+		s.lines >= s.maxLines && s.endOnMaxLines
 }

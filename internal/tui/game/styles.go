@@ -1,4 +1,4 @@
-package marathon
+package game
 
 import (
 	"github.com/Broderick-Westrope/tetrigo/internal/config"

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/hpicker"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/textinput"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/common/components/hpicker"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/common/components/textinput"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
