@@ -24,7 +24,6 @@
   - [Testing](#testing)
 - [TODO](#todo)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Introduction
 
@@ -200,6 +199,3 @@ The ordered priorities for testing are:
 
 ## Contributing
 Contributions are welcome! If you have suggestions, bug reports, or feature requests, please open an issue on GitHub.
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
