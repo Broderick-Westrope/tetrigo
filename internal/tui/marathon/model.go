@@ -17,20 +17,21 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var pausedMsg = `    ____                            __
+const (
+	pausedMsg = `    ____                            __
    / __ \____ ___  __________  ____/ /
   / /_/ / __ ^/ / / / ___/ _ \/ __  /
-/ ____/ /_/ / /_/ (__  )  __/ /_/ /
+ / ____/ /_/ / /_/ (__  )  __/ /_/ /
 /_/    \__,_/\__,_/____/\___/\__,_/
 Press PAUSE to continue or HOLD to exit.`
 
-var gameOverMsg = `   ______                        ____                 
+	gameOverMsg = `   ______                        ____                 
   / ____/___ _____ ___  ___     / __ \_   _____  _____
  / / __/ __ ^/ __ ^__ \/ _ \   / / / / | / / _ \/ ___/
 / /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /
 \____/\__,_/_/ /_/ /_/\___/   \____/ |___/\___/_/
-
-			Press EXIT or HOLD to continue.`
+		Press EXIT or HOLD to continue.`
+)
 
 var _ tea.Model = &Model{}
 
