@@ -24,7 +24,7 @@ type PlayCmd struct {
 
 func (c *PlayCmd) Run(globals *GlobalVars) error {
 	switch c.GameMode {
-	case "single":
+	case "marathon":
 		return launchStarter(globals, common.ModeMarathon, common.NewMarathonInput(c.Level, c.Name))
 	default:
 		return fmt.Errorf("invalid game mode: %s", c.GameMode)
