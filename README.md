@@ -51,14 +51,6 @@ Ensure that you have a supported version of Go properly installed and setup. You
 
 Using the Makefile:
 
-```bash
-git clone https://github.com/Broderick-Westrope/tetrigo
-cd tetrigo/
-make
-sudo make install
-tetrigo
-```
-
 You can then install the latest release globally by running:
 
 ```bash
