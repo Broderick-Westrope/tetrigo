@@ -40,9 +40,9 @@ type item struct {
 func NewModel(_ *common.MenuInput) *Model {
 	nameInput := textinput.NewModel("Enter your name", 20, 20)
 	modePicker := hpicker.NewModel([]hpicker.KeyValuePair{
-		{Key: "Marathon", Value: "marathon"},
+		{Key: "Marathon", Value: common.ModeMarathon},
 		//{Key: "Sprint (40 Lines)", Value: "sprint"},
-		{Key: "Ultra (Time Trial)", Value: "ultra"},
+		{Key: "Ultra (Time Trial)", Value: common.ModeUltra},
 	})
 	levelPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 15))
 
@@ -133,7 +133,7 @@ func (m Model) renderItem(index int) string {
 
 func (m Model) startGame() (tea.Cmd, error) {
 	var level int
-	var mode string
+	var mode common.Mode
 	var playerName string
 
 	for _, i := range m.items {
@@ -143,7 +143,7 @@ func (m Model) startGame() (tea.Cmd, error) {
 			level = kvp.Value.(int)
 		case "Mode":
 			kvp := i.model.(*hpicker.Model).GetSelection()
-			mode = kvp.Value.(string)
+			mode = kvp.Value.(common.Mode)
 		case "Name":
 			playerName = i.model.(textinput.Model).Child.Value()
 		default:
@@ -152,13 +152,13 @@ func (m Model) startGame() (tea.Cmd, error) {
 	}
 
 	switch mode {
-	case "marathon":
-		in := common.NewMarathonInput(uint(level), playerName)
-		return common.SwitchModeCmd(common.ModeMarathon, in), nil
-	case "ultra":
-		in := common.NewUltraInput(uint(level), playerName)
-		return common.SwitchModeCmd(common.ModeUltra, in), nil
+	case common.ModeMarathon:
+		in := common.NewSingleInput(mode, uint(level), playerName)
+		return common.SwitchModeCmd(mode, in), nil
+	case common.ModeUltra:
+		in := common.NewSingleInput(mode, uint(level), playerName)
+		return common.SwitchModeCmd(mode, in), nil
 	default:
-		return nil, fmt.Errorf("invalid mode: %q", mode)
+		return nil, fmt.Errorf("invalid mode from menu: %q", mode)
 	}
 }

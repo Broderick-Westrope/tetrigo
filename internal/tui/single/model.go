@@ -1,4 +1,4 @@
-package ultra
+package single
 
 import (
 	"fmt"
@@ -23,46 +23,79 @@ var _ tea.Model = &Model{}
 
 type Model struct {
 	playerName      string
-	styles          *game.Styles
-	help            help.Model
-	keys            *game.GameKeyMap
-	gameTimer       timer.Model
-	isPaused        bool
-	fallStopwatch   stopwatch.Model
 	game            *single.Game
 	nextQueueLength int
+	fallStopwatch   stopwatch.Model
+	mode            common.Mode
+
+	useTimer      bool
+	gameTimer     timer.Model
+	gameStopwatch stopwatch.Model
+
+	styles   *game.Styles
+	help     help.Model
+	keys     *game.GameKeyMap
+	isPaused bool
 }
 
-func NewModel(in *common.UltraInput, cfg *config.Config) (*Model, error) {
-	gameIn := &single.Input{
-		Level:        in.Level,
-		GhostEnabled: cfg.GhostEnabled,
-	}
-
-	g, err := single.NewGame(gameIn)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create marathon game: %w", err)
-	}
-
+func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
+	// Setup initial model
 	m := &Model{
 		playerName:      in.PlayerName,
 		styles:          game.CreateStyles(cfg.Theme),
 		help:            help.New(),
 		keys:            game.ConstructGameKeyMap(cfg.Keys),
-		gameTimer:       timer.NewWithInterval(time.Second*2, time.Millisecond*13),
 		isPaused:        false,
-		game:            g,
 		nextQueueLength: cfg.NextQueueLength,
+		mode:            in.Mode,
 	}
-	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
-	m.styles = game.CreateStyles(cfg.Theme)
+	// Get game input
+	var gameIn *single.Input
+	switch in.Mode {
+	case common.ModeMarathon:
+		gameIn = &single.Input{
+			Level:         in.Level,
+			MaxLevel:      cfg.MaxLevel,
+			IncreaseLevel: true,
+			EndOnMaxLevel: cfg.EndOnMaxLevel,
+			GhostEnabled:  cfg.GhostEnabled,
+		}
+		m.gameStopwatch = stopwatch.NewWithInterval(time.Millisecond * 13)
+	case common.ModeUltra:
+		gameIn = &single.Input{
+			Level:        in.Level,
+			GhostEnabled: cfg.GhostEnabled,
+		}
+		m.useTimer = true
+		m.gameTimer = timer.NewWithInterval(time.Minute*2, time.Millisecond*13)
+	default:
+		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
+	}
+
+	// Create game
+	var err error
+	m.game, err = single.NewGame(gameIn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create single player game: %w", err)
+	}
+
+	// Setup game dependents
+	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
 	return m, nil
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.fallStopwatch.Init(), m.gameTimer.Init())
+	var cmd tea.Cmd
+	switch m.useTimer {
+	case true:
+		cmd = m.gameTimer.Init()
+	default:
+		cmd = m.gameStopwatch.Init()
+	}
+
+	return tea.Batch(m.fallStopwatch.Init(), cmd)
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -111,7 +144,12 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	m.gameTimer, cmd = m.gameTimer.Update(msg)
+	switch m.useTimer {
+	case true:
+		m.gameTimer, cmd = m.gameTimer.Update(msg)
+	default:
+		m.gameStopwatch, cmd = m.gameStopwatch.Update(msg)
+	}
 	cmds = append(cmds, cmd)
 
 	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
@@ -123,8 +161,9 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		if key.Matches(msg, m.keys.Exit, m.keys.Hold) {
+			modeStr := m.mode.String()
 			newEntry := &data.Score{
-				GameMode: "ultra",
+				GameMode: modeStr,
 				Name:     m.playerName,
 				Score:    int(m.game.GetTotalScore()),
 				Lines:    int(m.game.GetLinesCleared()),
@@ -132,7 +171,7 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 			}
 
 			return m, common.SwitchModeCmd(common.ModeLeaderboard,
-				common.NewLeaderboardInput("marathon", common.WithNewEntry(newEntry)),
+				common.NewLeaderboardInput(modeStr, common.WithNewEntry(newEntry)),
 			)
 		}
 	}
@@ -297,15 +336,22 @@ func (m *Model) informationView() string {
 		return fmt.Sprintf("%s%*s\n", title, width-(1+len(title)), value)
 	}
 
-	elapsed := m.gameTimer.Timeout.Seconds()
-	minutes := int(elapsed) / 60
+	var gameTime float64
+	switch m.useTimer {
+	case true:
+		gameTime = m.gameTimer.Timeout.Seconds()
+	default:
+		gameTime = m.gameStopwatch.Elapsed().Seconds()
+	}
+
+	minutes := int(gameTime) / 60
 
 	var timeStr string
 	if minutes > 0 {
-		seconds := int(elapsed) % 60
+		seconds := int(gameTime) % 60
 		timeStr += fmt.Sprintf("%02d:%02d", minutes, seconds)
 	} else {
-		timeStr += fmt.Sprintf("%06.3f", elapsed)
+		timeStr += fmt.Sprintf("%06.3f", gameTime)
 	}
 
 	var output string
@@ -372,7 +418,11 @@ func (m *Model) renderCell(cell byte) string {
 func (m *Model) triggerGameOver() tea.Cmd {
 	m.game.EndGame()
 	m.isPaused = false
-	m.gameTimer.Timeout = 0
+
+	if m.useTimer {
+		m.gameTimer.Timeout = 0
+	}
+
 	var cmds []tea.Cmd
 	cmds = append(cmds, m.gameTimer.Stop())
 	cmds = append(cmds, m.fallStopwatch.Stop())

@@ -4,15 +4,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Mode int
-
-const (
-	ModeMenu = Mode(iota)
-	ModeMarathon
-	ModeUltra
-	ModeLeaderboard
-)
-
 type SwitchModeMsg struct {
 	Target Mode
 	Input  SwitchModeInput
@@ -29,4 +20,24 @@ func SwitchModeCmd(target Mode, in SwitchModeInput) tea.Cmd {
 			Input:  in,
 		}
 	}
+}
+
+type Mode int
+
+const (
+	ModeMenu = Mode(iota)
+	ModeMarathon
+	ModeUltra
+	ModeLeaderboard
+)
+
+var modeToStrMap = map[Mode]string{
+	ModeMenu:        "Menu",
+	ModeMarathon:    "Marathon",
+	ModeUltra:       "Ultra",
+	ModeLeaderboard: "Leaderboard",
+}
+
+func (m Mode) String() string {
+	return modeToStrMap[m]
 }

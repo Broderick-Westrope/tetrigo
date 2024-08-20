@@ -8,9 +8,8 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/leaderboard"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/marathon"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/menu"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/ultra"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/single"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -108,22 +107,12 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 			return ErrInvalidSwitchModeInput
 		}
 		m.child = menu.NewModel(menuIn)
-	case common.ModeMarathon:
-		marathonIn, ok := switchIn.(*common.MarathonInput)
+	case common.ModeMarathon, common.ModeUltra:
+		ultraIn, ok := switchIn.(*common.SingleInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
-		child, err := marathon.NewModel(marathonIn, m.cfg)
-		if err != nil {
-			return err
-		}
-		m.child = child
-	case common.ModeUltra:
-		ultraIn, ok := switchIn.(*common.UltraInput)
-		if !ok {
-			return ErrInvalidSwitchModeInput
-		}
-		child, err := ultra.NewModel(ultraIn, m.cfg)
+		child, err := single.NewModel(ultraIn, m.cfg)
 		if err != nil {
 			return err
 		}
