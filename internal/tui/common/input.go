@@ -16,6 +16,20 @@ func NewMarathonInput(level uint, playerName string) *MarathonInput {
 
 func (in *MarathonInput) isSwitchModeInput() {}
 
+type UltraInput struct {
+	Level      uint
+	PlayerName string
+}
+
+func NewUltraInput(level uint, playerName string) *UltraInput {
+	return &UltraInput{
+		Level:      level,
+		PlayerName: playerName,
+	}
+}
+
+func (in *UltraInput) isSwitchModeInput() {}
+
 type MenuInput struct {
 }
 

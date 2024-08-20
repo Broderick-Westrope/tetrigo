@@ -3,6 +3,7 @@ package tetris
 type Scoring struct {
 	level         uint
 	maxLevel      uint
+	increaseLevel bool
 	endOnMaxLevel bool
 
 	lines         uint
@@ -13,10 +14,11 @@ type Scoring struct {
 	backToBack bool
 }
 
-func NewScoring(level, maxLevel uint, endOnMaxLevel bool, maxLines uint, endOnMaxLines bool) *Scoring {
+func NewScoring(level, maxLevel uint, increaseLevel, endOnMaxLevel bool, maxLines uint, endOnMaxLines bool) *Scoring {
 	return &Scoring{
 		level:         level,
 		maxLevel:      maxLevel,
+		increaseLevel: increaseLevel,
 		endOnMaxLevel: endOnMaxLevel,
 
 		maxLines:      maxLines,
@@ -73,7 +75,7 @@ func (s *Scoring) ProcessAction(a Action) (bool, error) {
 		s.lines = s.maxLines
 	}
 
-	for s.lines >= s.level*5 {
+	for s.increaseLevel && s.lines >= s.level*5 {
 		s.level++
 		if s.maxLevel > 0 && s.level >= s.maxLevel {
 			s.level = s.maxLevel

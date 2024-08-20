@@ -1,4 +1,4 @@
-package marathon
+package ultra
 
 import (
 	"fmt"
@@ -14,6 +14,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
+	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -25,20 +26,17 @@ type Model struct {
 	styles          *game.Styles
 	help            help.Model
 	keys            *game.GameKeyMap
-	timerStopwatch  stopwatch.Model
+	gameTimer       timer.Model
 	isPaused        bool
 	fallStopwatch   stopwatch.Model
 	game            *single.Game
-	isGameOver      bool
 	nextQueueLength int
 }
 
-func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
+func NewModel(in *common.UltraInput, cfg *config.Config) (*Model, error) {
 	gameIn := &single.Input{
-		Level:         in.Level,
-		MaxLevel:      cfg.MaxLevel,
-		EndOnMaxLevel: cfg.EndOnMaxLevel,
-		GhostEnabled:  cfg.GhostEnabled,
+		Level:        in.Level,
+		GhostEnabled: cfg.GhostEnabled,
 	}
 
 	g, err := single.NewGame(gameIn)
@@ -51,7 +49,7 @@ func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
 		styles:          game.CreateStyles(cfg.Theme),
 		help:            help.New(),
 		keys:            game.ConstructGameKeyMap(cfg.Keys),
-		timerStopwatch:  stopwatch.NewWithInterval(time.Millisecond * 3),
+		gameTimer:       timer.NewWithInterval(time.Second*2, time.Millisecond*13),
 		isPaused:        false,
 		game:            g,
 		nextQueueLength: cfg.NextQueueLength,
@@ -64,7 +62,7 @@ func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.fallStopwatch.Init(), m.timerStopwatch.Init())
+	return tea.Batch(m.fallStopwatch.Init(), m.gameTimer.Init())
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -113,7 +111,7 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	m.timerStopwatch, cmd = m.timerStopwatch.Update(msg)
+	m.gameTimer, cmd = m.gameTimer.Update(msg)
 	cmds = append(cmds, cmd)
 
 	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
@@ -126,9 +124,8 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		if key.Matches(msg, m.keys.Exit, m.keys.Hold) {
 			newEntry := &data.Score{
-				GameMode: "marathon",
+				GameMode: "ultra",
 				Name:     m.playerName,
-				Time:     m.timerStopwatch.Elapsed(),
 				Score:    int(m.game.GetTotalScore()),
 				Lines:    int(m.game.GetLinesCleared()),
 				Level:    int(m.game.GetLevel()),
@@ -174,6 +171,11 @@ func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 			cmds = append(cmds, m.triggerGameOver())
 		}
 		return m, tea.Batch(cmds...)
+	case timer.TimeoutMsg:
+		if msg.ID != m.gameTimer.ID() {
+			break
+		}
+		return m, m.triggerGameOver()
 	}
 
 	return m, nil
@@ -241,9 +243,7 @@ func (m *Model) View() string {
 
 	if m.game.IsGameOver() {
 		output = common.OverlayGameOverMessage(output)
-	}
-
-	if m.isPaused {
+	} else if m.isPaused {
 		output = common.OverlayPausedMessage(output)
 	}
 
@@ -297,7 +297,7 @@ func (m *Model) informationView() string {
 		return fmt.Sprintf("%s%*s\n", title, width-(1+len(title)), value)
 	}
 
-	elapsed := m.timerStopwatch.Elapsed().Seconds()
+	elapsed := m.gameTimer.Timeout.Seconds()
 	minutes := int(elapsed) / 60
 
 	var timeStr string
@@ -370,10 +370,11 @@ func (m *Model) renderCell(cell byte) string {
 }
 
 func (m *Model) triggerGameOver() tea.Cmd {
-	m.isGameOver = true
+	m.game.EndGame()
 	m.isPaused = false
+	m.gameTimer.Timeout = 0
 	var cmds []tea.Cmd
-	cmds = append(cmds, m.timerStopwatch.Stop())
+	cmds = append(cmds, m.gameTimer.Stop())
 	cmds = append(cmds, m.fallStopwatch.Stop())
 	return tea.Batch(cmds...)
 }
@@ -382,6 +383,6 @@ func (m *Model) togglePause() tea.Cmd {
 	m.isPaused = !m.isPaused
 	return tea.Batch(
 		m.fallStopwatch.Toggle(),
-		m.timerStopwatch.Toggle(),
+		m.gameTimer.Toggle(),
 	)
 }

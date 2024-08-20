@@ -10,6 +10,7 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/leaderboard"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/marathon"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/menu"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/ultra"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -113,6 +114,16 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 			return ErrInvalidSwitchModeInput
 		}
 		child, err := marathon.NewModel(marathonIn, m.cfg)
+		if err != nil {
+			return err
+		}
+		m.child = child
+	case common.ModeUltra:
+		ultraIn, ok := switchIn.(*common.UltraInput)
+		if !ok {
+			return ErrInvalidSwitchModeInput
+		}
+		child, err := ultra.NewModel(ultraIn, m.cfg)
 		if err != nil {
 			return err
 		}

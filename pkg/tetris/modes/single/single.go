@@ -26,6 +26,7 @@ type Game struct {
 type Input struct {
 	Level         uint // The starting level of the game.
 	MaxLevel      uint // The maximum level the game can reach. 0 means no limit.
+	IncreaseLevel bool // Whether the level should increase as the game progresses.
 	EndOnMaxLevel bool // Whether the game should end when the maximum level is reached.
 
 	MaxLines      uint // The maximum number of lines to clear before the game ends. 0 means no limit.
@@ -48,7 +49,7 @@ func NewGame(in *Input) (*Game, error) {
 		holdQueue:        tetris.GetEmptyTetrimino(),
 		gameOver:         false,
 		softDropStartRow: matrix.GetHeight(),
-		scoring:          tetris.NewScoring(in.Level, in.MaxLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines),
+		scoring:          tetris.NewScoring(in.Level, in.MaxLevel, in.IncreaseLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines),
 		fall:             tetris.NewFall(in.Level),
 	}
 
@@ -195,6 +196,11 @@ func (g *Game) ToggleSoftDrop() time.Duration {
 	}
 	g.softDropStartRow = g.matrix.GetSkyline()
 	return g.fall.DefaultInterval
+}
+
+// EndGame sets Game.gameOver to true.
+func (g *Game) EndGame() {
+	g.gameOver = true
 }
 
 // lowerTetInPlay moves the current Tetrimino down one row if possible.

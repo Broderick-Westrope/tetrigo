@@ -9,6 +9,7 @@ type Mode int
 const (
 	ModeMenu = Mode(iota)
 	ModeMarathon
+	ModeUltra
 	ModeLeaderboard
 )
 

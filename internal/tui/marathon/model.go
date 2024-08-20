@@ -37,6 +37,7 @@ func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
 	gameIn := &single.Input{
 		Level:         in.Level,
 		MaxLevel:      cfg.MaxLevel,
+		IncreaseLevel: true,
 		EndOnMaxLevel: cfg.EndOnMaxLevel,
 		GhostEnabled:  cfg.GhostEnabled,
 	}

@@ -17,7 +17,7 @@ func (c *MenuCmd) Run(globals *GlobalVars) error {
 }
 
 type PlayCmd struct {
-	GameMode string `arg:"" help:"Game mode to play" default:"single"`
+	GameMode string `arg:"" help:"Game mode to play" default:"marathon"`
 	Level    uint   `help:"Level to start at" short:"l" default:"1"`
 	Name     string `help:"Name of the player" short:"n" default:"Anonymous"`
 }
@@ -26,13 +26,15 @@ func (c *PlayCmd) Run(globals *GlobalVars) error {
 	switch c.GameMode {
 	case "marathon":
 		return launchStarter(globals, common.ModeMarathon, common.NewMarathonInput(c.Level, c.Name))
+	case "ultra":
+		return launchStarter(globals, common.ModeUltra, common.NewUltraInput(c.Level, c.Name))
 	default:
 		return fmt.Errorf("invalid game mode: %s", c.GameMode)
 	}
 }
 
 type LeaderboardCmd struct {
-	GameMode string `arg:"" help:"Game mode to display" default:"single"`
+	GameMode string `arg:"" help:"Game mode to display" default:"marathon"`
 }
 
 func (c *LeaderboardCmd) Run(globals *GlobalVars) error {
