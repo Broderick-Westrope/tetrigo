@@ -25,7 +25,7 @@ type Model struct {
 	styles          *game.Styles
 	help            help.Model
 	keys            *game.GameKeyMap
-	timerStopwatch  stopwatch.Model
+	gameStopwatch   stopwatch.Model
 	isPaused        bool
 	fallStopwatch   stopwatch.Model
 	game            *single.Game
@@ -51,7 +51,7 @@ func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
 		styles:          game.CreateStyles(cfg.Theme),
 		help:            help.New(),
 		keys:            game.ConstructGameKeyMap(cfg.Keys),
-		timerStopwatch:  stopwatch.NewWithInterval(time.Millisecond * 3),
+		gameStopwatch:   stopwatch.NewWithInterval(time.Millisecond * 3),
 		isPaused:        false,
 		game:            g,
 		nextQueueLength: cfg.NextQueueLength,
@@ -64,7 +64,7 @@ func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.fallStopwatch.Init(), m.timerStopwatch.Init())
+	return tea.Batch(m.fallStopwatch.Init(), m.gameStopwatch.Init())
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -113,7 +113,7 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	m.timerStopwatch, cmd = m.timerStopwatch.Update(msg)
+	m.gameStopwatch, cmd = m.gameStopwatch.Update(msg)
 	cmds = append(cmds, cmd)
 
 	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
@@ -128,7 +128,7 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 			newEntry := &data.Score{
 				GameMode: "marathon",
 				Name:     m.playerName,
-				Time:     m.timerStopwatch.Elapsed(),
+				Time:     m.gameStopwatch.Elapsed(),
 				Score:    int(m.game.GetTotalScore()),
 				Lines:    int(m.game.GetLinesCleared()),
 				Level:    int(m.game.GetLevel()),
@@ -297,7 +297,7 @@ func (m *Model) informationView() string {
 		return fmt.Sprintf("%s%*s\n", title, width-(1+len(title)), value)
 	}
 
-	elapsed := m.timerStopwatch.Elapsed().Seconds()
+	elapsed := m.gameStopwatch.Elapsed().Seconds()
 	minutes := int(elapsed) / 60
 
 	var timeStr string
@@ -373,7 +373,7 @@ func (m *Model) triggerGameOver() tea.Cmd {
 	m.isGameOver = true
 	m.isPaused = false
 	var cmds []tea.Cmd
-	cmds = append(cmds, m.timerStopwatch.Stop())
+	cmds = append(cmds, m.gameStopwatch.Stop())
 	cmds = append(cmds, m.fallStopwatch.Stop())
 	return tea.Batch(cmds...)
 }
@@ -382,6 +382,6 @@ func (m *Model) togglePause() tea.Cmd {
 	m.isPaused = !m.isPaused
 	return tea.Batch(
 		m.fallStopwatch.Toggle(),
-		m.timerStopwatch.Toggle(),
+		m.gameStopwatch.Toggle(),
 	)
 }
