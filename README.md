@@ -49,15 +49,19 @@ You can install Tetrigo by downloading the pre-built binary or by building the p
    # Windows
    tetrigo.exe
 
-Optionally, you can move the binary to a directory in your `$PATH` to run it from anywhere ([example](https://gist.github.com/nex3/c395b2f8fd4b02068be37c961301caa7)).
+Optionally, you can move the binary to your `$PATH` to run it from anywhere ([example](https://gist.github.com/nex3/c395b2f8fd4b02068be37c961301caa7)).
 
 ### Build From Source
 
 Ensure that you have a supported version of Go properly installed and setup. You can find the minimum required version of Go in the [go.mod](./go.mod) file.
 
-Using the Makefile:
-
-You can then install the latest release globally by running:
+```bash
+git clone --depth=1 https://github.com/Broderick-Westrope/tetrigo
+cd tetrigo/
+go build -o tetrigo cmd/tetrigo/main.go
+./tetrigo
+```
+You can install the latest release globally by running:
 
 ```bash
 go install github.com/Broderick-Westrope/tetrigo/cmd/tetrigo@latest
