@@ -1,4 +1,4 @@
-package marathon
+package single
 
 import (
 	"time"

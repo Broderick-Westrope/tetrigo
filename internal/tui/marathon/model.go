@@ -10,7 +10,7 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/game"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/marathon"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
@@ -28,20 +28,20 @@ type Model struct {
 	timerStopwatch  stopwatch.Model
 	isPaused        bool
 	fallStopwatch   stopwatch.Model
-	game            *marathon.Game
+	game            *single.Game
 	isGameOver      bool
 	nextQueueLength int
 }
 
 func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
-	gameIn := &marathon.Input{
+	gameIn := &single.Input{
 		Level:         in.Level,
 		MaxLevel:      cfg.MaxLevel,
 		EndOnMaxLevel: cfg.EndOnMaxLevel,
 		GhostEnabled:  cfg.GhostEnabled,
 	}
 
-	g, err := marathon.NewGame(gameIn)
+	g, err := single.NewGame(gameIn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create marathon game: %w", err)
 	}

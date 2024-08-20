@@ -1,4 +1,4 @@
-package marathon
+package single
 
 import (
 	"errors"
@@ -8,6 +8,8 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 )
 
+// Game represents a single player game of Tetris.
+// This can be used for Marathon, Sprint, Ultra and other single player modes.
 type Game struct {
 	matrix           tetris.Matrix     // The Matrix of cells on which the game is played
 	nextQueue        *tetris.NextQueue // The queue of upcoming Tetriminos
