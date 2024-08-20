@@ -2,46 +2,53 @@
 
 *teh·tree·go*
 
-![app demo](./docs/readme-demo.gif)
+![App Demo](./docs/readme-demo.gif)
 
-A Golang implementation of Tetris, following the official [2009 Tetris Design Guideline](./docs/2009-Tetris-Design-Guideline.pdf).
-
-This project consists of three main components, depending on what your goals are:
-- ***"I just want to play Tetris"***
-  - The TUI (Text User Interface) in `cmd/tetrigo/` is for you. See the [installation](#installation) section.
-- ***"I want to create my own Tetris game/UI"***
-  - The packages in `pkg/tetris/modes/` are for you. You can reuse these game modes with your own UI.
-- ***"I want to create my own Tetris game mode"***
-  - The packages in `pkg/tetris/` are for you. You can create your own game mode with a custom set of rules and requirements.
-
-You can find more information on these sections in the [development](#development) section. If you have a suggestion, bug, or feature request, please open a GitHub issue.
+**Tetrigo** is a Golang implementation of Tetris, following the official [2009 Tetris Design Guideline](./docs/2009-Tetris-Design-Guideline.pdf). The project is modular, offering components tailored to different needs—whether you want to play Tetris, create a custom Tetris UI, or develop new game modes.
 
 ## Contents
 
+- [Introduction](#introduction)
 - [Installation](#installation)
+  - [Binary Installation](#binary-installation)
+  - [Build from Source](#build-from-source)
 - [Usage](#usage)
+  - [Controls](#controls)
+  - [CLI Usage](#cli-usage)
 - [Configuration](#configuration)
-- [Data](#data)
+  - [TOML Configuration](#toml-configuration)
+- [Data Management](#data-management)
 - [Development](#development)
+  - [Project Structure](#project-structure)
+  - [Building](#building)
+  - [Testing](#testing)
+- [TODO](#todo)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Introduction
+
+Tetrigo is designed to be flexible and extendable. Depending on your goals, you can choose the appropriate part of the project to work with:
+
+- **Play Tetris**: Use the TUI (Text User Interface) found in `cmd/tetrigo/`. See the [installation](#installation) section for setup instructions.
+- **Create a Custom Tetris UI**: Use the game modes in `pkg/tetris/modes/` to integrate Tetris functionality into your own interface.
+- **Develop New Game Modes**: Use the core logic in `pkg/tetris/` to design your own Tetris game modes with custom rules and mechanics.
 
 ## Installation
 
-Tetrigo can be installed by downloading the binary or by building from source. See the instructions below for your preferred method.
+You can install Tetrigo by downloading the pre-built binary or by building the project from source.
 
-### Binary
+### Binary Installation
 
-You can download the binary corresponding to your operating system from the [releases page on GitHub](https://github.com/Broderick-Westrope/tetrigo/releases).
+1. Download the appropriate binary for your operating system from the [releases page on GitHub](https://github.com/Broderick-Westrope/tetrigo/releases).
+2. Run the binary from the command line:
 
-Once downloaded you can run the binary from the command line:
+   ```bash
+   # Linux or macOS
+   tetrigo
 
-
-```bash
-# Linux or macOS
-tetrigo
-
-# Windows
-tetrigo.exe
-```
+   # Windows
+   tetrigo.exe
 
 Optionally, you can move the binary to a directory in your `$PATH` to run it from anywhere ([example](https://gist.github.com/nex3/c395b2f8fd4b02068be37c961301caa7)).
 
@@ -86,9 +93,7 @@ The game controls can be changed in the configuration file.
 
 The menu, leaderboard, etc can be navigated using the arrow keys (moving), escape (exit), and enter (submit). These controls are not configurable.
 
-## Configuration
-
-### CLI
+### CLI Usage
 
 Starting Tetrigo with no subcommand or flags will start the game in the menu where you can manually configure simple settings like the player name and game mode:
 
@@ -109,7 +114,9 @@ To see more options for starting the game you can run:
 tetrigo --help
 ```
 
-### TOML
+## Configuration
+
+### TOML Configuration
 
 More complex configuration can be done using a TOML file. If no config file is found sensible defaults will be used.
 
@@ -121,7 +128,7 @@ tetrigo --config=/path/to/config.toml
 
 An example configuration file is provided in [`example.config.toml`](./example.config.toml).
 
-## Data
+## Data Management
 
 The game data is stored in a SQLite database. By default, the database is stored in the working directory as `tetrigo.db`. You can specify a different file using the `--db` flag.
 
@@ -130,6 +137,8 @@ tetrigo --db=/path/to/data.db
 ```
 
 ## Development
+
+### Project Structure
 
 This project consists of three main components:
 1. `cmd/tetrigo/`: A TUI (Text User Interface) allowing you to play it out of the box. It also serves as a demonstration on how to use the packages and how to create a TUI using [Bubble Tea](https://github.com/charmbracelet/bubbletea).
@@ -188,3 +197,9 @@ The ordered priorities for testing are:
   - Sprint
   - Ultra 
 - Multiplayer
+
+## Contributing
+Contributions are welcome! If you have suggestions, bug reports, or feature requests, please open an issue on GitHub.
+
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
