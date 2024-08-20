@@ -97,7 +97,7 @@ You're also able to start the game directly in a game mode (eg. Marathon), skipp
 
 ```bash
 # Start the game in Marathon mode with a level of 5 and the player name "Brodie"
-./tetrigo marathon --level=5 --name=Brodie 
+./tetrigo play marathon --level=5 --name=Brodie 
 ```
 
 To see more options for starting the game you can run:
