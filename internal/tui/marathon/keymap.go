@@ -1,8 +1,8 @@
 package marathon
 
 import (
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
 	"github.com/charmbracelet/bubbles/key"
 )
 

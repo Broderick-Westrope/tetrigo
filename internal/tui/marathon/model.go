@@ -5,10 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/helpers"
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/marathon"
 	"github.com/charmbracelet/bubbles/help"
@@ -248,11 +247,11 @@ func (m *Model) View() string {
 	)
 
 	if m.game.IsGameOver() {
-		output = helpers.PlaceOverlayCenter(gameOverMsg, output)
+		output = common.PlaceOverlayCenter(gameOverMsg, output)
 	}
 
 	if m.isPaused {
-		output = helpers.PlaceOverlayCenter(pausedMsg, output)
+		output = common.PlaceOverlayCenter(pausedMsg, output)
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
