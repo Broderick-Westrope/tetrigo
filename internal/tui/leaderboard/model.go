@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"strconv"
 
-	"github.com/Broderick-Westrope/tetrigo/cmd/tetrigo/common"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
