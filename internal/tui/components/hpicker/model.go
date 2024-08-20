@@ -15,15 +15,20 @@ type Model struct {
 	// cursor is the index of the currently selected option.
 	selected int
 	// options is a list of the possible options for this component.
-	options []string
+	options []KeyValuePair
 	// keymap encodes the keybindings recognized by the component.
 	keymap *KeyMap
 	styles Styles
 }
 
+type KeyValuePair struct {
+	Key   string
+	Value any
+}
+
 type Option func(*Model)
 
-func NewModel(options []string, opts ...Option) *Model {
+func NewModel(options []KeyValuePair, opts ...Option) *Model {
 	m := &Model{
 		options: options,
 		keymap:  defaultKeyMap(),
@@ -39,9 +44,10 @@ func NewModel(options []string, opts ...Option) *Model {
 
 func WithRange(minValue, maxValue int) Option {
 	return func(m *Model) {
-		m.options = make([]string, (maxValue-minValue)+1)
+		m.options = make([]KeyValuePair, (maxValue-minValue)+1)
 		for i := minValue - 1; i < maxValue; i++ {
-			m.options[i] = strconv.Itoa(i + 1)
+			m.options[i].Key = strconv.Itoa(i + 1)
+			m.options[i].Value = i + 1
 		}
 	}
 }
@@ -82,7 +88,7 @@ func (m *Model) View() string {
 
 	return lipgloss.JoinHorizontal(lipgloss.Center,
 		prev.Render(m.styles.PrevIndicator),
-		m.styles.SelectionStyle.Render(m.options[m.selected]),
+		m.styles.SelectionStyle.Render(m.options[m.selected].Key),
 		next.Render(m.styles.NextIndicator),
 	)
 }
@@ -111,6 +117,6 @@ func (m *Model) isLast() bool {
 	return m.selected == len(m.options)-1
 }
 
-func (m *Model) GetSelection() string {
+func (m *Model) GetSelection() KeyValuePair {
 	return m.options[m.selected]
 }
