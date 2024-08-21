@@ -115,3 +115,22 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+
+dockers:
+  - image_templates:
+      - "ghcr.io/broderick-westrope/tetrigo:latest"
+      - "ghcr.io/broderick-westrope/tetrigo:v{{ .Version }}"
+    ids: [tetrigo-linux-amd64]
+    goarch: amd64
+    build_flag_templates:
+      - --platform=linux/amd64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/broderick-westrope/tetrigo
+      - --label=org.opencontainers.image.source=https://github.com/broderick-westrope/tetrigo
+      - --label=org.opencontainers.image.version=v{{ .Version }}
+      - --label=org.opencontainers.image.created={{ .Date }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=GPL-3.0
+    dockerfile: Dockerfile
+    use: buildx
