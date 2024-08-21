@@ -3,8 +3,6 @@ name: Test
 on:
   pull_request:
   push:
-    tags:
-      - v*
     branches:
       - main
 
@@ -13,7 +11,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        go: [ 1.22.x, 1.23.x ]
+        go: [ 1.23.x ]
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{matrix.os}}
     steps:

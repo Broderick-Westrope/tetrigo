@@ -71,9 +71,9 @@ tasks:
   goreleaser:dryrun:
     desc: Releases the project
     cmds:
-      - ./scripts/goreleaser/dryrun.sh
+      - bash ./scripts/goreleaser/dryrun.sh
 
   goreleaser:release:
     desc: Releases the project
     cmds:
-      - ./scripts/goreleaser/release.sh
+      - bash ./scripts/goreleaser/release.sh
