@@ -54,6 +54,7 @@ func TestNewScoring(t *testing.T) {
 
 			if tc.wantErr != nil {
 				require.EqualError(t, err, tc.wantErr.Error())
+				return
 			}
 
 			require.NoError(t, err)
