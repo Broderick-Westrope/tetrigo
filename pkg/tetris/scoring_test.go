@@ -354,11 +354,17 @@ func TestScoring_ProcessAction(t *testing.T) {
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
 			s := &Scoring{
-				backToBack: tc.isBackToBack,
+				level:         1,
+				maxLevel:      tc.maxLevel,
+				increaseLevel: true,
+				endOnMaxLevel: false,
+
+				lines:         0,
+				maxLines:      0,
+				endOnMaxLines: false,
+
 				total:      0,
-				lines:      0,
-				level:      1,
-				maxLevel:   tc.maxLevel,
+				backToBack: tc.isBackToBack,
 			}
 
 			// TODO: check gameOver (from endsOnMaxLevel)

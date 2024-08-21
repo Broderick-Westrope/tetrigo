@@ -48,7 +48,7 @@ func (s *Scoring) AddHardDrop(lines uint) {
 
 func (s *Scoring) ProcessAction(a Action) (bool, error) {
 	if a == Actions.None {
-		return s.isGameOver(), nil
+		return false, nil
 	}
 
 	points := float64(a.GetPoints())
@@ -65,28 +65,36 @@ func (s *Scoring) ProcessAction(a Action) (bool, error) {
 		s.backToBack = true
 	}
 	if err != nil {
-		return s.isGameOver(), err
+		return false, err
 	}
 
 	s.total += uint(points+backToBack) * s.level
+
+	// increase lines
 	s.lines += uint((points + backToBack) / 100)
 
-	if s.maxLines > 0 && s.lines > s.maxLines {
+	// if max lines enabled, and max lines reached
+	if s.maxLines > 0 && s.lines >= s.maxLines {
 		s.lines = s.maxLines
-	}
 
-	for s.increaseLevel && s.lines >= s.level*5 {
-		s.level++
-		if s.maxLevel > 0 && s.level >= s.maxLevel {
-			s.level = s.maxLevel
-			return s.isGameOver(), nil
+		if s.endOnMaxLines {
+			return true, nil
 		}
 	}
 
-	return s.isGameOver(), nil
-}
+	// increase level
+	for s.increaseLevel && s.lines >= s.level*5 {
+		s.level++
 
-func (s *Scoring) isGameOver() bool {
-	return s.level >= s.maxLevel && s.endOnMaxLevel ||
-		s.lines >= s.maxLines && s.endOnMaxLines
+		// if no max level, or max level not reached
+		if s.maxLevel <= 0 || s.level < s.maxLevel {
+			continue
+		}
+
+		// if max level reached
+		s.level = s.maxLevel
+		return s.endOnMaxLevel, nil
+	}
+
+	return false, nil
 }
