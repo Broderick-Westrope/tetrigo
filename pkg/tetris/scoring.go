@@ -18,7 +18,11 @@ type Scoring struct {
 	backToBack bool
 }
 
-func NewScoring(level, maxLevel int, increaseLevel, endOnMaxLevel bool, maxLines int, endOnMaxLines bool) (*Scoring, error) {
+func NewScoring(
+	level, maxLevel int,
+	increaseLevel, endOnMaxLevel bool,
+	maxLines int,
+	endOnMaxLines bool) (*Scoring, error) {
 	s := &Scoring{
 		level:         level,
 		maxLevel:      maxLevel,
