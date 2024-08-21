@@ -17,7 +17,7 @@ func DefaultMatrix() Matrix {
 }
 
 // NewMatrix creates a new Matrix with the given height and width.
-func NewMatrix(height, width uint) (Matrix, error) {
+func NewMatrix(height, width int) (Matrix, error) {
 	if height <= 20 {
 		return nil, errors.New("matrix height must be greater than 20 to allow for a buffer zone of 20 lines")
 	}

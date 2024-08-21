@@ -1,4 +1,4 @@
-package marathon
+package single
 
 import (
 	"fmt"
@@ -8,71 +8,96 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/game"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/marathon"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
+	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-)
-
-const (
-	pausedMsg = `    ____                            __
-   / __ \____ ___  __________  ____/ /
-  / /_/ / __ ^/ / / / ___/ _ \/ __  /
- / ____/ /_/ / /_/ (__  )  __/ /_/ /
-/_/    \__,_/\__,_/____/\___/\__,_/
-Press PAUSE to continue or HOLD to exit.`
-
-	gameOverMsg = `   ______                        ____                 
-  / ____/___ _____ ___  ___     / __ \_   _____  _____
- / / __/ __ ^/ __ ^__ \/ _ \   / / / / | / / _ \/ ___/
-/ /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /
-\____/\__,_/_/ /_/ /_/\___/   \____/ |___/\___/_/
-		Press EXIT or HOLD to continue.`
 )
 
 var _ tea.Model = &Model{}
 
 type Model struct {
 	playerName      string
-	styles          *Styles
-	help            help.Model
-	keys            *keyMap
-	timerStopwatch  stopwatch.Model
-	isPaused        bool
-	fallStopwatch   stopwatch.Model
-	game            *marathon.Game
-	isGameOver      bool
+	game            *single.Game
 	nextQueueLength int
+	fallStopwatch   stopwatch.Model
+	mode            common.Mode
+
+	useTimer      bool
+	gameTimer     timer.Model
+	gameStopwatch stopwatch.Model
+
+	styles   *game.Styles
+	help     help.Model
+	keys     *game.KeyMap
+	isPaused bool
 }
 
-func NewModel(in *common.MarathonInput, cfg *config.Config) (*Model, error) {
-	game, err := marathon.NewGame(in.Level, cfg.MaxLevel, cfg.EndOnMaxLevel, cfg.GhostEnabled)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create marathon game: %w", err)
-	}
-
+func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
+	// Setup initial model
 	m := &Model{
 		playerName:      in.PlayerName,
-		styles:          CreateStyles(cfg.Theme),
+		styles:          game.CreateStyles(cfg.Theme),
 		help:            help.New(),
-		keys:            constructKeyMap(cfg.Keys),
-		timerStopwatch:  stopwatch.NewWithInterval(time.Millisecond * 3),
+		keys:            game.ConstructKeyMap(cfg.Keys),
 		isPaused:        false,
-		game:            game,
 		nextQueueLength: cfg.NextQueueLength,
+		mode:            in.Mode,
 	}
-	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
-	m.styles = CreateStyles(cfg.Theme)
+	// Get game input
+	var gameIn *single.Input
+	switch in.Mode {
+	case common.ModeMarathon:
+		gameIn = &single.Input{
+			Level:         in.Level,
+			MaxLevel:      cfg.MaxLevel,
+			IncreaseLevel: true,
+			EndOnMaxLevel: cfg.EndOnMaxLevel,
+			GhostEnabled:  cfg.GhostEnabled,
+		}
+		m.gameStopwatch = stopwatch.NewWithInterval(time.Millisecond * 13)
+	case common.ModeUltra:
+		gameIn = &single.Input{
+			Level:        in.Level,
+			GhostEnabled: cfg.GhostEnabled,
+		}
+		m.useTimer = true
+		m.gameTimer = timer.NewWithInterval(time.Minute*2, time.Millisecond*13)
+	case common.ModeMenu, common.ModeLeaderboard:
+		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
+	default:
+		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
+	}
+
+	// Create game
+	var err error
+	m.game, err = single.NewGame(gameIn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create single player game: %w", err)
+	}
+
+	// Setup game dependents
+	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
 	return m, nil
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(m.fallStopwatch.Init(), m.timerStopwatch.Init())
+	var cmd tea.Cmd
+	switch m.useTimer {
+	case true:
+		cmd = m.gameTimer.Init()
+	default:
+		cmd = m.gameStopwatch.Init()
+	}
+
+	return tea.Batch(m.fallStopwatch.Init(), cmd)
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -121,7 +146,12 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	m.timerStopwatch, cmd = m.timerStopwatch.Update(msg)
+	switch m.useTimer {
+	case true:
+		m.gameTimer, cmd = m.gameTimer.Update(msg)
+	default:
+		m.gameStopwatch, cmd = m.gameStopwatch.Update(msg)
+	}
 	cmds = append(cmds, cmd)
 
 	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
@@ -133,17 +163,17 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		if key.Matches(msg, m.keys.Exit, m.keys.Hold) {
+			modeStr := m.mode.String()
 			newEntry := &data.Score{
-				GameMode: "marathon",
+				GameMode: modeStr,
 				Name:     m.playerName,
-				Time:     m.timerStopwatch.Elapsed(),
-				Score:    int(m.game.GetTotalScore()),
-				Lines:    int(m.game.GetLinesCleared()),
-				Level:    int(m.game.GetLevel()),
+				Score:    m.game.GetTotalScore(),
+				Lines:    m.game.GetLinesCleared(),
+				Level:    m.game.GetLevel(),
 			}
 
 			return m, common.SwitchModeCmd(common.ModeLeaderboard,
-				common.NewLeaderboardInput("marathon", common.WithNewEntry(newEntry)),
+				common.NewLeaderboardInput(modeStr, common.WithNewEntry(newEntry)),
 			)
 		}
 	}
@@ -182,6 +212,11 @@ func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 			cmds = append(cmds, m.triggerGameOver())
 		}
 		return m, tea.Batch(cmds...)
+	case timer.TimeoutMsg:
+		if msg.ID != m.gameTimer.ID() {
+			break
+		}
+		return m, m.triggerGameOver()
 	}
 
 	return m, nil
@@ -248,11 +283,9 @@ func (m *Model) View() string {
 	)
 
 	if m.game.IsGameOver() {
-		output = common.PlaceOverlayCenter(gameOverMsg, output)
-	}
-
-	if m.isPaused {
-		output = common.PlaceOverlayCenter(pausedMsg, output)
+		output = common.OverlayGameOverMessage(output)
+	} else if m.isPaused {
+		output = common.OverlayPausedMessage(output)
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
@@ -305,15 +338,22 @@ func (m *Model) informationView() string {
 		return fmt.Sprintf("%s%*s\n", title, width-(1+len(title)), value)
 	}
 
-	elapsed := m.timerStopwatch.Elapsed().Seconds()
-	minutes := int(elapsed) / 60
+	var gameTime float64
+	switch m.useTimer {
+	case true:
+		gameTime = m.gameTimer.Timeout.Seconds()
+	default:
+		gameTime = m.gameStopwatch.Elapsed().Seconds()
+	}
+
+	minutes := int(gameTime) / 60
 
 	var timeStr string
 	if minutes > 0 {
-		seconds := int(elapsed) % 60
+		seconds := int(gameTime) % 60
 		timeStr += fmt.Sprintf("%02d:%02d", minutes, seconds)
 	} else {
-		timeStr += fmt.Sprintf("%06.3f", elapsed)
+		timeStr += fmt.Sprintf("%06.3f", gameTime)
 	}
 
 	var output string
@@ -321,8 +361,8 @@ func (m *Model) informationView() string {
 	output += fmt.Sprintf("%*d\n", width-1, m.game.GetTotalScore())
 	output += fmt.Sprintln("Time:")
 	output += fmt.Sprintf("%*s\n", width-1, timeStr)
-	output += toFixedWidth("Lines:", strconv.Itoa(int(m.game.GetLinesCleared())))
-	output += toFixedWidth("Level:", strconv.Itoa(int(m.game.GetLevel())))
+	output += toFixedWidth("Lines:", strconv.Itoa(m.game.GetLinesCleared()))
+	output += toFixedWidth("Level:", strconv.Itoa(m.game.GetLevel()))
 
 	return m.styles.Information.Render(lipgloss.JoinVertical(lipgloss.Left, header, output))
 }
@@ -378,10 +418,15 @@ func (m *Model) renderCell(cell byte) string {
 }
 
 func (m *Model) triggerGameOver() tea.Cmd {
-	m.isGameOver = true
+	m.game.EndGame()
 	m.isPaused = false
+
+	if m.useTimer {
+		m.gameTimer.Timeout = 0
+	}
+
 	var cmds []tea.Cmd
-	cmds = append(cmds, m.timerStopwatch.Stop())
+	cmds = append(cmds, m.gameTimer.Stop())
 	cmds = append(cmds, m.fallStopwatch.Stop())
 	return tea.Batch(cmds...)
 }
@@ -390,6 +435,6 @@ func (m *Model) togglePause() tea.Cmd {
 	m.isPaused = !m.isPaused
 	return tea.Batch(
 		m.fallStopwatch.Toggle(),
-		m.timerStopwatch.Toggle(),
+		m.gameTimer.Toggle(),
 	)
 }

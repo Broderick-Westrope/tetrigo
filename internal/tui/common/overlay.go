@@ -11,9 +11,34 @@ import (
 	"github.com/muesli/termenv"
 )
 
+const (
+	pausedMsg = `    ____                            __
+   / __ \____ ___  __________  ____/ /
+  / /_/ / __ ^/ / / / ___/ _ \/ __  /
+/ ____/ /_/ / /_/ (__  )  __/ /_/ /
+/_/    \__,_/\__,_/____/\___/\__,_/
+Press PAUSE to continue or HOLD to exit.`
+
+	gameOverMsg = `   ______                        ____                 
+  / ____/___ _____ ___  ___     / __ \_   _____  _____
+ / / __/ __ ^/ __ ^__ \/ _ \   / / / / | / / _ \/ ___/
+/ /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /
+\____/\__,_/_/ /_/ /_/\___/   \____/ |___/\___/_/
+
+			Press EXIT or HOLD to continue.`
+)
+
 // Most of this code is borrowed from
 // https://github.com/charmbracelet/lipgloss/pull/102
 // as well as the lipgloss library.
+
+func OverlayPausedMessage(bg string) string {
+	return placeOverlayCenter(pausedMsg, bg)
+}
+
+func OverlayGameOverMessage(bg string) string {
+	return placeOverlayCenter(gameOverMsg, bg)
+}
 
 // Split a string into lines, additionally returning the size of the widest
 // line.
@@ -31,14 +56,14 @@ func getLines(s string) ([]string, int) {
 	return lines, widest
 }
 
-func PlaceOverlayCenter(fg, bg string, opts ...WhitespaceOption) string {
+func placeOverlayCenter(fg, bg string, opts ...WhitespaceOption) string {
 	x := lipgloss.Width(bg) / 2
 	y := lipgloss.Height(bg) / 2
-	return PlaceOverlay(x, y, fg, bg, opts...)
+	return placeOverlay(x, y, fg, bg, opts...)
 }
 
-// PlaceOverlay places fg on top of bg.
-func PlaceOverlay(x, y int, fg, bg string, opts ...WhitespaceOption) string {
+// placeOverlay places fg on top of bg.
+func placeOverlay(x, y int, fg, bg string, opts ...WhitespaceOption) string {
 	fgLines, fgWidth := getLines(fg)
 	bgLines, bgWidth := getLines(bg)
 	bgHeight := len(bgLines)

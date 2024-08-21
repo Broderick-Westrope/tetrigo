@@ -1,4 +1,4 @@
-package marathon
+package single
 
 import (
 	"time"
@@ -35,15 +35,15 @@ func (g *Game) GetHoldTetrimino() *tetris.Tetrimino {
 	return g.holdQueue
 }
 
-func (g *Game) GetTotalScore() uint {
+func (g *Game) GetTotalScore() int {
 	return g.scoring.Total()
 }
 
-func (g *Game) GetLevel() uint {
+func (g *Game) GetLevel() int {
 	return g.scoring.Level()
 }
 
-func (g *Game) GetLinesCleared() uint {
+func (g *Game) GetLinesCleared() int {
 	return g.scoring.Lines()
 }
 

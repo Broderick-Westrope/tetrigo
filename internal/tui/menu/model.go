@@ -2,11 +2,10 @@ package menu
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/hpicker"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/textinput"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/common/components/hpicker"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/common/components/textinput"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -40,16 +39,18 @@ type item struct {
 
 func NewModel(_ *common.MenuInput) *Model {
 	nameInput := textinput.NewModel("Enter your name", 20, 20)
-	modePicker := hpicker.NewModel([]string{"Marathon"})
-	playersPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 1))
+	modePicker := hpicker.NewModel([]hpicker.KeyValuePair{
+		{Key: "Marathon", Value: common.ModeMarathon},
+		// {Key: "Sprint (40 Lines)", Value: "sprint"},
+		{Key: "Ultra (Time Trial)", Value: common.ModeUltra},
+	})
 	levelPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 15))
 
 	return &Model{
 		items: []item{
 			{label: "Name", model: nameInput, hideLabel: true},
 			{label: "Mode", model: modePicker},
-			{label: "Players", model: playersPicker},
-			{label: "Level", model: levelPicker},
+			{label: "Starting Level", model: levelPicker},
 		},
 		selected: 0,
 
@@ -118,8 +119,8 @@ func (m Model) renderItem(index int) string {
 	i := m.items[index]
 	output := i.model.View()
 	if !i.hideLabel {
-		label := lipgloss.NewStyle().Width(12).AlignHorizontal(lipgloss.Left).Render(i.label + ":")
-		output = lipgloss.NewStyle().Width(12).AlignHorizontal(lipgloss.Right).Render(output)
+		label := lipgloss.NewStyle().Width(15).AlignHorizontal(lipgloss.Left).Render(i.label + ":")
+		output = lipgloss.NewStyle().Width(25).AlignHorizontal(lipgloss.Right).Render(output)
 		output = lipgloss.JoinHorizontal(lipgloss.Left, label, output)
 	}
 
@@ -131,29 +132,33 @@ func (m Model) renderItem(index int) string {
 }
 
 func (m Model) startGame() (tea.Cmd, error) {
-	var level uint
-	var players uint
-	var mode string
+	var level int
+	var mode common.Mode
 	var playerName string
+
+	errInvalidModel := fmt.Errorf("invalid model for item %q", m.items[m.selected].label)
+	errInvalidValue := fmt.Errorf("invalid value for model of item %q", m.items[m.selected].label)
 
 	for _, i := range m.items {
 		switch i.label {
-		case "Level":
-			value := i.model.(*hpicker.Model).GetSelection()
-			intLevel, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert level string %q to int", value)
+		case "Starting Level":
+			picker, ok := i.model.(*hpicker.Model)
+			if !ok {
+				return nil, errInvalidModel
 			}
-			level = uint(intLevel)
-		case "Players":
-			value := i.model.(*hpicker.Model).GetSelection()
-			intPlayers, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert players string %q to int", value)
+			level, ok = picker.GetSelection().Value.(int)
+			if !ok {
+				return nil, errInvalidValue
 			}
-			players = uint(intPlayers)
 		case "Mode":
-			mode = i.model.(*hpicker.Model).GetSelection()
+			picker, ok := i.model.(*hpicker.Model)
+			if !ok {
+				return nil, errInvalidModel
+			}
+			mode, ok = picker.GetSelection().Value.(common.Mode)
+			if !ok {
+				return nil, errInvalidValue
+			}
 		case "Name":
 			playerName = i.model.(textinput.Model).Child.Value()
 		default:
@@ -161,14 +166,16 @@ func (m Model) startGame() (tea.Cmd, error) {
 		}
 	}
 
-	// TODO: use players
-	_ = players
-
 	switch mode {
-	case "Marathon":
-		in := common.NewMarathonInput(level, playerName)
-		return common.SwitchModeCmd(common.ModeMarathon, in), nil
+	case common.ModeMarathon:
+		in := common.NewSingleInput(mode, level, playerName)
+		return common.SwitchModeCmd(mode, in), nil
+	case common.ModeUltra:
+		in := common.NewSingleInput(mode, level, playerName)
+		return common.SwitchModeCmd(mode, in), nil
+	case common.ModeMenu, common.ModeLeaderboard:
+		return nil, fmt.Errorf("invalid mode for starting game: %q", mode)
 	default:
-		return nil, fmt.Errorf("invalid mode: %q", mode)
+		return nil, fmt.Errorf("invalid mode from menu: %q", mode)
 	}
 }

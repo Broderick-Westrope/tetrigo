@@ -11,13 +11,13 @@ type Fall struct {
 	IsSoftDrop       bool
 }
 
-func NewFall(level uint) *Fall {
+func NewFall(level int) *Fall {
 	f := Fall{}
 	f.CalculateFallSpeeds(level)
 	return &f
 }
 
-func (f *Fall) CalculateFallSpeeds(level uint) {
+func (f *Fall) CalculateFallSpeeds(level int) {
 	decrementedLevel := float64(level - 1)
 	speed := math.Pow(0.8-(decrementedLevel*0.007), decrementedLevel)
 	speed *= float64(time.Second)

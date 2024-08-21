@@ -1,4 +1,4 @@
-package marathon
+package single
 
 import (
 	"errors"
@@ -8,6 +8,8 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 )
 
+// Game represents a single player game of Tetris.
+// This can be used for Marathon, Sprint, Ultra and other single player modes.
 type Game struct {
 	matrix           tetris.Matrix     // The Matrix of cells on which the game is played
 	nextQueue        *tetris.NextQueue // The queue of upcoming Tetriminos
@@ -21,12 +23,31 @@ type Game struct {
 	fall             *tetris.Fall      // The system for calculating the fall speed
 }
 
-func NewGame(level, maxLevel uint, endOnMaxLevel bool, ghostEnabled bool) (*Game, error) {
+type Input struct {
+	Level         int  // The starting level of the game.
+	MaxLevel      int  // The maximum level the game can reach. 0 means no limit.
+	IncreaseLevel bool // Whether the level should increase as the game progresses.
+	EndOnMaxLevel bool // Whether the game should end when the maximum level is reached.
+
+	MaxLines      int  // The maximum number of lines to clear before the game ends. 0 means no limit.
+	EndOnMaxLines bool // Whether the game should end when the maximum number of lines is cleared.
+
+	GhostEnabled bool // Whether the ghost Tetrimino should be displayed.
+}
+
+func NewGame(in *Input) (*Game, error) {
 	matrix, err := tetris.NewMatrix(40, 10)
 	if err != nil {
 		return nil, err
 	}
 	nq := tetris.NewNextQueue(matrix.GetSkyline())
+
+	scoring, err := tetris.NewScoring(
+		in.Level, in.MaxLevel, in.IncreaseLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create scoring system: %w", err)
+	}
 
 	g := &Game{
 		matrix:           matrix,
@@ -35,11 +56,11 @@ func NewGame(level, maxLevel uint, endOnMaxLevel bool, ghostEnabled bool) (*Game
 		holdQueue:        tetris.GetEmptyTetrimino(),
 		gameOver:         false,
 		softDropStartRow: matrix.GetHeight(),
-		scoring:          tetris.NewScoring(level, maxLevel, endOnMaxLevel),
-		fall:             tetris.NewFall(level),
+		scoring:          scoring,
+		fall:             tetris.NewFall(in.Level),
 	}
 
-	if ghostEnabled {
+	if in.GhostEnabled {
 		g.ghostTet = g.tetInPlay
 	}
 
@@ -126,7 +147,7 @@ func (g *Game) TickLower() (bool, error) {
 	if g.fall.IsSoftDrop {
 		linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
 		if linesCleared > 0 {
-			g.scoring.AddSoftDrop(uint(linesCleared))
+			g.scoring.AddSoftDrop(linesCleared)
 		}
 	}
 
@@ -137,6 +158,56 @@ func (g *Game) TickLower() (bool, error) {
 	}
 
 	return gameOver, nil
+}
+
+func (g *Game) HardDrop() (bool, error) {
+	startRow := g.tetInPlay.Pos.Y
+
+	for {
+		lockedDown, err := g.lowerTetInPlay()
+		if err != nil {
+			return false, fmt.Errorf("failed to lower tetrimino (hard drop): %w", err)
+		}
+		if lockedDown {
+			break
+		}
+	}
+	if g.gameOver {
+		return true, nil
+	}
+
+	linesCleared := g.tetInPlay.Pos.Y - startRow
+	g.scoring.AddHardDrop(linesCleared)
+
+	g.tetInPlay = g.nextQueue.Next()
+	gameOver := g.setupNewTetInPlay()
+	if gameOver {
+		g.gameOver = gameOver
+	}
+
+	return gameOver, nil
+}
+
+// ToggleSoftDrop toggles the Soft Drop state of the game.
+// If Soft Drop is enabled, the game will calculate the number of lines cleared and add them to the score.
+// The time interval for the Fall system is returned.
+func (g *Game) ToggleSoftDrop() time.Duration {
+	g.fall.ToggleSoftDrop()
+	if g.fall.IsSoftDrop {
+		g.softDropStartRow = g.tetInPlay.Pos.Y
+		return g.fall.SoftDropInterval
+	}
+	linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
+	if linesCleared > 0 {
+		g.scoring.AddSoftDrop(linesCleared)
+	}
+	g.softDropStartRow = g.matrix.GetSkyline()
+	return g.fall.DefaultInterval
+}
+
+// EndGame sets Game.gameOver to true.
+func (g *Game) EndGame() {
+	g.gameOver = true
 }
 
 // lowerTetInPlay moves the current Tetrimino down one row if possible.
@@ -202,51 +273,6 @@ func (g *Game) setupNewTetInPlay() bool {
 
 	g.updateGhost()
 	return false
-}
-
-func (g *Game) HardDrop() (bool, error) {
-	startRow := g.tetInPlay.Pos.Y
-
-	for {
-		lockedDown, err := g.lowerTetInPlay()
-		if err != nil {
-			return false, fmt.Errorf("failed to lower tetrimino (hard drop): %w", err)
-		}
-		if lockedDown {
-			break
-		}
-	}
-	if g.gameOver {
-		return true, nil
-	}
-
-	linesCleared := g.tetInPlay.Pos.Y - startRow
-	g.scoring.AddHardDrop(uint(linesCleared))
-
-	g.tetInPlay = g.nextQueue.Next()
-	gameOver := g.setupNewTetInPlay()
-	if gameOver {
-		g.gameOver = gameOver
-	}
-
-	return gameOver, nil
-}
-
-// ToggleSoftDrop toggles the Soft Drop state of the game.
-// If Soft Drop is enabled, the game will calculate the number of lines cleared and add them to the score.
-// The time interval for the Fall system is returned.
-func (g *Game) ToggleSoftDrop() time.Duration {
-	g.fall.ToggleSoftDrop()
-	if g.fall.IsSoftDrop {
-		g.softDropStartRow = g.tetInPlay.Pos.Y
-		return g.fall.SoftDropInterval
-	}
-	linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
-	if linesCleared > 0 {
-		g.scoring.AddSoftDrop(uint(linesCleared))
-	}
-	g.softDropStartRow = g.matrix.GetSkyline()
-	return g.fall.DefaultInterval
 }
 
 func (g *Game) updateGhost() {

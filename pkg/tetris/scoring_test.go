@@ -1,6 +1,7 @@
 package tetris
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,36 +10,72 @@ import (
 
 func TestNewScoring(t *testing.T) {
 	tt := map[string]struct {
-		level    uint
-		maxLevel uint
+		level         int
+		maxLevel      int
+		increaseLevel bool
+		endOnMaxLevel bool
+		maxLines      int
+		endOnMaxLines bool
+
+		wantErr error
 	}{
-		"level 1": {
-			level:    1,
-			maxLevel: 15,
+		"invalid level": {
+			level:         0,
+			maxLevel:      0,
+			increaseLevel: false,
+			endOnMaxLevel: false,
+			maxLines:      0,
+			endOnMaxLines: false,
+
+			wantErr: errors.New("invalid level '0'"),
 		},
-		"level 15": {
-			level:    15,
-			maxLevel: 15,
+
+		"0; false": {
+			level:         1,
+			maxLevel:      0,
+			increaseLevel: false,
+			endOnMaxLevel: false,
+			maxLines:      0,
+			endOnMaxLines: false,
+		},
+		"10; true": {
+			level:         10,
+			maxLevel:      10,
+			increaseLevel: true,
+			endOnMaxLevel: true,
+			maxLines:      10,
+			endOnMaxLines: true,
 		},
 	}
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			s := NewScoring(tc.level, tc.maxLevel, true)
+			s, err := NewScoring(tc.level, tc.maxLevel, tc.increaseLevel, tc.endOnMaxLevel, tc.maxLines, tc.endOnMaxLines)
+
+			if tc.wantErr != nil {
+				require.EqualError(t, err, tc.wantErr.Error())
+				return
+			}
+
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.level, s.level)
 			assert.Equal(t, tc.maxLevel, s.maxLevel)
-			assert.Equal(t, uint(0), s.total)
-			assert.Equal(t, uint(0), s.lines)
+			assert.Equal(t, tc.increaseLevel, s.increaseLevel)
+			assert.Equal(t, tc.endOnMaxLevel, s.endOnMaxLevel)
+			assert.Equal(t, tc.maxLines, s.maxLines)
+			assert.Equal(t, tc.endOnMaxLines, s.endOnMaxLines)
+
+			assert.Equal(t, 0, s.total)
+			assert.Equal(t, 0, s.lines)
 			assert.False(t, s.backToBack)
-			assert.True(t, s.endOnMaxLevel)
 		})
 	}
 }
 
 func TestScoring_Level(t *testing.T) {
 	tt := map[string]struct {
-		level uint
+		level int
 	}{
 		"level 1": {
 			level: 1,
@@ -61,7 +98,7 @@ func TestScoring_Level(t *testing.T) {
 
 func TestScoring_Total(t *testing.T) {
 	tt := map[string]struct {
-		total uint
+		total int
 	}{
 		"total 0": {
 			total: 0,
@@ -84,7 +121,7 @@ func TestScoring_Total(t *testing.T) {
 
 func TestScoring_Lines(t *testing.T) {
 	tt := map[string]struct {
-		lines uint
+		lines int
 	}{
 		"lines 0": {
 			lines: 0,
@@ -107,7 +144,7 @@ func TestScoring_Lines(t *testing.T) {
 
 func TestScoring_AddSoftDrop(t *testing.T) {
 	tt := map[string]struct {
-		lines uint
+		lines int
 	}{
 		"0 lines": {
 			lines: 0,
@@ -135,7 +172,7 @@ func TestScoring_AddSoftDrop(t *testing.T) {
 
 func TestScoring_AddHardDrop(t *testing.T) {
 	tt := map[string]struct {
-		lines uint
+		lines int
 	}{
 		"0 lines": {
 			lines: 0,
@@ -166,8 +203,8 @@ func TestScoring_ProcessAction(t *testing.T) {
 	tt := map[string]struct {
 		a                  Action
 		isBackToBack       bool
-		maxLevel           uint
-		expectedTotal      uint
+		maxLevel           int
+		expectedTotal      int
 		expectedBackToBack bool
 	}{
 		// Back-to-back disabled
@@ -338,11 +375,17 @@ func TestScoring_ProcessAction(t *testing.T) {
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
 			s := &Scoring{
-				backToBack: tc.isBackToBack,
+				level:         1,
+				maxLevel:      tc.maxLevel,
+				increaseLevel: true,
+				endOnMaxLevel: false,
+
+				lines:         0,
+				maxLines:      0,
+				endOnMaxLines: false,
+
 				total:      0,
-				lines:      0,
-				level:      1,
-				maxLevel:   tc.maxLevel,
+				backToBack: tc.isBackToBack,
 			}
 
 			// TODO: check gameOver (from endsOnMaxLevel)
@@ -356,7 +399,7 @@ func TestScoring_ProcessAction(t *testing.T) {
 			expectedLines := tc.expectedTotal / 100
 			assert.Equal(t, expectedLines, s.lines)
 
-			var expectedLevel uint
+			var expectedLevel int
 			if tc.maxLevel == 0 {
 				expectedLevel = 1 + (expectedLines / 5)
 			} else {
