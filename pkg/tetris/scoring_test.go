@@ -1,6 +1,7 @@
 package tetris
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,9 +16,22 @@ func TestNewScoring(t *testing.T) {
 		endOnMaxLevel bool
 		maxLines      int
 		endOnMaxLines bool
+
+		wantErr error
 	}{
-		"0; false": {
+		"invalid level": {
 			level:         0,
+			maxLevel:      0,
+			increaseLevel: false,
+			endOnMaxLevel: false,
+			maxLines:      0,
+			endOnMaxLines: false,
+
+			wantErr: errors.New("invalid level '0'"),
+		},
+
+		"0; false": {
+			level:         1,
 			maxLevel:      0,
 			increaseLevel: false,
 			endOnMaxLevel: false,
@@ -36,7 +50,13 @@ func TestNewScoring(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			s := NewScoring(tc.level, tc.maxLevel, tc.increaseLevel, tc.endOnMaxLevel, tc.maxLines, tc.endOnMaxLines)
+			s, err := NewScoring(tc.level, tc.maxLevel, tc.increaseLevel, tc.endOnMaxLevel, tc.maxLines, tc.endOnMaxLines)
+
+			if tc.wantErr != nil {
+				require.EqualError(t, err, tc.wantErr.Error())
+			}
+
+			require.NoError(t, err)
 
 			assert.Equal(t, tc.level, s.level)
 			assert.Equal(t, tc.maxLevel, s.maxLevel)

@@ -1,5 +1,9 @@
 package tetris
 
+import (
+	"fmt"
+)
+
 type Scoring struct {
 	level         int
 	maxLevel      int
@@ -14,8 +18,8 @@ type Scoring struct {
 	backToBack bool
 }
 
-func NewScoring(level, maxLevel int, increaseLevel, endOnMaxLevel bool, maxLines int, endOnMaxLines bool) *Scoring {
-	return &Scoring{
+func NewScoring(level, maxLevel int, increaseLevel, endOnMaxLevel bool, maxLines int, endOnMaxLines bool) (*Scoring, error) {
+	s := &Scoring{
 		level:         level,
 		maxLevel:      maxLevel,
 		increaseLevel: increaseLevel,
@@ -24,6 +28,23 @@ func NewScoring(level, maxLevel int, increaseLevel, endOnMaxLevel bool, maxLines
 		maxLines:      maxLines,
 		endOnMaxLines: endOnMaxLines,
 	}
+	return s, s.validate()
+}
+
+func (s *Scoring) validate() error {
+	if s.level <= 0 {
+		return fmt.Errorf("invalid level '%d'", s.level)
+	}
+	if s.maxLevel < 0 {
+		return fmt.Errorf("invalid max level '%d'", s.maxLevel)
+	}
+	if s.maxLines < 0 {
+		return fmt.Errorf("invalid max lines '%d'", s.maxLines)
+	}
+	if s.total < 0 {
+		return fmt.Errorf("invalid total '%d'", s.total)
+	}
+	return nil
 }
 
 func (s *Scoring) Level() int {

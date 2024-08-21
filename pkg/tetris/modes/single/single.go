@@ -42,9 +42,12 @@ func NewGame(in *Input) (*Game, error) {
 	}
 	nq := tetris.NewNextQueue(matrix.GetSkyline())
 
-	scoring := tetris.NewScoring(
+	scoring, err := tetris.NewScoring(
 		in.Level, in.MaxLevel, in.IncreaseLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create scoring system: %w", err)
+	}
 
 	g := &Game{
 		matrix:           matrix,
