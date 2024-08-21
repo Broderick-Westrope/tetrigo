@@ -13,6 +13,9 @@ jobs:
     name: GoReleaser
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
@@ -22,10 +25,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: GoReleaser Dry Run
-        run: scripts/goreleaser/dryrun.sh
+        run: task goreleaser:dryrun
 
       - name: Setup Environment
         run: echo 'GITHUB_TOKEN=${{secrets.GH_PAT}}' > .release-env
 
       - name: GoReleaser Release
-        run: scripts/goreleaser/release.sh
+        run: task goreleaser:release

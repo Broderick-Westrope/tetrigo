@@ -1,5 +1,3 @@
-#!/bin/zsh
-
 if [ ! -f ".release-env" ]; then
   printf "\033[91m.release-env is required for release\033[0m";
   exit 1;
