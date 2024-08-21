@@ -18,7 +18,7 @@ func (c *MenuCmd) Run(globals *GlobalVars) error {
 
 type PlayCmd struct {
 	GameMode string `arg:"" help:"Game mode to play" default:"marathon"`
-	Level    uint   `help:"Level to start at" short:"l" default:"1"`
+	Level    int    `help:"Level to start at" short:"l" default:"1"`
 	Name     string `help:"Name of the player" short:"n" default:"Anonymous"`
 }
 

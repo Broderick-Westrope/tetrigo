@@ -168,10 +168,10 @@ func (m Model) startGame() (tea.Cmd, error) {
 
 	switch mode {
 	case common.ModeMarathon:
-		in := common.NewSingleInput(mode, uint(level), playerName)
+		in := common.NewSingleInput(mode, level, playerName)
 		return common.SwitchModeCmd(mode, in), nil
 	case common.ModeUltra:
-		in := common.NewSingleInput(mode, uint(level), playerName)
+		in := common.NewSingleInput(mode, level, playerName)
 		return common.SwitchModeCmd(mode, in), nil
 	case common.ModeMenu, common.ModeLeaderboard:
 		return nil, fmt.Errorf("invalid mode for starting game: %q", mode)

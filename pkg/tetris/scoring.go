@@ -1,20 +1,20 @@
 package tetris
 
 type Scoring struct {
-	level         uint
-	maxLevel      uint
+	level         int
+	maxLevel      int
 	increaseLevel bool
 	endOnMaxLevel bool
 
-	lines         uint
-	maxLines      uint
+	lines         int
+	maxLines      int
 	endOnMaxLines bool
 
-	total      uint
+	total      int
 	backToBack bool
 }
 
-func NewScoring(level, maxLevel uint, increaseLevel, endOnMaxLevel bool, maxLines uint, endOnMaxLines bool) *Scoring {
+func NewScoring(level, maxLevel int, increaseLevel, endOnMaxLevel bool, maxLines int, endOnMaxLines bool) *Scoring {
 	return &Scoring{
 		level:         level,
 		maxLevel:      maxLevel,
@@ -26,23 +26,23 @@ func NewScoring(level, maxLevel uint, increaseLevel, endOnMaxLevel bool, maxLine
 	}
 }
 
-func (s *Scoring) Level() uint {
+func (s *Scoring) Level() int {
 	return s.level
 }
 
-func (s *Scoring) Total() uint {
+func (s *Scoring) Total() int {
 	return s.total
 }
 
-func (s *Scoring) Lines() uint {
+func (s *Scoring) Lines() int {
 	return s.lines
 }
 
-func (s *Scoring) AddSoftDrop(lines uint) {
+func (s *Scoring) AddSoftDrop(lines int) {
 	s.total += lines
 }
 
-func (s *Scoring) AddHardDrop(lines uint) {
+func (s *Scoring) AddHardDrop(lines int) {
 	s.total += lines * 2
 }
 
@@ -68,10 +68,10 @@ func (s *Scoring) ProcessAction(a Action) (bool, error) {
 		return false, err
 	}
 
-	s.total += uint(points+backToBack) * s.level
+	s.total += int(points+backToBack) * s.level
 
 	// increase lines
-	s.lines += uint((points + backToBack) / 100)
+	s.lines += int((points + backToBack) / 100)
 
 	// if max lines enabled, and max lines reached
 	if s.maxLines > 0 && s.lines >= s.maxLines {

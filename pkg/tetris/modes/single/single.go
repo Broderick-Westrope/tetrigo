@@ -24,12 +24,12 @@ type Game struct {
 }
 
 type Input struct {
-	Level         uint // The starting level of the game.
-	MaxLevel      uint // The maximum level the game can reach. 0 means no limit.
+	Level         int  // The starting level of the game.
+	MaxLevel      int  // The maximum level the game can reach. 0 means no limit.
 	IncreaseLevel bool // Whether the level should increase as the game progresses.
 	EndOnMaxLevel bool // Whether the game should end when the maximum level is reached.
 
-	MaxLines      uint // The maximum number of lines to clear before the game ends. 0 means no limit.
+	MaxLines      int  // The maximum number of lines to clear before the game ends. 0 means no limit.
 	EndOnMaxLines bool // Whether the game should end when the maximum number of lines is cleared.
 
 	GhostEnabled bool // Whether the ghost Tetrimino should be displayed.
@@ -144,7 +144,7 @@ func (g *Game) TickLower() (bool, error) {
 	if g.fall.IsSoftDrop {
 		linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
 		if linesCleared > 0 {
-			g.scoring.AddSoftDrop(uint(linesCleared))
+			g.scoring.AddSoftDrop(linesCleared)
 		}
 	}
 
@@ -174,7 +174,7 @@ func (g *Game) HardDrop() (bool, error) {
 	}
 
 	linesCleared := g.tetInPlay.Pos.Y - startRow
-	g.scoring.AddHardDrop(uint(linesCleared))
+	g.scoring.AddHardDrop(linesCleared)
 
 	g.tetInPlay = g.nextQueue.Next()
 	gameOver := g.setupNewTetInPlay()
@@ -196,7 +196,7 @@ func (g *Game) ToggleSoftDrop() time.Duration {
 	}
 	linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
 	if linesCleared > 0 {
-		g.scoring.AddSoftDrop(uint(linesCleared))
+		g.scoring.AddSoftDrop(linesCleared)
 	}
 	g.softDropStartRow = g.matrix.GetSkyline()
 	return g.fall.DefaultInterval

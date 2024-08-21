@@ -12,8 +12,8 @@ import (
 
 func Test_NewMatrix(t *testing.T) {
 	tt := map[string]struct {
-		width   uint
-		height  uint
+		width   int
+		height  int
 		want    Matrix
 		wantErr error
 	}{

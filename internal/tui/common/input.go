@@ -3,11 +3,11 @@ package common
 import "github.com/Broderick-Westrope/tetrigo/internal/data"
 
 type MarathonInput struct {
-	Level      uint
+	Level      int
 	PlayerName string
 }
 
-func NewMarathonInput(level uint, playerName string) *MarathonInput {
+func NewMarathonInput(level int, playerName string) *MarathonInput {
 	return &MarathonInput{
 		Level:      level,
 		PlayerName: playerName,
@@ -18,11 +18,11 @@ func (in *MarathonInput) isSwitchModeInput() {}
 
 type SingleInput struct {
 	Mode       Mode
-	Level      uint
+	Level      int
 	PlayerName string
 }
 
-func NewSingleInput(mode Mode, level uint, playerName string) *SingleInput {
+func NewSingleInput(mode Mode, level int, playerName string) *SingleInput {
 	return &SingleInput{
 		Mode:       mode,
 		Level:      level,

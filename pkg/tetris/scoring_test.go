@@ -9,11 +9,11 @@ import (
 
 func TestNewScoring(t *testing.T) {
 	tt := map[string]struct {
-		level         uint
-		maxLevel      uint
+		level         int
+		maxLevel      int
 		increaseLevel bool
 		endOnMaxLevel bool
-		maxLines      uint
+		maxLines      int
 		endOnMaxLines bool
 	}{
 		"0; false": {
@@ -45,8 +45,8 @@ func TestNewScoring(t *testing.T) {
 			assert.Equal(t, tc.maxLines, s.maxLines)
 			assert.Equal(t, tc.endOnMaxLines, s.endOnMaxLines)
 
-			assert.Equal(t, uint(0), s.total)
-			assert.Equal(t, uint(0), s.lines)
+			assert.Equal(t, 0, s.total)
+			assert.Equal(t, 0, s.lines)
 			assert.False(t, s.backToBack)
 		})
 	}
@@ -54,7 +54,7 @@ func TestNewScoring(t *testing.T) {
 
 func TestScoring_Level(t *testing.T) {
 	tt := map[string]struct {
-		level uint
+		level int
 	}{
 		"level 1": {
 			level: 1,
@@ -77,7 +77,7 @@ func TestScoring_Level(t *testing.T) {
 
 func TestScoring_Total(t *testing.T) {
 	tt := map[string]struct {
-		total uint
+		total int
 	}{
 		"total 0": {
 			total: 0,
@@ -100,7 +100,7 @@ func TestScoring_Total(t *testing.T) {
 
 func TestScoring_Lines(t *testing.T) {
 	tt := map[string]struct {
-		lines uint
+		lines int
 	}{
 		"lines 0": {
 			lines: 0,
@@ -123,7 +123,7 @@ func TestScoring_Lines(t *testing.T) {
 
 func TestScoring_AddSoftDrop(t *testing.T) {
 	tt := map[string]struct {
-		lines uint
+		lines int
 	}{
 		"0 lines": {
 			lines: 0,
@@ -151,7 +151,7 @@ func TestScoring_AddSoftDrop(t *testing.T) {
 
 func TestScoring_AddHardDrop(t *testing.T) {
 	tt := map[string]struct {
-		lines uint
+		lines int
 	}{
 		"0 lines": {
 			lines: 0,
@@ -182,8 +182,8 @@ func TestScoring_ProcessAction(t *testing.T) {
 	tt := map[string]struct {
 		a                  Action
 		isBackToBack       bool
-		maxLevel           uint
-		expectedTotal      uint
+		maxLevel           int
+		expectedTotal      int
 		expectedBackToBack bool
 	}{
 		// Back-to-back disabled
@@ -378,7 +378,7 @@ func TestScoring_ProcessAction(t *testing.T) {
 			expectedLines := tc.expectedTotal / 100
 			assert.Equal(t, expectedLines, s.lines)
 
-			var expectedLevel uint
+			var expectedLevel int
 			if tc.maxLevel == 0 {
 				expectedLevel = 1 + (expectedLines / 5)
 			} else {

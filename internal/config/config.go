@@ -19,7 +19,7 @@ type Config struct {
 	LockDownMode string `toml:"lock_down_mode"`
 
 	// The maximum level to reach before the game ends or the level stops increasing.
-	MaxLevel uint `toml:"max_level"`
+	MaxLevel int `toml:"max_level"`
 
 	// Whether the game ends when the max level is reached.
 	EndOnMaxLevel bool `toml:"end_on_max_level"`

@@ -167,9 +167,9 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 			newEntry := &data.Score{
 				GameMode: modeStr,
 				Name:     m.playerName,
-				Score:    int(m.game.GetTotalScore()),
-				Lines:    int(m.game.GetLinesCleared()),
-				Level:    int(m.game.GetLevel()),
+				Score:    m.game.GetTotalScore(),
+				Lines:    m.game.GetLinesCleared(),
+				Level:    m.game.GetLevel(),
 			}
 
 			return m, common.SwitchModeCmd(common.ModeLeaderboard,
@@ -361,8 +361,8 @@ func (m *Model) informationView() string {
 	output += fmt.Sprintf("%*d\n", width-1, m.game.GetTotalScore())
 	output += fmt.Sprintln("Time:")
 	output += fmt.Sprintf("%*s\n", width-1, timeStr)
-	output += toFixedWidth("Lines:", strconv.Itoa(int(m.game.GetLinesCleared())))
-	output += toFixedWidth("Level:", strconv.Itoa(int(m.game.GetLevel())))
+	output += toFixedWidth("Lines:", strconv.Itoa(m.game.GetLinesCleared()))
+	output += toFixedWidth("Level:", strconv.Itoa(m.game.GetLevel()))
 
 	return m.styles.Information.Render(lipgloss.JoinVertical(lipgloss.Left, header, output))
 }
