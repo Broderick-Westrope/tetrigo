@@ -41,7 +41,7 @@ func NewModel(_ *common.MenuInput) *Model {
 	nameInput := textinput.NewModel("Enter your name", 20, 20)
 	modePicker := hpicker.NewModel([]hpicker.KeyValuePair{
 		{Key: "Marathon", Value: common.ModeMarathon},
-		// {Key: "Sprint (40 Lines)", Value: "sprint"},
+		{Key: "Sprint (40 Lines)", Value: common.ModeSprint},
 		{Key: "Ultra (Time Trial)", Value: common.ModeUltra},
 	})
 	levelPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 15))
@@ -167,10 +167,7 @@ func (m Model) startGame() (tea.Cmd, error) {
 	}
 
 	switch mode {
-	case common.ModeMarathon:
-		in := common.NewSingleInput(mode, level, playerName)
-		return common.SwitchModeCmd(mode, in), nil
-	case common.ModeUltra:
+	case common.ModeMarathon, common.ModeSprint, common.ModeUltra:
 		in := common.NewSingleInput(mode, level, playerName)
 		return common.SwitchModeCmd(mode, in), nil
 	case common.ModeMenu, common.ModeLeaderboard:

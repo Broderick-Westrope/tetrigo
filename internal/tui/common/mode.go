@@ -27,6 +27,7 @@ type Mode int
 const (
 	ModeMenu = Mode(iota)
 	ModeMarathon
+	ModeSprint
 	ModeUltra
 	ModeLeaderboard
 )
@@ -34,6 +35,7 @@ const (
 var modeToStrMap = map[Mode]string{
 	ModeMenu:        "Menu",
 	ModeMarathon:    "Marathon",
+	ModeSprint:      "Sprint",
 	ModeUltra:       "Ultra",
 	ModeLeaderboard: "Leaderboard",
 }
