@@ -1,6 +1,7 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - v*
@@ -24,11 +25,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: GoReleaser Dry Run
-        run: task goreleaser:dryrun
-
-      - name: Setup Environment
-        run: echo 'GITHUB_TOKEN=${{secrets.GH_PAT}}' > .release-env
-
       - name: GoReleaser Release
         run: task goreleaser:release
+        env:
+          GITHUB_TOKEN: ${{secrets.GH_PAT}}
