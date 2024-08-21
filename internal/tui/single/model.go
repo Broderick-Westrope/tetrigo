@@ -19,6 +19,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	timerUpdateInterval = time.Millisecond * 13
+)
+
 var _ tea.Model = &Model{}
 
 type Model struct {
@@ -59,16 +63,29 @@ func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
 			MaxLevel:      cfg.MaxLevel,
 			IncreaseLevel: true,
 			EndOnMaxLevel: cfg.EndOnMaxLevel,
-			GhostEnabled:  cfg.GhostEnabled,
+
+			GhostEnabled: cfg.GhostEnabled,
 		}
-		m.gameStopwatch = stopwatch.NewWithInterval(time.Millisecond * 13)
+		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+	case common.ModeSprint:
+		gameIn = &single.Input{
+			Level:         in.Level,
+			MaxLevel:      cfg.MaxLevel,
+			IncreaseLevel: true,
+
+			MaxLines:      40,
+			EndOnMaxLines: true,
+
+			GhostEnabled: cfg.GhostEnabled,
+		}
+		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
 	case common.ModeUltra:
 		gameIn = &single.Input{
 			Level:        in.Level,
 			GhostEnabled: cfg.GhostEnabled,
 		}
 		m.useTimer = true
-		m.gameTimer = timer.NewWithInterval(time.Minute*2, time.Millisecond*13)
+		m.gameTimer = timer.NewWithInterval(time.Minute*2, timerUpdateInterval)
 	case common.ModeMenu, common.ModeLeaderboard:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	default:

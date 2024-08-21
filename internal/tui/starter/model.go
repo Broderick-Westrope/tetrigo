@@ -107,12 +107,12 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 			return ErrInvalidSwitchModeInput
 		}
 		m.child = menu.NewModel(menuIn)
-	case common.ModeMarathon, common.ModeUltra:
-		ultraIn, ok := switchIn.(*common.SingleInput)
+	case common.ModeMarathon, common.ModeSprint, common.ModeUltra:
+		singleIn, ok := switchIn.(*common.SingleInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
-		child, err := single.NewModel(ultraIn, m.cfg)
+		child, err := single.NewModel(singleIn, m.cfg)
 		if err != nil {
 			return err
 		}

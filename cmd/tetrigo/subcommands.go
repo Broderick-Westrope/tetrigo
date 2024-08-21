@@ -23,14 +23,18 @@ type PlayCmd struct {
 }
 
 func (c *PlayCmd) Run(globals *GlobalVars) error {
-	switch c.GameMode {
-	case "marathon":
-		return launchStarter(globals, common.ModeUltra, common.NewSingleInput(common.ModeMarathon, c.Level, c.Name))
-	case "ultra":
-		return launchStarter(globals, common.ModeUltra, common.NewSingleInput(common.ModeUltra, c.Level, c.Name))
-	default:
+	singlePlayerModes := map[string]common.Mode{
+		"marathon": common.ModeMarathon,
+		"sprint":   common.ModeSprint,
+		"ultra":    common.ModeUltra,
+	}
+
+	mode, ok := singlePlayerModes[c.GameMode]
+	if !ok {
 		return fmt.Errorf("invalid game mode: %s", c.GameMode)
 	}
+
+	return launchStarter(globals, mode, common.NewSingleInput(common.ModeMarathon, c.Level, c.Name))
 }
 
 type LeaderboardCmd struct {
