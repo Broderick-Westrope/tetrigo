@@ -3,9 +3,9 @@ package menu
 import (
 	"fmt"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/common/components/hpicker"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/common/components/textinput"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/hpicker"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/textinput"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -37,12 +37,12 @@ type item struct {
 	hideLabel bool
 }
 
-func NewModel(_ *common.MenuInput) *Model {
+func NewModel(_ *tui.MenuInput) *Model {
 	nameInput := textinput.NewModel("Enter your name", 20, 20)
 	modePicker := hpicker.NewModel([]hpicker.KeyValuePair{
-		{Key: "Marathon", Value: common.ModeMarathon},
-		{Key: "Sprint (40 Lines)", Value: common.ModeSprint},
-		{Key: "Ultra (Time Trial)", Value: common.ModeUltra},
+		{Key: "Marathon", Value: tui.ModeMarathon},
+		{Key: "Sprint (40 Lines)", Value: tui.ModeSprint},
+		{Key: "Ultra (Time Trial)", Value: tui.ModeUltra},
 	})
 	levelPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 15))
 
@@ -133,7 +133,7 @@ func (m Model) renderItem(index int) string {
 
 func (m Model) startGame() (tea.Cmd, error) {
 	var level int
-	var mode common.Mode
+	var mode tui.Mode
 	var playerName string
 
 	errInvalidModel := fmt.Errorf("invalid model for item %q", m.items[m.selected].label)
@@ -155,7 +155,7 @@ func (m Model) startGame() (tea.Cmd, error) {
 			if !ok {
 				return nil, errInvalidModel
 			}
-			mode, ok = picker.GetSelection().Value.(common.Mode)
+			mode, ok = picker.GetSelection().Value.(tui.Mode)
 			if !ok {
 				return nil, errInvalidValue
 			}
@@ -167,10 +167,10 @@ func (m Model) startGame() (tea.Cmd, error) {
 	}
 
 	switch mode {
-	case common.ModeMarathon, common.ModeSprint, common.ModeUltra:
-		in := common.NewSingleInput(mode, level, playerName)
-		return common.SwitchModeCmd(mode, in), nil
-	case common.ModeMenu, common.ModeLeaderboard:
+	case tui.ModeMarathon, tui.ModeSprint, tui.ModeUltra:
+		in := tui.NewSingleInput(mode, level, playerName)
+		return tui.SwitchModeCmd(mode, in), nil
+	case tui.ModeMenu, tui.ModeLeaderboard:
 		return nil, fmt.Errorf("invalid mode for starting game: %q", mode)
 	default:
 		return nil, fmt.Errorf("invalid mode from menu: %q", mode)

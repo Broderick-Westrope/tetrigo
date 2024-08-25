@@ -7,8 +7,8 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/game"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	game2 "github.com/Broderick-Westrope/tetrigo/internal/tui/models/game"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
 	"github.com/charmbracelet/bubbles/help"
@@ -30,25 +30,25 @@ type Model struct {
 	game            *single.Game
 	nextQueueLength int
 	fallStopwatch   stopwatch.Model
-	mode            common.Mode
+	mode            tui.Mode
 
 	useTimer      bool
 	gameTimer     timer.Model
 	gameStopwatch stopwatch.Model
 
-	styles   *game.Styles
+	styles   *game2.Styles
 	help     help.Model
-	keys     *game.KeyMap
+	keys     *game2.KeyMap
 	isPaused bool
 }
 
-func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
+func NewModel(in *tui.SingleInput, cfg *config.Config) (*Model, error) {
 	// Setup initial model
 	m := &Model{
 		playerName:      in.PlayerName,
-		styles:          game.CreateStyles(cfg.Theme),
+		styles:          game2.CreateStyles(cfg.Theme),
 		help:            help.New(),
-		keys:            game.ConstructKeyMap(cfg.Keys),
+		keys:            game2.ConstructKeyMap(cfg.Keys),
 		isPaused:        false,
 		nextQueueLength: cfg.NextQueueLength,
 		mode:            in.Mode,
@@ -57,7 +57,7 @@ func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
 	// Get game input
 	var gameIn *single.Input
 	switch in.Mode {
-	case common.ModeMarathon:
+	case tui.ModeMarathon:
 		gameIn = &single.Input{
 			Level:         in.Level,
 			MaxLevel:      cfg.MaxLevel,
@@ -67,7 +67,7 @@ func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
 			GhostEnabled: cfg.GhostEnabled,
 		}
 		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
-	case common.ModeSprint:
+	case tui.ModeSprint:
 		gameIn = &single.Input{
 			Level:         in.Level,
 			MaxLevel:      cfg.MaxLevel,
@@ -79,14 +79,14 @@ func NewModel(in *common.SingleInput, cfg *config.Config) (*Model, error) {
 			GhostEnabled: cfg.GhostEnabled,
 		}
 		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
-	case common.ModeUltra:
+	case tui.ModeUltra:
 		gameIn = &single.Input{
 			Level:        in.Level,
 			GhostEnabled: cfg.GhostEnabled,
 		}
 		m.useTimer = true
 		m.gameTimer = timer.NewWithInterval(time.Minute*2, timerUpdateInterval)
-	case common.ModeMenu, common.ModeLeaderboard:
+	case tui.ModeMenu, tui.ModeLeaderboard:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	default:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
@@ -135,7 +135,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.ForceQuit):
 			return m, tea.Quit
 		}
-	case common.SwitchModeMsg:
+	case tui.SwitchModeMsg:
 		panic(fmt.Errorf("unexpected/unhandled SwitchModeMsg: %v", msg.Target))
 	}
 
@@ -189,8 +189,8 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 				Level:    m.game.GetLevel(),
 			}
 
-			return m, common.SwitchModeCmd(common.ModeLeaderboard,
-				common.NewLeaderboardInput(modeStr, common.WithNewEntry(newEntry)),
+			return m, tui.SwitchModeCmd(tui.ModeLeaderboard,
+				tui.NewLeaderboardInput(modeStr, tui.WithNewEntry(newEntry)),
 			)
 		}
 	}
@@ -204,7 +204,7 @@ func (m *Model) pausedUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.Exit):
 			return m, m.togglePause()
 		case key.Matches(msg, m.keys.Hold):
-			return m, common.SwitchModeCmd(common.ModeMenu, common.NewMenuInput())
+			return m, tui.SwitchModeCmd(tui.ModeMenu, tui.NewMenuInput())
 		}
 	}
 
@@ -300,9 +300,9 @@ func (m *Model) View() string {
 	)
 
 	if m.game.IsGameOver() {
-		output = common.OverlayGameOverMessage(output)
+		output = tui.OverlayGameOverMessage(output)
 	} else if m.isPaused {
-		output = common.OverlayPausedMessage(output)
+		output = tui.OverlayPausedMessage(output)
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))

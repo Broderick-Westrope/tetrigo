@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
@@ -21,7 +21,7 @@ type Model struct {
 	table table.Model
 }
 
-func NewModel(in *common.LeaderboardInput, db *sql.DB) (Model, error) {
+func NewModel(in *tui.LeaderboardInput, db *sql.DB) (Model, error) {
 	repo := data.NewLeaderboardRepository(db)
 
 	var err error
@@ -58,7 +58,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
-			return m, common.SwitchModeCmd(common.ModeMenu, common.NewMenuInput())
+			return m, tui.SwitchModeCmd(tui.ModeMenu, tui.NewMenuInput())
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		}

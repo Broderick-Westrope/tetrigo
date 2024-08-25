@@ -5,15 +5,15 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/starter"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/models/starter"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type MenuCmd struct{}
 
 func (c *MenuCmd) Run(globals *GlobalVars) error {
-	return launchStarter(globals, common.ModeMenu, common.NewMenuInput())
+	return launchStarter(globals, tui.ModeMenu, tui.NewMenuInput())
 }
 
 type PlayCmd struct {
@@ -23,10 +23,10 @@ type PlayCmd struct {
 }
 
 func (c *PlayCmd) Run(globals *GlobalVars) error {
-	singlePlayerModes := map[string]common.Mode{
-		"marathon": common.ModeMarathon,
-		"sprint":   common.ModeSprint,
-		"ultra":    common.ModeUltra,
+	singlePlayerModes := map[string]tui.Mode{
+		"marathon": tui.ModeMarathon,
+		"sprint":   tui.ModeSprint,
+		"ultra":    tui.ModeUltra,
 	}
 
 	mode, ok := singlePlayerModes[c.GameMode]
@@ -34,7 +34,7 @@ func (c *PlayCmd) Run(globals *GlobalVars) error {
 		return fmt.Errorf("invalid game mode: %s", c.GameMode)
 	}
 
-	return launchStarter(globals, mode, common.NewSingleInput(common.ModeMarathon, c.Level, c.Name))
+	return launchStarter(globals, mode, tui.NewSingleInput(tui.ModeMarathon, c.Level, c.Name))
 }
 
 type LeaderboardCmd struct {
@@ -42,10 +42,10 @@ type LeaderboardCmd struct {
 }
 
 func (c *LeaderboardCmd) Run(globals *GlobalVars) error {
-	return launchStarter(globals, common.ModeLeaderboard, common.NewLeaderboardInput(c.GameMode))
+	return launchStarter(globals, tui.ModeLeaderboard, tui.NewLeaderboardInput(c.GameMode))
 }
 
-func launchStarter(globals *GlobalVars, starterMode common.Mode, switchIn common.SwitchModeInput) error {
+func launchStarter(globals *GlobalVars, starterMode tui.Mode, switchIn tui.SwitchModeInput) error {
 	db, err := data.NewDB(globals.DB)
 	if err != nil {
 		return fmt.Errorf("error opening database: %w", err)
