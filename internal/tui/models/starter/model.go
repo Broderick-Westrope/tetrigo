@@ -6,10 +6,10 @@ import (
 	"reflect"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/common"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/leaderboard"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/menu"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/single"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/models/leaderboard"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/models/menu"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/models/single"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -20,13 +20,13 @@ var (
 )
 
 type Input struct {
-	mode     common.Mode
-	switchIn common.SwitchModeInput
+	mode     tui.Mode
+	switchIn tui.SwitchModeInput
 	db       *sql.DB
 	cfg      *config.Config
 }
 
-func NewInput(mode common.Mode, switchIn common.SwitchModeInput, db *sql.DB, cfg *config.Config) *Input {
+func NewInput(mode tui.Mode, switchIn tui.SwitchModeInput, db *sql.DB, cfg *config.Config) *Input {
 	return &Input{
 		mode:     mode,
 		switchIn: switchIn,
@@ -70,7 +70,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, m.forceQuitKey) {
 			return m, tea.Quit
 		}
-	case common.SwitchModeMsg:
+	case tui.SwitchModeMsg:
 		err := m.setChild(msg.Target, msg.Input)
 		if err != nil {
 			panic(err)
@@ -95,20 +95,20 @@ func (m *Model) View() string {
 	return output
 }
 
-func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) error {
+func (m *Model) setChild(mode tui.Mode, switchIn tui.SwitchModeInput) error {
 	if rv := reflect.ValueOf(switchIn); !rv.IsValid() || rv.IsNil() {
 		return errors.New("switchIn is not valid")
 	}
 
 	switch mode {
-	case common.ModeMenu:
-		menuIn, ok := switchIn.(*common.MenuInput)
+	case tui.ModeMenu:
+		menuIn, ok := switchIn.(*tui.MenuInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
 		m.child = menu.NewModel(menuIn)
-	case common.ModeMarathon, common.ModeSprint, common.ModeUltra:
-		singleIn, ok := switchIn.(*common.SingleInput)
+	case tui.ModeMarathon, tui.ModeSprint, tui.ModeUltra:
+		singleIn, ok := switchIn.(*tui.SingleInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
@@ -117,8 +117,8 @@ func (m *Model) setChild(mode common.Mode, switchIn common.SwitchModeInput) erro
 			return err
 		}
 		m.child = child
-	case common.ModeLeaderboard:
-		leaderboardIn, ok := switchIn.(*common.LeaderboardInput)
+	case tui.ModeLeaderboard:
+		leaderboardIn, ok := switchIn.(*tui.LeaderboardInput)
 		if !ok {
 			return ErrInvalidSwitchModeInput
 		}
