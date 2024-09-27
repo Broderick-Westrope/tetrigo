@@ -172,7 +172,6 @@ The ordered priorities for testing are:
 ### TODO
 
 - Add more tests
-  - Finish Super Rotation System testing in [tetrimino_test.go](./pkg/tetris/tetrimino_test.go).
   - Add tests for scoring endOnMaxLevel.
   - Revisit scoring tests.
 - Add the remaining Lock Down options.
