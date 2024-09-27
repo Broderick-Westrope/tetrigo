@@ -181,7 +181,4 @@ The ordered priorities for testing are:
   - This resets after each movement & rotation, for a total of 15 movements/rotations.
   - See "Extended Placement Lock Down" in the design guidelines.
 - Score points from T-Spins
-- More game modes
-  - Sprint
-  - Ultra 
-- Multiplayer
+- SSH Multiplayer (akin to [Gambit](https://github.com/maaslalani/gambit))
