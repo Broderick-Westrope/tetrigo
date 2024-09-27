@@ -1963,6 +1963,22 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"I; starting rotation 0 (north); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['I'],
+			},
+			wantTet: nil,
+		},
+
 		"I; starting rotation 1 (east); rotation point 1": {
 			matrix: Matrix{
 				{0, 0, 0, 0},
@@ -1993,6 +2009,25 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"I; starting rotation 1 (east); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:              Coordinate{X: 2, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['I'],
+			},
+			wantTet: nil,
+		},
+
 		"I; starting rotation 2 (south); rotation point 1": {
 			matrix: Matrix{
 				{0, 0, 0, 0},
@@ -2023,6 +2058,22 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"I; starting rotation 2 (south); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true, true, true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 2},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['I'],
+			},
+			wantTet: nil,
+		},
+
 		"I; starting rotation 3 (west); rotation point 1": {
 			matrix: Matrix{
 				{0, 0, 0, 0},
@@ -2053,6 +2104,24 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"I; starting rotation 3 (west); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'I',
+				Minos: [][]bool{
+					{true},
+					{true},
+					{true},
+					{true},
+				},
+				Pos:              Coordinate{X: 1, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['I'],
+			},
+			wantTet: nil,
+		},
 
 		"O; starting rotation 0 (north); rotation point 1": {
 			matrix: Matrix{
@@ -2081,6 +2150,23 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"O; starting rotation 0 (north); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			wantTet: nil,
+		},
+
 		"O; starting rotation 1 (east); rotation point 1": {
 			matrix: Matrix{
 				{0, 0},
@@ -2108,6 +2194,23 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"O; starting rotation 1 (east); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			wantTet: nil,
+		},
+
 		"O; starting rotation 2 (south); rotation point 1": {
 			matrix: Matrix{
 				{0, 0},
@@ -2135,6 +2238,23 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"O; starting rotation 2 (south); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			wantTet: nil,
+		},
+
 		"O; starting rotation 3 (west); rotation point 1": {
 			matrix: Matrix{
 				{0, 0},
@@ -2161,6 +2281,22 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 				RotationCompass:  RotationCompasses['O'],
 			},
 			wantRotationPoint: 1,
+		},
+		"O; starting rotation 3 (west); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'O',
+				Minos: [][]bool{
+					{true, true},
+					{true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['O'],
+			},
+			wantTet: nil,
 		},
 
 		"6; starting rotation 0 (north); rotation point 1": {
@@ -2192,6 +2328,23 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"6; starting rotation 0 (north); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{false, true, false},
+					{true, true, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 0,
+				RotationCompass:  RotationCompasses['6'],
+			},
+			wantTet: nil,
+		},
+
 		"6; starting rotation 1 (east); rotation point 1": {
 			matrix: Matrix{
 				{0, 0, 0},
@@ -2221,6 +2374,24 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"6; starting rotation 1 (east); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{true, false},
+					{true, true},
+					{true, false},
+				},
+				Pos:              Coordinate{X: 1, Y: 0},
+				CompassDirection: 1,
+				RotationCompass:  RotationCompasses['6'],
+			},
+			wantTet: nil,
+		},
+
 		"6; starting rotation 2 (south); rotation point 1": {
 			matrix: Matrix{
 				{0, 0, 0},
@@ -2250,6 +2421,23 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 			},
 			wantRotationPoint: 1,
 		},
+		"6; starting rotation 2 (south); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{true, true, true},
+					{false, true, false},
+				},
+				Pos:              Coordinate{X: 0, Y: 1},
+				CompassDirection: 2,
+				RotationCompass:  RotationCompasses['6'],
+			},
+			wantTet: nil,
+		},
+
 		"6; starting rotation 3 (west); rotation point 1": {
 			matrix: Matrix{
 				{0, 0, 0},
@@ -2278,6 +2466,23 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 				RotationCompass:  RotationCompasses['6'],
 			},
 			wantRotationPoint: 1,
+		},
+		"6; starting rotation 3 (west); no valid rotation": {
+			matrix: Matrix{
+				{0},
+			},
+			tet: &Tetrimino{
+				Value: 'T',
+				Minos: [][]bool{
+					{false, true},
+					{true, true},
+					{false, true},
+				},
+				Pos:              Coordinate{X: 0, Y: 0},
+				CompassDirection: 3,
+				RotationCompass:  RotationCompasses['6'],
+			},
+			wantTet: nil,
 		},
 	}
 
