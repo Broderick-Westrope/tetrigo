@@ -6,6 +6,8 @@ import (
 	"math"
 )
 
+const invalidRotationPoint = -1
+
 // A Tetrimino is a geometric Tetris shape formed by four Minos connected along their sides.
 type Tetrimino struct {
 	// The value of the Tetrimino. This is the character that will be used to represent the Tetrimino in the matrix.
@@ -252,26 +254,28 @@ func (t *Tetrimino) Rotate(matrix Matrix, clockwise bool) error {
 
 	rotated := t.DeepCopy()
 	var err error
-	var foundValid bool
+	var rotationPoint int
 	if clockwise {
-		foundValid, err = rotated.rotateClockwise(matrix)
+		rotationPoint, err = rotated.rotateClockwise(matrix)
 	} else {
-		foundValid, err = rotated.rotateCounterClockwise(matrix)
+		rotationPoint, err = rotated.rotateCounterClockwise(matrix)
 	}
 	if err != nil {
 		return fmt.Errorf("failed to rotate tetrimino: %w", err)
 	}
 
-	if foundValid {
-		t.Pos = rotated.Pos
-		t.Minos = rotated.Minos
-		t.CompassDirection = rotated.CompassDirection
+	foundValid := rotationPoint != invalidRotationPoint
+	if !foundValid {
+		return nil
 	}
 
+	t.Pos = rotated.Pos
+	t.Minos = rotated.Minos
+	t.CompassDirection = rotated.CompassDirection
 	return nil
 }
 
-func (t *Tetrimino) rotateClockwise(matrix Matrix) (bool, error) {
+func (t *Tetrimino) rotateClockwise(matrix Matrix) (int, error) {
 	// Reverse the order of the rows
 	for i, j := 0, len(t.Minos)-1; i < j; i, j = i+1, j-1 {
 		t.Minos[i], t.Minos[j] = t.Minos[j], t.Minos[i]
@@ -282,23 +286,23 @@ func (t *Tetrimino) rotateClockwise(matrix Matrix) (bool, error) {
 	var err error
 	t.CompassDirection, err = positiveMod(t.CompassDirection+1, len(t.RotationCompass))
 	if err != nil {
-		return false, fmt.Errorf("failed to get positive mod: %w", err)
+		return invalidRotationPoint, fmt.Errorf("failed to get positive mod: %w", err)
 	}
 
 	originalX, originalY := t.Pos.X, t.Pos.Y
-	for _, coord := range t.RotationCompass[t.CompassDirection] {
+	for i, coord := range t.RotationCompass[t.CompassDirection] {
 		t.Pos.X = originalX + coord.X
 		t.Pos.Y = originalY + coord.Y
 
 		if t.isValid(matrix) {
-			return true, nil
+			return i + 1, nil
 		}
 	}
 
-	return false, nil
+	return invalidRotationPoint, nil
 }
 
-func (t *Tetrimino) rotateCounterClockwise(matrix Matrix) (bool, error) {
+func (t *Tetrimino) rotateCounterClockwise(matrix Matrix) (int, error) {
 	// Reverse the order of the columns
 	for _, row := range t.Minos {
 		for i, j := 0, len(row)-1; i < j; i, j = i+1, j-1 {
@@ -308,28 +312,28 @@ func (t *Tetrimino) rotateCounterClockwise(matrix Matrix) (bool, error) {
 
 	t.transpose()
 
-	foundValid := false
+	rotationPoint := invalidRotationPoint
 	originalX, originalY := t.Pos.X, t.Pos.Y
-	for _, coord := range t.RotationCompass[t.CompassDirection] {
+	for i, coord := range t.RotationCompass[t.CompassDirection] {
 		t.Pos.X = originalX - coord.X
 		t.Pos.Y = originalY - coord.Y
 
 		if t.isValid(matrix) {
-			foundValid = true
+			rotationPoint = i + 1
 			break
 		}
 	}
-	if !foundValid {
-		return false, nil
+	if rotationPoint == invalidRotationPoint {
+		return rotationPoint, nil
 	}
 
 	var err error
 	t.CompassDirection, err = positiveMod(t.CompassDirection-1, len(t.RotationCompass))
 	if err != nil {
-		return false, fmt.Errorf("failed to get positive mod: %w", err)
+		return invalidRotationPoint, fmt.Errorf("failed to get positive mod: %w", err)
 	}
 
-	return true, nil
+	return rotationPoint, nil
 }
 
 func (t *Tetrimino) transpose() {
