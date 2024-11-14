@@ -4,14 +4,14 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 )
 
-// KeyMap is the key bindings for different actions within the component.
-type KeyMap struct {
+// hPickerKeyMap is the key bindings for different actions within the component.
+type hPickerKeyMap struct {
 	Prev key.Binding
 	Next key.Binding
 }
 
-func defaultKeyMap() *KeyMap {
-	return &KeyMap{
+func defaultHPickerKeyMap() *hPickerKeyMap {
+	return &hPickerKeyMap{
 		Prev: key.NewBinding(
 			key.WithKeys("left"),
 			key.WithHelp("<-", "move left"),

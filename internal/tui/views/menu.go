@@ -38,13 +38,13 @@ type menuItem struct {
 }
 
 func NewMenuModel(_ *tui.MenuInput) *MenuModel {
-	nameInput := textinput.NewModel("Enter your name", 20, 20)
-	modePicker := hpicker.NewModel([]hpicker.KeyValuePair{
+	nameInput := textinput.NewTextInputModel("Enter your name", 20, 20)
+	modePicker := hpicker.NewHPickerModel([]hpicker.KeyValuePair{
 		{Key: "Marathon", Value: tui.ModeMarathon},
 		{Key: "Sprint (40 Lines)", Value: tui.ModeSprint},
 		{Key: "Ultra (Time Trial)", Value: tui.ModeUltra},
 	})
-	levelPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 15))
+	levelPicker := hpicker.NewHPickerModel(nil, hpicker.WithRange(1, 15))
 
 	return &MenuModel{
 		items: []menuItem{
@@ -142,7 +142,7 @@ func (m MenuModel) startGame() (tea.Cmd, error) {
 	for _, i := range m.items {
 		switch i.label {
 		case "Starting Level":
-			picker, ok := i.model.(*hpicker.Model)
+			picker, ok := i.model.(*hpicker.HPickerModel)
 			if !ok {
 				return nil, errInvalidModel
 			}
@@ -151,7 +151,7 @@ func (m MenuModel) startGame() (tea.Cmd, error) {
 				return nil, errInvalidValue
 			}
 		case "Mode":
-			picker, ok := i.model.(*hpicker.Model)
+			picker, ok := i.model.(*hpicker.HPickerModel)
 			if !ok {
 				return nil, errInvalidModel
 			}
@@ -160,7 +160,7 @@ func (m MenuModel) startGame() (tea.Cmd, error) {
 				return nil, errInvalidValue
 			}
 		case "Name":
-			playerName = i.model.(textinput.Model).Child.Value()
+			playerName = i.model.(textinput.TextInputModel).Child.Value()
 		default:
 			return nil, fmt.Errorf("invalid item label: %q", i.label)
 		}

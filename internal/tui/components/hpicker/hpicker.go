@@ -8,17 +8,17 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var _ tea.Model = &Model{}
+var _ tea.Model = &HPickerModel{}
 
-// Model is the model for the horizontal picker component.
-type Model struct {
+// HPickerModel is the model for the horizontal picker component.
+type HPickerModel struct {
 	// cursor is the index of the currently selected option.
 	selected int
 	// options is a list of the possible options for this component.
 	options []KeyValuePair
 	// keymap encodes the keybindings recognized by the component.
-	keymap *KeyMap
-	styles Styles
+	keymap *hPickerKeyMap
+	styles hPickerStyles
 }
 
 type KeyValuePair struct {
@@ -26,13 +26,13 @@ type KeyValuePair struct {
 	Value any
 }
 
-type Option func(*Model)
+type Option func(*HPickerModel)
 
-func NewModel(options []KeyValuePair, opts ...Option) *Model {
-	m := &Model{
+func NewHPickerModel(options []KeyValuePair, opts ...Option) *HPickerModel {
+	m := &HPickerModel{
 		options: options,
-		keymap:  defaultKeyMap(),
-		styles:  DefaultStyles(),
+		keymap:  defaultHPickerKeyMap(),
+		styles:  defaultHPickerStyles(),
 	}
 
 	for _, opt := range opts {
@@ -43,7 +43,7 @@ func NewModel(options []KeyValuePair, opts ...Option) *Model {
 }
 
 func WithRange(minValue, maxValue int) Option {
-	return func(m *Model) {
+	return func(m *HPickerModel) {
 		m.options = make([]KeyValuePair, (maxValue-minValue)+1)
 		for i := minValue - 1; i < maxValue; i++ {
 			m.options[i].Key = strconv.Itoa(i + 1)
@@ -52,12 +52,12 @@ func WithRange(minValue, maxValue int) Option {
 	}
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m *HPickerModel) Init() tea.Cmd {
 	return nil
 }
 
 // Update is the Tea update function which binds keystrokes to pagination.
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *HPickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keymap.Next):
@@ -71,7 +71,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View renders the cursor to a string.
-func (m *Model) View() string {
+func (m *HPickerModel) View() string {
 	var prev lipgloss.Style
 	if m.isFirst() {
 		prev = m.styles.PrevDisabledStyle
@@ -95,7 +95,7 @@ func (m *Model) View() string {
 
 // Prev is a helper function for navigating one option backward.
 // It will not go page beyond the first option (i.e. option 0).
-func (m *Model) Prev() {
+func (m *HPickerModel) Prev() {
 	if !m.isFirst() {
 		m.selected--
 	}
@@ -103,20 +103,20 @@ func (m *Model) Prev() {
 
 // Next is a helper function for navigating one option forward.
 // It will not go beyond the last option (i.e. len(options) - 1).
-func (m *Model) Next() {
+func (m *HPickerModel) Next() {
 	if !m.isLast() {
 		m.selected++
 	}
 }
 
-func (m *Model) isFirst() bool {
+func (m *HPickerModel) isFirst() bool {
 	return m.selected == 0
 }
 
-func (m *Model) isLast() bool {
+func (m *HPickerModel) isLast() bool {
 	return m.selected == len(m.options)-1
 }
 
-func (m *Model) GetSelection() KeyValuePair {
+func (m *HPickerModel) GetSelection() KeyValuePair {
 	return m.options[m.selected]
 }
