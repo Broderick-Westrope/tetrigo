@@ -1,4 +1,4 @@
-package leaderboard
+package views
 
 import (
 	"database/sql"
@@ -13,15 +13,15 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Model struct {
-	keys *keyMap
+type LeaderboardModel struct {
+	keys *leaderboardKeyMap
 	help help.Model
 
 	repo  *data.LeaderboardRepository
 	table table.Model
 }
 
-func NewModel(in *tui.LeaderboardInput, db *sql.DB) (Model, error) {
+func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (LeaderboardModel, error) {
 	repo := data.NewLeaderboardRepository(db)
 
 	var err error
@@ -33,28 +33,28 @@ func NewModel(in *tui.LeaderboardInput, db *sql.DB) (Model, error) {
 
 		newEntryID, err = repo.Save(in.NewEntry)
 		if err != nil {
-			return Model{}, err
+			return LeaderboardModel{}, err
 		}
 	}
 
 	scores, err := repo.All(in.GameMode)
 	if err != nil {
-		return Model{}, err
+		return LeaderboardModel{}, err
 	}
 
-	return Model{
-		keys:  defaultKeyMap(),
+	return LeaderboardModel{
+		keys:  defaultLeaderboardKeyMap(),
 		help:  help.New(),
 		repo:  repo,
-		table: getLeaderboardTable(scores, newEntryID),
+		table: buildLeaderboardTable(scores, newEntryID),
 	}, nil
 }
 
-func (m Model) Init() tea.Cmd {
+func (m LeaderboardModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m LeaderboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
@@ -69,11 +69,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m LeaderboardModel) View() string {
 	return m.table.View() + "\n" + m.help.View(m.keys)
 }
 
-func getLeaderboardTable(scores []data.Score, focusID int) table.Model {
+func buildLeaderboardTable(scores []data.Score, focusID int) table.Model {
 	cols := []table.Column{
 		{Title: "Rank", Width: 4},
 		{Title: "Name", Width: 10},

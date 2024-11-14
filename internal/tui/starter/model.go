@@ -3,20 +3,17 @@ package starter
 import (
 	"database/sql"
 	"errors"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/views"
 	"reflect"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/models/leaderboard"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/models/menu"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/models/single"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 var (
-	ErrInvalidSwitchModeInput = errors.New("invalid SwitchModeInput")
-	ErrInvalidSwitchMode      = errors.New("invalid SwitchMode")
+	ErrInvalidSwitchMode = errors.New("invalid SwitchMode")
 )
 
 type Input struct {
@@ -104,15 +101,15 @@ func (m *Model) setChild(mode tui.Mode, switchIn tui.SwitchModeInput) error {
 	case tui.ModeMenu:
 		menuIn, ok := switchIn.(*tui.MenuInput)
 		if !ok {
-			return ErrInvalidSwitchModeInput
+			return tui.ErrInvalidTypeAssertion
 		}
-		m.child = menu.NewModel(menuIn)
+		m.child = views.NewMenuModel(menuIn)
 	case tui.ModeMarathon, tui.ModeSprint, tui.ModeUltra:
 		singleIn, ok := switchIn.(*tui.SingleInput)
 		if !ok {
-			return ErrInvalidSwitchModeInput
+			return tui.ErrInvalidTypeAssertion
 		}
-		child, err := single.NewModel(singleIn, m.cfg)
+		child, err := views.NewSingleModel(singleIn, m.cfg)
 		if err != nil {
 			return err
 		}
@@ -120,9 +117,9 @@ func (m *Model) setChild(mode tui.Mode, switchIn tui.SwitchModeInput) error {
 	case tui.ModeLeaderboard:
 		leaderboardIn, ok := switchIn.(*tui.LeaderboardInput)
 		if !ok {
-			return ErrInvalidSwitchModeInput
+			return tui.ErrInvalidTypeAssertion
 		}
-		child, err := leaderboard.NewModel(leaderboardIn, m.db)
+		child, err := views.NewLeaderboardModel(leaderboardIn, m.db)
 		if err != nil {
 			return err
 		}
