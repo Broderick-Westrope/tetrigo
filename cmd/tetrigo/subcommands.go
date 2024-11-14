@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/starter"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/models/starter"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
