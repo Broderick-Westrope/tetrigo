@@ -1,4 +1,4 @@
-package views
+package components
 
 import (
 	"github.com/Broderick-Westrope/tetrigo/internal/config"

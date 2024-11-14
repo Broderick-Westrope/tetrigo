@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 	"strconv"
 	"time"
 
@@ -35,9 +36,9 @@ type SingleModel struct {
 	gameTimer     timer.Model
 	gameStopwatch stopwatch.Model
 
-	styles   *GameStyles
+	styles   *components.GameStyles
 	help     help.Model
-	keys     *GameKeyMap
+	keys     *components.GameKeyMap
 	isPaused bool
 }
 
@@ -45,9 +46,9 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 	// Setup initial model
 	m := &SingleModel{
 		playerName:      in.PlayerName,
-		styles:          CreateGameStyles(cfg.Theme),
+		styles:          components.CreateGameStyles(cfg.Theme),
 		help:            help.New(),
-		keys:            ConstructGameKeyMap(cfg.Keys),
+		keys:            components.ConstructGameKeyMap(cfg.Keys),
 		isPaused:        false,
 		nextQueueLength: cfg.NextQueueLength,
 		mode:            in.Mode,
