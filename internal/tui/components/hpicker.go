@@ -1,4 +1,4 @@
-package hpicker
+package components
 
 import (
 	"strconv"

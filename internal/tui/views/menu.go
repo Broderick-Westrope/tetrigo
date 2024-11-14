@@ -2,9 +2,9 @@ package views
 
 import (
 	"fmt"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/hpicker"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/textinput"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -39,12 +39,12 @@ type menuItem struct {
 
 func NewMenuModel(_ *tui.MenuInput) *MenuModel {
 	nameInput := textinput.NewTextInputModel("Enter your name", 20, 20)
-	modePicker := hpicker.NewHPickerModel([]hpicker.KeyValuePair{
+	modePicker := components.NewHPickerModel([]components.KeyValuePair{
 		{Key: "Marathon", Value: tui.ModeMarathon},
 		{Key: "Sprint (40 Lines)", Value: tui.ModeSprint},
 		{Key: "Ultra (Time Trial)", Value: tui.ModeUltra},
 	})
-	levelPicker := hpicker.NewHPickerModel(nil, hpicker.WithRange(1, 15))
+	levelPicker := components.NewHPickerModel(nil, components.WithRange(1, 15))
 
 	return &MenuModel{
 		items: []menuItem{
@@ -142,7 +142,7 @@ func (m MenuModel) startGame() (tea.Cmd, error) {
 	for _, i := range m.items {
 		switch i.label {
 		case "Starting Level":
-			picker, ok := i.model.(*hpicker.HPickerModel)
+			picker, ok := i.model.(*components.HPickerModel)
 			if !ok {
 				return nil, errInvalidModel
 			}
@@ -151,7 +151,7 @@ func (m MenuModel) startGame() (tea.Cmd, error) {
 				return nil, errInvalidValue
 			}
 		case "Mode":
-			picker, ok := i.model.(*hpicker.HPickerModel)
+			picker, ok := i.model.(*components.HPickerModel)
 			if !ok {
 				return nil, errInvalidModel
 			}
