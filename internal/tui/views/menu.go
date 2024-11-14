@@ -5,7 +5,6 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/textinput"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -38,7 +37,7 @@ type menuItem struct {
 }
 
 func NewMenuModel(_ *tui.MenuInput) *MenuModel {
-	nameInput := textinput.NewTextInputModel("Enter your name", 20, 20)
+	nameInput := components.NewTextInputModel("Enter your name", 20, 20)
 	modePicker := components.NewHPickerModel([]components.KeyValuePair{
 		{Key: "Marathon", Value: tui.ModeMarathon},
 		{Key: "Sprint (40 Lines)", Value: tui.ModeSprint},
@@ -160,7 +159,7 @@ func (m MenuModel) startGame() (tea.Cmd, error) {
 				return nil, errInvalidValue
 			}
 		case "Name":
-			playerName = i.model.(textinput.TextInputModel).Child.Value()
+			playerName = i.model.(components.TextInputModel).Child.Value()
 		default:
 			return nil, fmt.Errorf("invalid item label: %q", i.label)
 		}
