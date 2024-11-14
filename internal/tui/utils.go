@@ -1,11 +1,12 @@
 package tui
 
 import (
-	"errors"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/mattn/go-runewidth"
+
+	"errors"
 	"regexp"
 	"strings"
 	"unicode"
@@ -43,7 +44,7 @@ func ConstructKeyBinding(keys []string, desc string) key.Binding {
 	return key.NewBinding(key.WithKeys(keys...), key.WithHelp(buildHelpKeys(keys), desc))
 }
 
-// Window overlay (CREDIT: https://gist.github.com/ras0q/9bf5d81544b22302393f61206892e2cd) ------------------------------------
+// Window overlay (CREDIT: https://gist.github.com/ras0q/9bf5d81544b22302393f61206892e2cd)
 
 // OverlayCenter writes the overlay string onto the background string such that the middle of the
 // overlay string will be at the middle of the overlay will be at the middle of the background.
@@ -95,7 +96,8 @@ func Overlay(bg, overlay string, row, col int, ignoreMarginWhitespace bool) (str
 }
 
 // removeMarginWhitespace preserves the background where the overlay line has leading or trailing whitespace.
-// This is done by detecting those empty cells in the overlay string and replacing them with the corresponding background cells.
+// This is done by detecting those empty cells in the overlay string and
+// replacing them with the corresponding background cells.
 //
 //nolint:gocognit
 func removeMarginWhitespace(bgLine, overlayLine string, col int) string {

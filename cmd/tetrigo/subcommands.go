@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/starter"
+
+	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/starter"
 )
 
 type MenuCmd struct{}

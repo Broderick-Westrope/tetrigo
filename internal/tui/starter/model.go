@@ -3,11 +3,11 @@ package starter
 import (
 	"database/sql"
 	"errors"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/views"
 	"reflect"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/views"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )

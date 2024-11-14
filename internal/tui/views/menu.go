@@ -2,9 +2,10 @@ package views
 
 import (
 	"fmt"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -149,6 +150,7 @@ func (m MenuModel) startGame() (tea.Cmd, error) {
 			if !ok {
 				return nil, errInvalidValue
 			}
+
 		case "Mode":
 			picker, ok := i.model.(*components.HPickerModel)
 			if !ok {
@@ -158,8 +160,14 @@ func (m MenuModel) startGame() (tea.Cmd, error) {
 			if !ok {
 				return nil, errInvalidValue
 			}
+
 		case "Name":
-			playerName = i.model.(components.TextInputModel).Child.Value()
+			input, ok := i.model.(components.TextInputModel)
+			if !ok {
+				return nil, errInvalidModel
+			}
+			playerName = input.Child.Value()
+
 		default:
 			return nil, fmt.Errorf("invalid item label: %q", i.label)
 		}

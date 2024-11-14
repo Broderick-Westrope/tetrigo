@@ -2,9 +2,10 @@ package views
 
 import (
 	"fmt"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 	"strconv"
 	"time"
+
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
