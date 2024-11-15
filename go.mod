@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/BurntSushi/toml v1.3.2
+	github.com/adrg/xdg v0.5.3
 	github.com/alecthomas/kong v0.8.1
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.25.0
@@ -29,7 +30,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
 	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
