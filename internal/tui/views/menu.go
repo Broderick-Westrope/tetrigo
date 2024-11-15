@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Broderick-Westrope/charmutils"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
@@ -31,15 +32,6 @@ type MenuModel struct {
 	form                   *huh.Form
 	hasAnnouncedCompletion bool
 	keys                   *menuKeyMap
-
-	width  int
-	height int
-}
-
-type menuItem struct {
-	label     string
-	model     tea.Model
-	hideLabel bool
 }
 
 func NewMenuModel(_ *tui.MenuInput) *MenuModel {
@@ -62,7 +54,7 @@ func NewMenuModel(_ *tui.MenuInput) *MenuModel {
 						huh.NewOption("Ultra (Time Trial)", tui.ModeUltra),
 					),
 				huh.NewSelect[int]().Key(formKeyLevel).
-					Options(tui.NewIntRangeOptions(1, 15)...),
+					Options(charmutils.HuhIntRangeOptions(1, 15)...),
 			),
 		).WithKeyMap(keys.formKeys),
 		keys: keys,
@@ -76,15 +68,11 @@ func (m *MenuModel) Init() tea.Cmd {
 func (m *MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, m.keys.Exit):
+		if key.Matches(msg, m.keys.Exit) {
 			return m, tea.Quit
 		}
 
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-
 		formWidth := msg.Width / 2
 		formWidth = min(formWidth, 50)
 		m.form = m.form.WithWidth(formWidth)
@@ -115,7 +103,7 @@ func (m *MenuModel) announceCompletion() tea.Cmd {
 	level := m.form.GetInt(formKeyLevel)
 	mode, ok := m.form.Get(formKeyGameMode).(tui.Mode)
 	if !ok {
-		return tui.FatalErrorCmd(fmt.Errorf("retrieving form mode: %w", tui.ErrInvalidTypeAssertion))
+		return tui.FatalErrorCmd(fmt.Errorf("retrieving form mode: %w", charmutils.ErrInvalidTypeAssertion))
 	}
 
 	m.hasAnnouncedCompletion = true
@@ -137,5 +125,5 @@ func (m *MenuModel) View() string {
 		titleStr+"\n",
 		m.form.View(),
 	)
-	return lipgloss.Place(m.width, (m.height/10)*9, lipgloss.Center, lipgloss.Center, output)
+	return output
 }

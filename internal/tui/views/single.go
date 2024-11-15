@@ -14,6 +14,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/Broderick-Westrope/charmutils"
+
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
@@ -22,6 +24,23 @@ import (
 )
 
 const (
+	pausedMessage = `
+	____                            __
+   / __ \____ ___  __________  ____/ /
+  / /_/ / __ ^/ / / / ___/ _ \/ __  /
+ / ____/ /_/ / /_/ (__  )  __/ /_/ /
+/_/    \__,_/\__,_/____/\___/\__,_/
+Press PAUSE to continue or HOLD to exit.
+`
+	gameOverMessage = `
+   ______                        ____                 
+  / ____/___ _____ ___  ___     / __ \_   _____  _____
+ / / __/ __ ^/ __ ^__ \/ _ \   / / / / | / / _ \/ ___/
+/ /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /
+\____/\__,_/_/ /_/ /_/\___/   \____/ |___/\___/_/
+
+			Press EXIT or HOLD to continue.
+`
 	timerUpdateInterval = time.Millisecond * 13
 )
 
@@ -304,19 +323,18 @@ func (m *SingleModel) View() string {
 
 	var err error
 	if m.game.IsGameOver() {
-		output, err = tui.OverlayCenter(output, tui.GameOverMessage, true)
+		output, err = charmutils.OverlayCenter(output, gameOverMessage, true)
 		if err != nil {
 			return "** FAILED TO OVERLAY GAME OVER MESSAGE **" + output
 		}
 	} else if m.isPaused {
-		output, err = tui.OverlayCenter(output, tui.PausedMessage, true)
+		output, err = charmutils.OverlayCenter(output, pausedMessage, true)
 		if err != nil {
 			return "** FAILED TO OVERLAY PAUSED MESSAGE **" + output
 		}
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
-
 	return output
 }
 

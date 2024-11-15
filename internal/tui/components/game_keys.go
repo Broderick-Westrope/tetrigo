@@ -1,9 +1,10 @@
 package components
 
 import (
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/charmutils"
 	"github.com/charmbracelet/bubbles/key"
+
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
 )
 
 type GameKeyMap struct {
@@ -21,16 +22,16 @@ type GameKeyMap struct {
 
 func ConstructGameKeyMap(keys *config.Keys) *GameKeyMap {
 	return &GameKeyMap{
-		ForceQuit:        tui.ConstructKeyBinding(keys.ForceQuit, "force quit"),
-		Exit:             tui.ConstructKeyBinding(keys.Exit, "exit"),
-		Help:             tui.ConstructKeyBinding(keys.Help, "help"),
-		Left:             tui.ConstructKeyBinding(keys.Left, "move left"),
-		Right:            tui.ConstructKeyBinding(keys.Right, "move right"),
-		Clockwise:        tui.ConstructKeyBinding(keys.RotateClockwise, "rotate clockwise"),
-		CounterClockwise: tui.ConstructKeyBinding(keys.RotateCounterClockwise, "rotate counter-clockwise"),
-		SoftDrop:         tui.ConstructKeyBinding(keys.Down, "toggle soft drop"),
-		HardDrop:         tui.ConstructKeyBinding(keys.Up, "hard drop"),
-		Hold:             tui.ConstructKeyBinding(keys.Submit, "hold"),
+		ForceQuit:        charmutils.ConstructKeyBinding(keys.ForceQuit, "force quit"),
+		Exit:             charmutils.ConstructKeyBinding(keys.Exit, "exit"),
+		Help:             charmutils.ConstructKeyBinding(keys.Help, "help"),
+		Left:             charmutils.ConstructKeyBinding(keys.Left, "move left"),
+		Right:            charmutils.ConstructKeyBinding(keys.Right, "move right"),
+		Clockwise:        charmutils.ConstructKeyBinding(keys.RotateClockwise, "rotate clockwise"),
+		CounterClockwise: charmutils.ConstructKeyBinding(keys.RotateCounterClockwise, "rotate counter-clockwise"),
+		SoftDrop:         charmutils.ConstructKeyBinding(keys.Down, "toggle soft drop"),
+		HardDrop:         charmutils.ConstructKeyBinding(keys.Up, "hard drop"),
+		Hold:             charmutils.ConstructKeyBinding(keys.Submit, "hold"),
 	}
 }
 
