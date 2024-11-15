@@ -69,22 +69,26 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
 			return m, tea.Quit
+
 		case key.Matches(msg, m.keys.Up):
 			if m.selected > 0 {
 				m.selected--
 			}
 			return m, nil
+
 		case key.Matches(msg, m.keys.Down):
 			if m.selected < len(m.items)-1 {
 				m.selected++
 			}
 			return m, nil
+
 		case key.Matches(msg, m.keys.Start):
 			cmd, err := m.startGame()
 			if err != nil {
-				panic(fmt.Errorf("failed to start game: %w", err))
+				return m, tui.FatalErrorCmd(fmt.Errorf("starting game: %w", err))
 			}
 			return m, cmd
+
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 			return m, nil

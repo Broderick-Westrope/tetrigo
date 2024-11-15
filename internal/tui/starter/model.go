@@ -3,17 +3,15 @@ package starter
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"reflect"
+
+	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/views"
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
-)
-
-var (
-	ErrInvalidSwitchMode = errors.New("invalid SwitchMode")
 )
 
 type Input struct {
@@ -40,6 +38,7 @@ type Model struct {
 	styles       *styles
 	cfg          *config.Config
 	forceQuitKey key.Binding
+	ExitError    error
 }
 
 func NewModel(in *Input) (*Model, error) {
@@ -52,7 +51,7 @@ func NewModel(in *Input) (*Model, error) {
 
 	err := m.setChild(in.mode, in.switchIn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("setting child model: %w", err)
 	}
 	return m, nil
 }
@@ -63,16 +62,22 @@ func (m *Model) Init() tea.Cmd {
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tui.FatalErrorMsg:
+		m.ExitError = errors.New(msg.Error())
+		return m, tea.Quit
+
 	case tea.KeyMsg:
 		if key.Matches(msg, m.forceQuitKey) {
 			return m, tea.Quit
 		}
+
 	case tui.SwitchModeMsg:
 		err := m.setChild(msg.Target, msg.Input)
 		if err != nil {
-			panic(err)
+			return m, tui.FatalErrorCmd(fmt.Errorf("setting child model: %w", err))
 		}
 		return m, m.child.Init()
+
 	case tea.WindowSizeMsg:
 		// NOTE: Windows does not have support for reporting when resizes occur as it does not support the SIGWINCH signal.
 		m.styles.programFullscreen.Width(msg.Width).Height(msg.Height)
@@ -101,31 +106,34 @@ func (m *Model) setChild(mode tui.Mode, switchIn tui.SwitchModeInput) error {
 	case tui.ModeMenu:
 		menuIn, ok := switchIn.(*tui.MenuInput)
 		if !ok {
-			return tui.ErrInvalidTypeAssertion
+			return fmt.Errorf("switchIn is not a MenuInput: %w", tui.ErrInvalidTypeAssertion)
 		}
 		m.child = views.NewMenuModel(menuIn)
+
 	case tui.ModeMarathon, tui.ModeSprint, tui.ModeUltra:
 		singleIn, ok := switchIn.(*tui.SingleInput)
 		if !ok {
-			return tui.ErrInvalidTypeAssertion
+			return fmt.Errorf("switchIn is not a SingleInput: %w", tui.ErrInvalidTypeAssertion)
 		}
 		child, err := views.NewSingleModel(singleIn, m.cfg)
 		if err != nil {
-			return err
+			return fmt.Errorf("creating single model: %w", err)
 		}
 		m.child = child
+
 	case tui.ModeLeaderboard:
 		leaderboardIn, ok := switchIn.(*tui.LeaderboardInput)
 		if !ok {
-			return tui.ErrInvalidTypeAssertion
+			return fmt.Errorf("switchIn is not a LeaderboardInput: %w", tui.ErrInvalidTypeAssertion)
 		}
 		child, err := views.NewLeaderboardModel(leaderboardIn, m.db)
 		if err != nil {
-			return err
+			return fmt.Errorf("creating leaderboard model: %w", err)
 		}
 		m.child = child
+
 	default:
-		return ErrInvalidSwitchMode
+		return errors.New("invalid Mode")
 	}
 	return nil
 }

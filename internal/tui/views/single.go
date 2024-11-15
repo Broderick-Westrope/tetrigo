@@ -7,17 +7,18 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/Broderick-Westrope/tetrigo/internal/data"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
 )
 
 const (
@@ -68,6 +69,7 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 			GhostEnabled: cfg.GhostEnabled,
 		}
 		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+
 	case tui.ModeSprint:
 		gameIn = &single.Input{
 			Level:         in.Level,
@@ -80,6 +82,7 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 			GhostEnabled: cfg.GhostEnabled,
 		}
 		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+
 	case tui.ModeUltra:
 		gameIn = &single.Input{
 			Level:        in.Level,
@@ -87,8 +90,9 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 		}
 		m.useTimer = true
 		m.gameTimer = timer.NewWithInterval(time.Minute*2, timerUpdateInterval)
+
 	case tui.ModeMenu, tui.ModeLeaderboard:
-		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
+		fallthrough
 	default:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	}
@@ -97,7 +101,7 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 	var err error
 	m.game, err = single.NewGame(gameIn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create single player game: %w", err)
+		return nil, fmt.Errorf("creating single player game: %w", err)
 	}
 
 	// Setup game dependents
@@ -136,8 +140,6 @@ func (m *SingleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.ForceQuit):
 			return m, tea.Quit
 		}
-	case tui.SwitchModeMsg:
-		panic(fmt.Errorf("unexpected/unhandled SwitchModeMsg: %v", msg.Target))
 	}
 
 	// Game Over

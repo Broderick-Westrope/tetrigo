@@ -2,16 +2,20 @@ package views
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/Broderick-Westrope/tetrigo/internal/data"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
 )
+
+var _ tea.Model = &LeaderboardModel{}
 
 type LeaderboardModel struct {
 	keys *leaderboardKeyMap
@@ -21,7 +25,7 @@ type LeaderboardModel struct {
 	table table.Model
 }
 
-func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (LeaderboardModel, error) {
+func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (*LeaderboardModel, error) {
 	repo := data.NewLeaderboardRepository(db)
 
 	var err error
@@ -33,16 +37,16 @@ func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (LeaderboardModel
 
 		newEntryID, err = repo.Save(in.NewEntry)
 		if err != nil {
-			return LeaderboardModel{}, err
+			return nil, fmt.Errorf("saving new entry: %w", err)
 		}
 	}
 
 	scores, err := repo.All(in.GameMode)
 	if err != nil {
-		return LeaderboardModel{}, err
+		return nil, fmt.Errorf("fetching scores: %w", err)
 	}
 
-	return LeaderboardModel{
+	return &LeaderboardModel{
 		keys:  defaultLeaderboardKeyMap(),
 		help:  help.New(),
 		repo:  repo,
@@ -50,11 +54,11 @@ func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (LeaderboardModel
 	}, nil
 }
 
-func (m LeaderboardModel) Init() tea.Cmd {
+func (m *LeaderboardModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m LeaderboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *LeaderboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
