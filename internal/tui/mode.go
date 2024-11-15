@@ -1,8 +1,9 @@
 package tui
 
 import (
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/Broderick-Westrope/tetrigo/internal/data"
 )
 
 type SwitchModeMsg struct {
@@ -48,16 +49,16 @@ func (m Mode) String() string {
 // SwitchModeInput values --------------------------------------------------
 
 type SingleInput struct {
-	Mode       Mode
-	Level      int
-	PlayerName string
+	Mode     Mode
+	Level    int
+	Username string
 }
 
-func NewSingleInput(mode Mode, level int, playerName string) *SingleInput {
+func NewSingleInput(mode Mode, level int, username string) *SingleInput {
 	return &SingleInput{
-		Mode:       mode,
-		Level:      level,
-		PlayerName: playerName,
+		Mode:     mode,
+		Level:    level,
+		Username: username,
 	}
 }
 

@@ -1,15 +1,17 @@
 package tui
 
 import (
+	"errors"
+	"regexp"
+	"strconv"
+	"strings"
+	"unicode"
+
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/mattn/go-runewidth"
-
-	"errors"
-	"regexp"
-	"strings"
-	"unicode"
 )
 
 const (
@@ -28,6 +30,15 @@ Press PAUSE to continue or HOLD to exit.`
 
 			Press EXIT or HOLD to continue.`
 )
+
+func NewIntRangeOptions(min, max int) []huh.Option[int] {
+	opts := make([]huh.Option[int], (max-min)+1)
+	for i := range opts {
+		v := i + min
+		opts[i] = huh.Option[int]{Key: strconv.Itoa(v), Value: v}
+	}
+	return opts
+}
 
 func ConstructKeyBinding(keys []string, desc string) key.Binding {
 	buildHelpKeys := func(keys []string) string {

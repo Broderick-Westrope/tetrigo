@@ -28,7 +28,7 @@ const (
 var _ tea.Model = &SingleModel{}
 
 type SingleModel struct {
-	playerName      string
+	username        string
 	game            *single.Game
 	nextQueueLength int
 	fallStopwatch   stopwatch.Model
@@ -47,7 +47,7 @@ type SingleModel struct {
 func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, error) {
 	// Setup initial model
 	m := &SingleModel{
-		playerName:      in.PlayerName,
+		username:        in.Username,
 		styles:          components.CreateGameStyles(cfg.Theme),
 		help:            help.New(),
 		keys:            components.ConstructGameKeyMap(cfg.Keys),
@@ -186,7 +186,7 @@ func (m *SingleModel) gameOverUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 			modeStr := m.mode.String()
 			newEntry := &data.Score{
 				GameMode: modeStr,
-				Name:     m.playerName,
+				Name:     m.username,
 				Score:    m.game.GetTotalScore(),
 				Lines:    m.game.GetLinesCleared(),
 				Level:    m.game.GetLevel(),
