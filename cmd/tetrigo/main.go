@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+
+	"github.com/adrg/xdg"
 	"github.com/alecthomas/kong"
 )
 
@@ -14,7 +17,7 @@ type CLI struct {
 
 type GlobalVars struct {
 	Config string `help:"Path to config file" default:"config.toml" type:"path"`
-	DB     string `help:"Path to database file" default:"tetrigo.db"`
+	DB     string `help:"Path to database file. Empty value will use XDG data directory." default:""`
 }
 
 func main() {
@@ -24,6 +27,15 @@ func main() {
 		kong.Description("A tetris TUI written in Go"),
 		kong.UsageOnError(),
 	)
+
+	if cli.GlobalVars.DB == "" {
+		var err error
+		cli.GlobalVars.DB, err = xdg.DataFile("./tetrigo/tetrigo.db")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	// Call the Run() method of the selected parsed command.
 	err := ctx.Run(&cli.GlobalVars)
 	ctx.FatalIfErrorf(err)

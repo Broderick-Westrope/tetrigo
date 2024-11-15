@@ -120,7 +120,7 @@ An example configuration file is provided in [`example.config.toml`](./example.c
 
 ## Data
 
-The game data is stored in a SQLite database. By default, the database is stored in the working directory as `tetrigo.db`. You can specify a different file using the `--db` flag.
+The game data is stored in a SQLite database. By default, the database is stored in `./tetrigo/tetrigo.db` within the devices XDG data (or equivalent) directory. The [adrg/xdg](https://github.com/adrg/xdg) defines values `XDG_DATA_DIRS` for various operating systems (eg. on macOS if the `/Library/Application Support` directory exists it will be stored there, otherwise in `~/.local/share`). You can specify a different file path using the `--db` flag.
 
 ```bash
 ./tetrigo --db=/path/to/data.db
