@@ -1,11 +1,11 @@
-package game
+package components
 
 import (
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Styles struct {
+type GameStyles struct {
 	Playfield           lipgloss.Style
 	EmptyCell           lipgloss.Style
 	TetriminoCellStyles map[byte]lipgloss.Style
@@ -29,8 +29,8 @@ type cellCharacters struct {
 	Tetriminos string
 }
 
-func CreateStyles(theme *config.Theme) *Styles {
-	s := Styles{
+func CreateGameStyles(theme *config.Theme) *GameStyles {
+	s := GameStyles{
 		Playfield: lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).Padding(0),
 		EmptyCell: lipgloss.NewStyle().Foreground(lipgloss.Color(theme.Colours.EmptyCell)),
 		TetriminoCellStyles: map[byte]lipgloss.Style{

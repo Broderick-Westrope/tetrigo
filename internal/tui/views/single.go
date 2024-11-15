@@ -1,14 +1,15 @@
-package single
+package views
 
 import (
 	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
+
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	game2 "github.com/Broderick-Westrope/tetrigo/internal/tui/models/game"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
 	"github.com/charmbracelet/bubbles/help"
@@ -23,9 +24,9 @@ const (
 	timerUpdateInterval = time.Millisecond * 13
 )
 
-var _ tea.Model = &Model{}
+var _ tea.Model = &SingleModel{}
 
-type Model struct {
+type SingleModel struct {
 	playerName      string
 	game            *single.Game
 	nextQueueLength int
@@ -36,19 +37,19 @@ type Model struct {
 	gameTimer     timer.Model
 	gameStopwatch stopwatch.Model
 
-	styles   *game2.Styles
+	styles   *components.GameStyles
 	help     help.Model
-	keys     *game2.KeyMap
+	keys     *components.GameKeyMap
 	isPaused bool
 }
 
-func NewModel(in *tui.SingleInput, cfg *config.Config) (*Model, error) {
+func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, error) {
 	// Setup initial model
-	m := &Model{
+	m := &SingleModel{
 		playerName:      in.PlayerName,
-		styles:          game2.CreateStyles(cfg.Theme),
+		styles:          components.CreateGameStyles(cfg.Theme),
 		help:            help.New(),
-		keys:            game2.ConstructKeyMap(cfg.Keys),
+		keys:            components.ConstructGameKeyMap(cfg.Keys),
 		isPaused:        false,
 		nextQueueLength: cfg.NextQueueLength,
 		mode:            in.Mode,
@@ -105,7 +106,7 @@ func NewModel(in *tui.SingleInput, cfg *config.Config) (*Model, error) {
 	return m, nil
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m *SingleModel) Init() tea.Cmd {
 	var cmd tea.Cmd
 	switch m.useTimer {
 	case true:
@@ -117,7 +118,7 @@ func (m *Model) Init() tea.Cmd {
 	return tea.Batch(m.fallStopwatch.Init(), cmd)
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *SingleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -159,7 +160,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
+func (m *SingleModel) dependenciesUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -177,7 +178,7 @@ func (m *Model) dependenciesUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
+func (m *SingleModel) gameOverUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		if key.Matches(msg, m.keys.Exit, m.keys.Hold) {
 			modeStr := m.mode.String()
@@ -198,7 +199,7 @@ func (m *Model) gameOverUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *Model) pausedUpdate(msg tea.Msg) (*Model, tea.Cmd) {
+func (m *SingleModel) pausedUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
@@ -211,7 +212,7 @@ func (m *Model) pausedUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
+func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		return m.playingKeyMsgUpdate(msg)
@@ -239,7 +240,7 @@ func (m *Model) playingUpdate(msg tea.Msg) (*Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *Model) playingKeyMsgUpdate(msg tea.KeyMsg) (*Model, tea.Cmd) {
+func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd) {
 	switch {
 	case key.Matches(msg, m.keys.Left):
 		m.game.MoveLeft()
@@ -292,17 +293,24 @@ func (m *Model) playingKeyMsgUpdate(msg tea.KeyMsg) (*Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *Model) View() string {
+func (m *SingleModel) View() string {
 	var output = lipgloss.JoinHorizontal(lipgloss.Top,
 		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView()),
 		m.matrixView(),
 		m.bagView(),
 	)
 
+	var err error
 	if m.game.IsGameOver() {
-		output = tui.OverlayGameOverMessage(output)
+		output, err = tui.OverlayCenter(output, tui.GameOverMessage, true)
+		if err != nil {
+			return "** FAILED TO OVERLAY GAME OVER MESSAGE **" + output
+		}
 	} else if m.isPaused {
-		output = tui.OverlayPausedMessage(output)
+		output, err = tui.OverlayCenter(output, tui.PausedMessage, true)
+		if err != nil {
+			return "** FAILED TO OVERLAY PAUSED MESSAGE **" + output
+		}
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
@@ -310,7 +318,7 @@ func (m *Model) View() string {
 	return output
 }
 
-func (m *Model) matrixView() string {
+func (m *SingleModel) matrixView() string {
 	matrix, err := m.game.GetVisibleMatrix()
 	if err != nil {
 		panic(err)
@@ -336,7 +344,7 @@ func (m *Model) matrixView() string {
 	)
 }
 
-func (m *Model) informationView() string {
+func (m *SingleModel) informationView() string {
 	width := m.styles.Information.GetWidth()
 
 	var header string
@@ -384,14 +392,14 @@ func (m *Model) informationView() string {
 	return m.styles.Information.Render(lipgloss.JoinVertical(lipgloss.Left, header, output))
 }
 
-func (m *Model) holdView() string {
+func (m *SingleModel) holdView() string {
 	label := m.styles.Hold.Label.Render("Hold:")
 	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.game.GetHoldTetrimino(), 1))
 	output := lipgloss.JoinVertical(lipgloss.Top, label, item)
 	return m.styles.Hold.View.Render(output)
 }
 
-func (m *Model) bagView() string {
+func (m *SingleModel) bagView() string {
 	output := "Next:\n"
 	for i, t := range m.game.GetBagTetriminos() {
 		if i >= m.nextQueueLength {
@@ -402,7 +410,7 @@ func (m *Model) bagView() string {
 	return m.styles.Bag.Render(output)
 }
 
-func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
+func (m *SingleModel) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	var output string
 	for row := range t.Minos {
 		for col := range t.Minos[row] {
@@ -417,7 +425,7 @@ func (m *Model) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	return output
 }
 
-func (m *Model) renderCell(cell byte) string {
+func (m *SingleModel) renderCell(cell byte) string {
 	switch cell {
 	case 0:
 		return m.styles.EmptyCell.Render(m.styles.CellChar.Empty)
@@ -434,7 +442,7 @@ func (m *Model) renderCell(cell byte) string {
 	return "??"
 }
 
-func (m *Model) triggerGameOver() tea.Cmd {
+func (m *SingleModel) triggerGameOver() tea.Cmd {
 	m.game.EndGame()
 	m.isPaused = false
 
@@ -448,7 +456,7 @@ func (m *Model) triggerGameOver() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *Model) togglePause() tea.Cmd {
+func (m *SingleModel) togglePause() tea.Cmd {
 	m.isPaused = !m.isPaused
 	return tea.Batch(
 		m.fallStopwatch.Toggle(),

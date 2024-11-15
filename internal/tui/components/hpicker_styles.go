@@ -1,8 +1,8 @@
-package hpicker
+package components
 
 import "github.com/charmbracelet/lipgloss"
 
-type Styles struct {
+type hPickerStyles struct {
 	NextIndicator     string
 	NextStyle         lipgloss.Style
 	NextDisabledStyle lipgloss.Style
@@ -14,8 +14,8 @@ type Styles struct {
 	SelectionStyle lipgloss.Style
 }
 
-func DefaultStyles() Styles {
-	return Styles{
+func defaultHPickerStyles() hPickerStyles {
+	return hPickerStyles{
 		NextIndicator:     " >",
 		NextStyle:         lipgloss.NewStyle(),
 		NextDisabledStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("241")),

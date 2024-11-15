@@ -1,36 +1,36 @@
-package textinput
+package components
 
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Model struct {
+type TextInputModel struct {
 	Child textinput.Model
 }
 
-func NewModel(placeholder string, width int, charLimit int) Model {
+func NewTextInputModel(placeholder string, width int, charLimit int) TextInputModel {
 	c := textinput.New()
 	c.Placeholder = placeholder
 	c.Width = width
 	c.CharLimit = charLimit
 	c.Focus()
 
-	return Model{
+	return TextInputModel{
 		Child: c,
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (m TextInputModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m TextInputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.Child, cmd = m.Child.Update(msg)
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m TextInputModel) View() string {
 	return m.Child.View()
 }

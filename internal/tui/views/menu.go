@@ -1,11 +1,11 @@
-package menu
+package views
 
 import (
 	"fmt"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/hpicker"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components/textinput"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -20,51 +20,51 @@ const titleStr = `
   /_/ /_____/ /_/ /_/ |_/___/\____/\____/  
 `
 
-var _ tea.Model = Model{}
+var _ tea.Model = MenuModel{}
 
-type Model struct {
-	items    []item
+type MenuModel struct {
+	items    []menuItem
 	selected int
 
-	keys   *keyMap
-	styles *styles
+	keys   *menuKeyMap
+	styles *menuStyles
 	help   help.Model
 }
 
-type item struct {
+type menuItem struct {
 	label     string
 	model     tea.Model
 	hideLabel bool
 }
 
-func NewModel(_ *tui.MenuInput) *Model {
-	nameInput := textinput.NewModel("Enter your name", 20, 20)
-	modePicker := hpicker.NewModel([]hpicker.KeyValuePair{
+func NewMenuModel(_ *tui.MenuInput) *MenuModel {
+	nameInput := components.NewTextInputModel("Enter your name", 20, 20)
+	modePicker := components.NewHPickerModel([]components.KeyValuePair{
 		{Key: "Marathon", Value: tui.ModeMarathon},
 		{Key: "Sprint (40 Lines)", Value: tui.ModeSprint},
 		{Key: "Ultra (Time Trial)", Value: tui.ModeUltra},
 	})
-	levelPicker := hpicker.NewModel(nil, hpicker.WithRange(1, 15))
+	levelPicker := components.NewHPickerModel(nil, components.WithRange(1, 15))
 
-	return &Model{
-		items: []item{
+	return &MenuModel{
+		items: []menuItem{
 			{label: "Name", model: nameInput, hideLabel: true},
 			{label: "Mode", model: modePicker},
 			{label: "Starting Level", model: levelPicker},
 		},
 		selected: 0,
 
-		keys:   defaultKeyMap(),
-		styles: defaultStyles(),
+		keys:   defaultMenuKeyMap(),
+		styles: defaultMenuStyles(),
 		help:   help.New(),
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (m MenuModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch {
 		case key.Matches(msg, m.keys.Exit):
@@ -97,7 +97,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m MenuModel) View() string {
 	items := make([]string, len(m.items))
 	for i := range m.items {
 		items[i] = m.renderItem(i) + "\n"
@@ -115,7 +115,7 @@ func (m Model) View() string {
 	return output
 }
 
-func (m Model) renderItem(index int) string {
+func (m MenuModel) renderItem(index int) string {
 	i := m.items[index]
 	output := i.model.View()
 	if !i.hideLabel {
@@ -131,7 +131,7 @@ func (m Model) renderItem(index int) string {
 	return m.styles.settingUnselected.Render(output)
 }
 
-func (m Model) startGame() (tea.Cmd, error) {
+func (m MenuModel) startGame() (tea.Cmd, error) {
 	var level int
 	var mode tui.Mode
 	var playerName string
@@ -142,7 +142,7 @@ func (m Model) startGame() (tea.Cmd, error) {
 	for _, i := range m.items {
 		switch i.label {
 		case "Starting Level":
-			picker, ok := i.model.(*hpicker.Model)
+			picker, ok := i.model.(*components.HPickerModel)
 			if !ok {
 				return nil, errInvalidModel
 			}
@@ -150,8 +150,9 @@ func (m Model) startGame() (tea.Cmd, error) {
 			if !ok {
 				return nil, errInvalidValue
 			}
+
 		case "Mode":
-			picker, ok := i.model.(*hpicker.Model)
+			picker, ok := i.model.(*components.HPickerModel)
 			if !ok {
 				return nil, errInvalidModel
 			}
@@ -159,8 +160,14 @@ func (m Model) startGame() (tea.Cmd, error) {
 			if !ok {
 				return nil, errInvalidValue
 			}
+
 		case "Name":
-			playerName = i.model.(textinput.Model).Child.Value()
+			input, ok := i.model.(components.TextInputModel)
+			if !ok {
+				return nil, errInvalidModel
+			}
+			playerName = input.Child.Value()
+
 		default:
 			return nil, fmt.Errorf("invalid item label: %q", i.label)
 		}
