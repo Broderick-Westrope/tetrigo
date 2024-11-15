@@ -48,12 +48,12 @@ func GetConfig(path string) (*Config, error) {
 		if errors.Is(err, os.ErrNotExist) {
 			return &c, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("decoding toml file: %w", err)
 	}
 
 	err = c.validate()
 	if err != nil {
-		return nil, fmt.Errorf("invalid config: %w", err)
+		return nil, fmt.Errorf("validating config: %w", err)
 	}
 
 	return &c, nil

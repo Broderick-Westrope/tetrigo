@@ -110,7 +110,7 @@ To see more options for starting the game you can run:
 
 More complex configuration can be done using a TOML file. If no config file is found sensible defaults will be used.
 
-By default, Tetrigo will look for the file `config.toml` in the working directory. You can specify a different file using the `--config` flag.
+By default, Tetrigo will look for the file `./tetrigo/config.toml` within the devices XDG config (or equivalent) directory. The [adrg/xdg](https://github.com/adrg/xdg) defines values `XDG_CONFIG_HOME` for various operating systems (eg. on macOS it is `~/Library/Application Support` directory exists it will be stored there, otherwise in `~/Library/Preferences`). You can specify a different file using the `--config` flag.
 
 ```bash
 ./tetrigo --config=/path/to/config.toml
@@ -120,7 +120,7 @@ An example configuration file is provided in [`example.config.toml`](./example.c
 
 ## Data
 
-The game data is stored in a SQLite database. By default, the database is stored in `./tetrigo/tetrigo.db` within the devices XDG data (or equivalent) directory. The [adrg/xdg](https://github.com/adrg/xdg) defines values `XDG_DATA_DIRS` for various operating systems (eg. on macOS if the `/Library/Application Support` directory exists it will be stored there, otherwise in `~/.local/share`). You can specify a different file path using the `--db` flag.
+The game data is stored in a SQLite database. By default, the database is stored in `./tetrigo/tetrigo.db` within the devices XDG data (or equivalent) directory. The [adrg/xdg](https://github.com/adrg/xdg) defines `XDG_DATA_HOME` for various operating systems (eg. on macOS if the `~/Library/Application Support` directory exists it will be stored there, otherwise in `/Library/Application Support`). You can specify a different file path using the `--db` flag.
 
 ```bash
 ./tetrigo --db=/path/to/data.db

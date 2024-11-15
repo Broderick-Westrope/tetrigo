@@ -49,23 +49,23 @@ func (c *LeaderboardCmd) Run(globals *GlobalVars) error {
 func launchStarter(globals *GlobalVars, starterMode tui.Mode, switchIn tui.SwitchModeInput) error {
 	db, err := data.NewDB(globals.DB)
 	if err != nil {
-		return fmt.Errorf("error opening database: %w", err)
+		return fmt.Errorf("opening database: %w", err)
 	}
 
 	cfg, err := config.GetConfig(globals.Config)
 	if err != nil {
-		return fmt.Errorf("error getting config: %w", err)
+		return fmt.Errorf("getting config: %w", err)
 	}
 
 	model, err := starter.NewModel(
 		starter.NewInput(starterMode, switchIn, db, cfg),
 	)
 	if err != nil {
-		return fmt.Errorf("error creating starter model: %w", err)
+		return fmt.Errorf("creating starter model: %w", err)
 	}
 
 	if _, err = tea.NewProgram(model, tea.WithAltScreen()).Run(); err != nil {
-		return fmt.Errorf("error running tea program: %w", err)
+		return fmt.Errorf("running tea program: %w", err)
 	}
 
 	return nil
