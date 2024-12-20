@@ -7,27 +7,47 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/Broderick-Westrope/charmutils"
+
+	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/Broderick-Westrope/tetrigo/internal/data"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
+	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
 )
 
 const (
+	pausedMessage = `
+	____                            __
+   / __ \____ ___  __________  ____/ /
+  / /_/ / __ ^/ / / / ___/ _ \/ __  /
+ / ____/ /_/ / /_/ (__  )  __/ /_/ /
+/_/    \__,_/\__,_/____/\___/\__,_/
+Press PAUSE to continue or HOLD to exit.
+`
+	gameOverMessage = `
+   ______                        ____                 
+  / ____/___ _____ ___  ___     / __ \_   _____  _____
+ / / __/ __ ^/ __ ^__ \/ _ \   / / / / | / / _ \/ ___/
+/ /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /
+\____/\__,_/_/ /_/ /_/\___/   \____/ |___/\___/_/
+
+			Press EXIT or HOLD to continue.
+`
 	timerUpdateInterval = time.Millisecond * 13
 )
 
 var _ tea.Model = &SingleModel{}
 
 type SingleModel struct {
-	playerName      string
+	username        string
 	game            *single.Game
 	nextQueueLength int
 	fallStopwatch   stopwatch.Model
@@ -41,12 +61,15 @@ type SingleModel struct {
 	help     help.Model
 	keys     *components.GameKeyMap
 	isPaused bool
+
+	width  int
+	height int
 }
 
 func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, error) {
 	// Setup initial model
 	m := &SingleModel{
-		playerName:      in.PlayerName,
+		username:        in.Username,
 		styles:          components.CreateGameStyles(cfg.Theme),
 		help:            help.New(),
 		keys:            components.ConstructGameKeyMap(cfg.Keys),
@@ -68,6 +91,7 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 			GhostEnabled: cfg.GhostEnabled,
 		}
 		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+
 	case tui.ModeSprint:
 		gameIn = &single.Input{
 			Level:         in.Level,
@@ -80,6 +104,7 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 			GhostEnabled: cfg.GhostEnabled,
 		}
 		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+
 	case tui.ModeUltra:
 		gameIn = &single.Input{
 			Level:        in.Level,
@@ -87,8 +112,9 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 		}
 		m.useTimer = true
 		m.gameTimer = timer.NewWithInterval(time.Minute*2, timerUpdateInterval)
+
 	case tui.ModeMenu, tui.ModeLeaderboard:
-		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
+		fallthrough
 	default:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	}
@@ -97,7 +123,7 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 	var err error
 	m.game, err = single.NewGame(gameIn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create single player game: %w", err)
+		return nil, fmt.Errorf("creating single player game: %w", err)
 	}
 
 	// Setup game dependents
@@ -136,8 +162,11 @@ func (m *SingleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.ForceQuit):
 			return m, tea.Quit
 		}
-	case tui.SwitchModeMsg:
-		panic(fmt.Errorf("unexpected/unhandled SwitchModeMsg: %v", msg.Target))
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, tea.Batch(cmds...)
 	}
 
 	// Game Over
@@ -184,7 +213,7 @@ func (m *SingleModel) gameOverUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 			modeStr := m.mode.String()
 			newEntry := &data.Score{
 				GameMode: modeStr,
-				Name:     m.playerName,
+				Name:     m.username,
 				Score:    m.game.GetTotalScore(),
 				Lines:    m.game.GetLinesCleared(),
 				Level:    m.game.GetLevel(),
@@ -302,20 +331,19 @@ func (m *SingleModel) View() string {
 
 	var err error
 	if m.game.IsGameOver() {
-		output, err = tui.OverlayCenter(output, tui.GameOverMessage, true)
+		output, err = charmutils.OverlayCenter(output, gameOverMessage, true)
 		if err != nil {
 			return "** FAILED TO OVERLAY GAME OVER MESSAGE **" + output
 		}
 	} else if m.isPaused {
-		output, err = tui.OverlayCenter(output, tui.PausedMessage, true)
+		output, err = charmutils.OverlayCenter(output, pausedMessage, true)
 		if err != nil {
 			return "** FAILED TO OVERLAY PAUSED MESSAGE **" + output
 		}
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
-
-	return output
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, output)
 }
 
 func (m *SingleModel) matrixView() string {
