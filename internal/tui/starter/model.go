@@ -9,7 +9,6 @@ import (
 	"github.com/Broderick-Westrope/charmutils"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
@@ -61,7 +60,7 @@ func NewModel(in *Input) (*Model, error) {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return m.child.Init()
+	return m.initChild()
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -80,14 +79,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if err != nil {
 			return m, tui.FatalErrorCmd(fmt.Errorf("setting child model: %w", err))
 		}
-		return m, m.child.Init()
+		cmd := m.initChild()
+		return m, cmd
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		var cmd tea.Cmd
-		m.child, cmd = m.child.Update(msg)
-		return m, cmd
 	}
 
 	var cmd tea.Cmd
@@ -96,7 +93,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	return lipgloss.Place(m.width, (m.height/10)*9, lipgloss.Center, lipgloss.Center, m.child.View())
+	return m.child.View()
 }
 
 func (m *Model) setChild(mode tui.Mode, switchIn tui.SwitchModeInput) error {
@@ -138,4 +135,13 @@ func (m *Model) setChild(mode tui.Mode, switchIn tui.SwitchModeInput) error {
 		return errors.New("invalid Mode")
 	}
 	return nil
+}
+
+func (m *Model) initChild() tea.Cmd {
+	var cmds []tea.Cmd
+	cmd := m.child.Init()
+	cmds = append(cmds, cmd)
+	m.child, cmd = m.child.Update(tea.WindowSizeMsg{Width: m.width, Height: m.height})
+	cmds = append(cmds, cmd)
+	return tea.Batch(cmds...)
 }

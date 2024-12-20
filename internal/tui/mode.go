@@ -64,8 +64,7 @@ func NewSingleInput(mode Mode, level int, username string) *SingleInput {
 
 func (in *SingleInput) isSwitchModeInput() {}
 
-type MenuInput struct {
-}
+type MenuInput struct{}
 
 func NewMenuInput() *MenuInput {
 	return &MenuInput{}

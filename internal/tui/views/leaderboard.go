@@ -23,6 +23,9 @@ type LeaderboardModel struct {
 
 	repo  *data.LeaderboardRepository
 	table table.Model
+
+	width  int
+	height int
 }
 
 func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (*LeaderboardModel, error) {
@@ -59,13 +62,19 @@ func (m *LeaderboardModel) Init() tea.Cmd {
 }
 
 func (m *LeaderboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(tea.KeyMsg); ok {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Exit):
 			return m, tui.SwitchModeCmd(tui.ModeMenu, tui.NewMenuInput())
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		}
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, nil
 	}
 
 	var cmd tea.Cmd
@@ -73,8 +82,9 @@ func (m *LeaderboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m LeaderboardModel) View() string {
-	return m.table.View() + "\n" + m.help.View(m.keys)
+func (m *LeaderboardModel) View() string {
+	output := m.table.View() + "\n" + m.help.View(m.keys)
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, output)
 }
 
 func buildLeaderboardTable(scores []data.Score, focusID int) table.Model {

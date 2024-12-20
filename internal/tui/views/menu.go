@@ -32,21 +32,24 @@ type MenuModel struct {
 	form                   *huh.Form
 	hasAnnouncedCompletion bool
 	keys                   *menuKeyMap
+
+	width  int
+	height int
 }
 
-func NewMenuModel(_ *tui.MenuInput) *MenuModel {
+func NewMenuModel(in *tui.MenuInput) *MenuModel {
 	keys := defaultMenuKeyMap()
 	return &MenuModel{
 		form: huh.NewForm(
 			huh.NewGroup(
 				huh.NewInput().Key(formKeyUsername).
-					Title("Username:").CharLimit(20).
+					Title("Username:").CharLimit(100).
 					Validate(func(s string) error {
 						if s == "" {
 							return errors.New("empty username not allowed")
 						}
 						return nil
-					}).WithWidth(20),
+					}),
 				huh.NewSelect[tui.Mode]().Key(formKeyGameMode).
 					Options(
 						huh.NewOption("Marathon", tui.ModeMarathon),
@@ -73,8 +76,10 @@ func (m *MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 		formWidth := msg.Width / 2
-		formWidth = min(formWidth, 50)
+		formWidth = min(formWidth, lipgloss.Width(titleStr))
 		m.form = m.form.WithWidth(formWidth)
 		return m, nil
 	}
@@ -125,5 +130,5 @@ func (m *MenuModel) View() string {
 		titleStr+"\n",
 		m.form.View(),
 	)
-	return output
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, output)
 }

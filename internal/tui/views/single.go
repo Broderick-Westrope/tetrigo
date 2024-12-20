@@ -61,6 +61,9 @@ type SingleModel struct {
 	help     help.Model
 	keys     *components.GameKeyMap
 	isPaused bool
+
+	width  int
+	height int
 }
 
 func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, error) {
@@ -159,6 +162,11 @@ func (m *SingleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keys.ForceQuit):
 			return m, tea.Quit
 		}
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, tea.Batch(cmds...)
 	}
 
 	// Game Over
@@ -335,7 +343,7 @@ func (m *SingleModel) View() string {
 	}
 
 	output = lipgloss.JoinVertical(lipgloss.Left, output, m.help.View(m.keys))
-	return output
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, output)
 }
 
 func (m *SingleModel) matrixView() string {
