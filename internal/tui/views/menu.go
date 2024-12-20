@@ -1,185 +1,136 @@
 package views
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
-
-	"github.com/charmbracelet/bubbles/help"
+	"github.com/Broderick-Westrope/charmutils"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/Broderick-Westrope/tetrigo/internal/tui"
 )
 
-const titleStr = `
+const (
+	titleStr = `
     ______________________  ______________ 
    /_  __/ ____/_  __/ __ \/  _/ ____/ __ \
     / / / __/   / / / /_/ // // / __/ / / /
    / / / /___  / / / _, _// // /_/ / /_/ / 
   /_/ /_____/ /_/ /_/ |_/___/\____/\____/  
 `
+	formKeyUsername = "username"
+	formKeyGameMode = "game_mode"
+	formKeyLevel    = "level"
+)
 
-var _ tea.Model = MenuModel{}
+var _ tea.Model = &MenuModel{}
 
 type MenuModel struct {
-	items    []menuItem
-	selected int
+	form                   *huh.Form
+	hasAnnouncedCompletion bool
+	keys                   *menuKeyMap
 
-	keys   *menuKeyMap
-	styles *menuStyles
-	help   help.Model
-}
-
-type menuItem struct {
-	label     string
-	model     tea.Model
-	hideLabel bool
+	width  int
+	height int
 }
 
 func NewMenuModel(_ *tui.MenuInput) *MenuModel {
-	nameInput := components.NewTextInputModel("Enter your name", 20, 20)
-	modePicker := components.NewHPickerModel([]components.KeyValuePair{
-		{Key: "Marathon", Value: tui.ModeMarathon},
-		{Key: "Sprint (40 Lines)", Value: tui.ModeSprint},
-		{Key: "Ultra (Time Trial)", Value: tui.ModeUltra},
-	})
-	levelPicker := components.NewHPickerModel(nil, components.WithRange(1, 15))
-
+	keys := defaultMenuKeyMap()
 	return &MenuModel{
-		items: []menuItem{
-			{label: "Name", model: nameInput, hideLabel: true},
-			{label: "Mode", model: modePicker},
-			{label: "Starting Level", model: levelPicker},
-		},
-		selected: 0,
-
-		keys:   defaultMenuKeyMap(),
-		styles: defaultMenuStyles(),
-		help:   help.New(),
+		form: huh.NewForm(
+			huh.NewGroup(
+				huh.NewInput().Key(formKeyUsername).
+					Title("Username:").CharLimit(100).
+					Validate(func(s string) error {
+						if s == "" {
+							return errors.New("empty username not allowed")
+						}
+						return nil
+					}),
+				huh.NewSelect[tui.Mode]().Key(formKeyGameMode).
+					Title("Game Mode:").
+					Options(
+						huh.NewOption("Marathon", tui.ModeMarathon),
+						huh.NewOption("Sprint (40 Lines)", tui.ModeSprint),
+						huh.NewOption("Ultra (Time Trial)", tui.ModeUltra),
+					),
+				huh.NewSelect[int]().Key(formKeyLevel).
+					Title("Starting Level:").
+					Options(charmutils.HuhIntRangeOptions(1, 15)...),
+			),
+		).WithKeyMap(keys.formKeys),
+		keys: keys,
 	}
 }
 
-func (m MenuModel) Init() tea.Cmd {
-	return nil
+func (m *MenuModel) Init() tea.Cmd {
+	return m.form.Init()
 }
 
-func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if msg, ok := msg.(tea.KeyMsg); ok {
-		switch {
-		case key.Matches(msg, m.keys.Exit):
+func (m *MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if key.Matches(msg, m.keys.Exit) {
 			return m, tea.Quit
-		case key.Matches(msg, m.keys.Up):
-			if m.selected > 0 {
-				m.selected--
-			}
-			return m, nil
-		case key.Matches(msg, m.keys.Down):
-			if m.selected < len(m.items)-1 {
-				m.selected++
-			}
-			return m, nil
-		case key.Matches(msg, m.keys.Start):
-			cmd, err := m.startGame()
-			if err != nil {
-				panic(fmt.Errorf("failed to start game: %w", err))
-			}
-			return m, cmd
-		case key.Matches(msg, m.keys.Help):
-			m.help.ShowAll = !m.help.ShowAll
-			return m, nil
 		}
+
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		formWidth := msg.Width / 2
+		formWidth = min(formWidth, lipgloss.Width(titleStr))
+		m.form = m.form.WithWidth(formWidth)
+		return m, nil
 	}
 
-	var cmd tea.Cmd
-	m.items[m.selected].model, cmd = m.items[m.selected].model.Update(msg)
-
-	return m, cmd
-}
-
-func (m MenuModel) View() string {
-	items := make([]string, len(m.items))
-	for i := range m.items {
-		items[i] = m.renderItem(i) + "\n"
-	}
-	settingsStr := lipgloss.JoinVertical(lipgloss.Center, items...)
-
-	output := lipgloss.JoinVertical(lipgloss.Center,
-		titleStr,
-		"\n",
-		settingsStr,
-		"\n\n",
-		m.help.View(m.keys),
-	)
-
-	return output
-}
-
-func (m MenuModel) renderItem(index int) string {
-	i := m.items[index]
-	output := i.model.View()
-	if !i.hideLabel {
-		label := lipgloss.NewStyle().Width(15).AlignHorizontal(lipgloss.Left).Render(i.label + ":")
-		output = lipgloss.NewStyle().Width(25).AlignHorizontal(lipgloss.Right).Render(output)
-		output = lipgloss.JoinHorizontal(lipgloss.Left, label, output)
-	}
-
-	if index == m.selected {
-		return m.styles.settingSelected.Render(output)
-	}
-
-	return m.styles.settingUnselected.Render(output)
-}
-
-func (m MenuModel) startGame() (tea.Cmd, error) {
-	var level int
-	var mode tui.Mode
-	var playerName string
-
-	errInvalidModel := fmt.Errorf("invalid model for item %q", m.items[m.selected].label)
-	errInvalidValue := fmt.Errorf("invalid value for model of item %q", m.items[m.selected].label)
-
-	for _, i := range m.items {
-		switch i.label {
-		case "Starting Level":
-			picker, ok := i.model.(*components.HPickerModel)
-			if !ok {
-				return nil, errInvalidModel
-			}
-			level, ok = picker.GetSelection().Value.(int)
-			if !ok {
-				return nil, errInvalidValue
-			}
-
-		case "Mode":
-			picker, ok := i.model.(*components.HPickerModel)
-			if !ok {
-				return nil, errInvalidModel
-			}
-			mode, ok = picker.GetSelection().Value.(tui.Mode)
-			if !ok {
-				return nil, errInvalidValue
-			}
-
-		case "Name":
-			input, ok := i.model.(components.TextInputModel)
-			if !ok {
-				return nil, errInvalidModel
-			}
-			playerName = input.Child.Value()
-
+	if m.form.State == huh.StateCompleted {
+		switch m.hasAnnouncedCompletion {
+		case false:
+			return m, m.announceCompletion()
 		default:
-			return nil, fmt.Errorf("invalid item label: %q", i.label)
+			return m, nil
 		}
 	}
+
+	var cmds []tea.Cmd
+	form, cmd := m.form.Update(msg)
+	if f, ok := form.(*huh.Form); ok {
+		m.form = f
+		cmds = append(cmds, cmd)
+	}
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m *MenuModel) announceCompletion() tea.Cmd {
+	username := m.form.GetString(formKeyUsername)
+	level := m.form.GetInt(formKeyLevel)
+	mode, ok := m.form.Get(formKeyGameMode).(tui.Mode)
+	if !ok {
+		return tui.FatalErrorCmd(fmt.Errorf("retrieving form mode: %w", charmutils.ErrInvalidTypeAssertion))
+	}
+
+	m.hasAnnouncedCompletion = true
 
 	switch mode {
 	case tui.ModeMarathon, tui.ModeSprint, tui.ModeUltra:
-		in := tui.NewSingleInput(mode, level, playerName)
-		return tui.SwitchModeCmd(mode, in), nil
+		in := tui.NewSingleInput(mode, level, username)
+		return tui.SwitchModeCmd(mode, in)
+
 	case tui.ModeMenu, tui.ModeLeaderboard:
-		return nil, fmt.Errorf("invalid mode for starting game: %q", mode)
+		fallthrough
 	default:
-		return nil, fmt.Errorf("invalid mode from menu: %q", mode)
+		return tui.FatalErrorCmd(fmt.Errorf("invalid mode for starting game %q", mode))
 	}
+}
+
+func (m *MenuModel) View() string {
+	output := lipgloss.JoinVertical(lipgloss.Center,
+		titleStr+"\n",
+		m.form.View(),
+	)
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, output)
 }
