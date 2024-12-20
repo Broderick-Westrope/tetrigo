@@ -37,7 +37,7 @@ type MenuModel struct {
 	height int
 }
 
-func NewMenuModel(in *tui.MenuInput) *MenuModel {
+func NewMenuModel(_ *tui.MenuInput) *MenuModel {
 	keys := defaultMenuKeyMap()
 	return &MenuModel{
 		form: huh.NewForm(
@@ -51,12 +51,14 @@ func NewMenuModel(in *tui.MenuInput) *MenuModel {
 						return nil
 					}),
 				huh.NewSelect[tui.Mode]().Key(formKeyGameMode).
+					Title("Game Mode:").
 					Options(
 						huh.NewOption("Marathon", tui.ModeMarathon),
 						huh.NewOption("Sprint (40 Lines)", tui.ModeSprint),
 						huh.NewOption("Ultra (Time Trial)", tui.ModeUltra),
 					),
 				huh.NewSelect[int]().Key(formKeyLevel).
+					Title("Starting Level:").
 					Options(charmutils.HuhIntRangeOptions(1, 15)...),
 			),
 		).WithKeyMap(keys.formKeys),
