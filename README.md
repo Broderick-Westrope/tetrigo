@@ -51,13 +51,7 @@ Ensure that you have a supported version of Go properly installed and setup. You
 You can then install the latest release globally by running:
 
 ```bash
-go install github.com/Broderick-Westrope/tetrigo/cmd/tetrigo@latest
-```
-
-Or you can install into another directory:
-
-```bash
-env GOBIN=/bin go install github.com/Broderick-Westrope/tetrigo/cmd/tetrigo@latest
+go install github.com/Broderick-Westrope/tetrigo/cmd/tetrigo@v0.1.6
 ```
 
 ## Usage
