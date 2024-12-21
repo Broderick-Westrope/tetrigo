@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewNextQueue(t *testing.T) {
@@ -25,13 +26,10 @@ func TestNewNextQueue(t *testing.T) {
 			assert.GreaterOrEqual(t, len(b.elements), 7, "Length: want at least 7, got %d", len(b.elements))
 
 			for _, e := range b.elements {
-				for _, tet := range GetValidTetriminos() {
-					if tet.Value != e.Value {
-						continue
-					}
+				tet, err := GetTetrimino(e.Value)
+				require.NoError(t, err)
 
-					assert.Equal(t, tet.Position.X, e.Position.X)
-				}
+				assert.Equal(t, tet.Position.X, e.Position.X)
 			}
 		})
 	}
