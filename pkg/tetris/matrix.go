@@ -8,6 +8,7 @@ import (
 // Matrix represents the board of cells on which the game is played.
 type Matrix [][]byte
 
+// DefaultMatrix creates a new Matrix with a height of 40 and a width of 10.
 func DefaultMatrix() Matrix {
 	m, err := NewMatrix(40, 10)
 	if err != nil {
@@ -17,6 +18,7 @@ func DefaultMatrix() Matrix {
 }
 
 // NewMatrix creates a new Matrix with the given height and width.
+// It returns an error if the height is less than 20 to allow for a buffer zone of 20 lines.
 func NewMatrix(height, width int) (Matrix, error) {
 	if height <= 20 {
 		return nil, errors.New("matrix height must be greater than 20 to allow for a buffer zone of 20 lines")
