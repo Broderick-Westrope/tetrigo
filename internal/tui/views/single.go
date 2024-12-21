@@ -252,7 +252,7 @@ func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 		m.fallStopwatch.Interval = m.game.GetDefaultFallInterval()
 		gameOver, err := m.game.TickLower()
 		if err != nil {
-			panic(fmt.Errorf("failed to lower tetrimino (tick): %w", err))
+			return nil, tui.FatalErrorCmd(fmt.Errorf("lowering tetrimino (tick): %w", err))
 		}
 		var cmds []tea.Cmd
 		if gameOver {
@@ -280,19 +280,19 @@ func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd
 	case key.Matches(msg, m.keys.Clockwise):
 		err := m.game.Rotate(true)
 		if err != nil {
-			panic(fmt.Errorf("failed to rotate clockwise: %w", err))
+			return nil, tui.FatalErrorCmd(fmt.Errorf("rotating clockwise: %w", err))
 		}
 		return m, nil
 	case key.Matches(msg, m.keys.CounterClockwise):
 		err := m.game.Rotate(false)
 		if err != nil {
-			panic(fmt.Errorf("failed to rotate counter-clockwise: %w", err))
+			return nil, tui.FatalErrorCmd(fmt.Errorf("rotating counter-clockwise: %w", err))
 		}
 		return m, nil
 	case key.Matches(msg, m.keys.HardDrop):
 		gameOver, err := m.game.HardDrop()
 		if err != nil {
-			panic(fmt.Errorf("failed to hard drop: %w", err))
+			return nil, tui.FatalErrorCmd(fmt.Errorf("hard dropping: %w", err))
 		}
 		var cmds []tea.Cmd
 		if gameOver {
@@ -309,7 +309,7 @@ func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd
 	case key.Matches(msg, m.keys.Hold):
 		gameOver, err := m.game.Hold()
 		if err != nil {
-			panic(fmt.Errorf("failed to hold tetrimino: %w", err))
+			return nil, tui.FatalErrorCmd(fmt.Errorf("holding tetrimino: %w", err))
 		}
 		var cmds []tea.Cmd
 		if gameOver {
@@ -323,22 +323,26 @@ func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd
 }
 
 func (m *SingleModel) View() string {
+	matrixView, err := m.matrixView()
+	if err != nil {
+		return "** FAILED TO BUILD MATRIX VIEW **"
+	}
+
 	var output = lipgloss.JoinHorizontal(lipgloss.Top,
 		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView()),
-		m.matrixView(),
+		matrixView,
 		m.bagView(),
 	)
 
-	var err error
 	if m.game.IsGameOver() {
 		output, err = charmutils.OverlayCenter(output, gameOverMessage, true)
 		if err != nil {
-			return "** FAILED TO OVERLAY GAME OVER MESSAGE **" + output
+			return "** FAILED TO OVERLAY GAME OVER MESSAGE **"
 		}
 	} else if m.isPaused {
 		output, err = charmutils.OverlayCenter(output, pausedMessage, true)
 		if err != nil {
-			return "** FAILED TO OVERLAY PAUSED MESSAGE **" + output
+			return "** FAILED TO OVERLAY PAUSED MESSAGE **"
 		}
 	}
 
@@ -346,10 +350,10 @@ func (m *SingleModel) View() string {
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, output)
 }
 
-func (m *SingleModel) matrixView() string {
+func (m *SingleModel) matrixView() (string, error) {
 	matrix, err := m.game.GetVisibleMatrix()
 	if err != nil {
-		panic(err)
+		return "", fmt.Errorf("getting visible matrix: %w", err)
 	}
 
 	var output string
@@ -369,7 +373,7 @@ func (m *SingleModel) matrixView() string {
 	return lipgloss.JoinHorizontal(lipgloss.Center,
 		m.styles.Playfield.Render(output),
 		m.styles.RowIndicator.Render(rowIndicator),
-	)
+	), nil
 }
 
 func (m *SingleModel) informationView() string {
