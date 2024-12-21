@@ -64,8 +64,18 @@ func launchStarter(globals *GlobalVars, starterMode tui.Mode, switchIn tui.Switc
 		return fmt.Errorf("creating starter model: %w", err)
 	}
 
-	if _, err = tea.NewProgram(model, tea.WithAltScreen()).Run(); err != nil {
-		return fmt.Errorf("running tea program: %w", err)
+	exitModel, err := tea.NewProgram(model, tea.WithAltScreen()).Run()
+	if err != nil {
+		return fmt.Errorf("failed to run program: %w", err)
+	}
+
+	typedExitModel, ok := exitModel.(*starter.Model)
+	if !ok {
+		return fmt.Errorf("failed to assert exit model type: %w", err)
+	}
+
+	if err = typedExitModel.ExitError; err != nil {
+		return fmt.Errorf("starter model exited with an error: %w", err)
 	}
 
 	return nil

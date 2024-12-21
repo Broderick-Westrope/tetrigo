@@ -122,7 +122,7 @@ func (g *Game) Hold() (bool, error) {
 		return false, err
 	}
 	g.holdQueue = t.DeepCopy()
-	g.holdQueue.Pos.Y += g.matrix.GetSkyline()
+	g.holdQueue.Position.Y += g.matrix.GetSkyline()
 
 	g.canHold = false
 	return false, nil
@@ -145,7 +145,7 @@ func (g *Game) TickLower() (bool, error) {
 	}
 
 	if g.fall.IsSoftDrop {
-		linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
+		linesCleared := g.tetInPlay.Position.Y - g.softDropStartRow
 		if linesCleared > 0 {
 			g.scoring.AddSoftDrop(linesCleared)
 		}
@@ -161,7 +161,7 @@ func (g *Game) TickLower() (bool, error) {
 }
 
 func (g *Game) HardDrop() (bool, error) {
-	startRow := g.tetInPlay.Pos.Y
+	startRow := g.tetInPlay.Position.Y
 
 	for {
 		lockedDown, err := g.lowerTetInPlay()
@@ -176,7 +176,7 @@ func (g *Game) HardDrop() (bool, error) {
 		return true, nil
 	}
 
-	linesCleared := g.tetInPlay.Pos.Y - startRow
+	linesCleared := g.tetInPlay.Position.Y - startRow
 	g.scoring.AddHardDrop(linesCleared)
 
 	g.tetInPlay = g.nextQueue.Next()
@@ -194,10 +194,10 @@ func (g *Game) HardDrop() (bool, error) {
 func (g *Game) ToggleSoftDrop() time.Duration {
 	g.fall.ToggleSoftDrop()
 	if g.fall.IsSoftDrop {
-		g.softDropStartRow = g.tetInPlay.Pos.Y
+		g.softDropStartRow = g.tetInPlay.Position.Y
 		return g.fall.SoftDropInterval
 	}
-	linesCleared := g.tetInPlay.Pos.Y - g.softDropStartRow
+	linesCleared := g.tetInPlay.Position.Y - g.softDropStartRow
 	if linesCleared > 0 {
 		g.scoring.AddSoftDrop(linesCleared)
 	}
@@ -252,7 +252,7 @@ func (g *Game) lowerTetInPlay() (bool, error) {
 // It does not modify Game.tetInPlay. If true is returned the game is over.
 func (g *Game) setupNewTetInPlay() bool {
 	// Block Out
-	if g.tetInPlay.IsOverlapping(g.matrix) {
+	if !g.tetInPlay.IsValid(g.matrix, false) {
 		g.gameOver = true
 		return true
 	}
@@ -268,7 +268,7 @@ func (g *Game) setupNewTetInPlay() bool {
 	g.canHold = true
 
 	if g.fall.IsSoftDrop {
-		g.softDropStartRow = g.tetInPlay.Pos.Y
+		g.softDropStartRow = g.tetInPlay.Position.Y
 	}
 
 	g.updateGhost()

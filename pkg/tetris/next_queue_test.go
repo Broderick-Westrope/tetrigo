@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewNextQueue(t *testing.T) {
@@ -22,18 +23,13 @@ func TestNewNextQueue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			b := NewNextQueue(tc.matrixHeight)
 
-			if len(b.elements) != 14 {
-				t.Errorf("Length: want 14, got %d", len(b.elements))
-			}
+			assert.GreaterOrEqual(t, len(b.elements), 7, "Length: want at least 7, got %d", len(b.elements))
 
 			for _, e := range b.elements {
-				for _, tet := range GetValidTetriminos() {
-					if tet.Value != e.Value {
-						continue
-					}
+				tet, err := GetTetrimino(e.Value)
+				require.NoError(t, err)
 
-					assert.Equal(t, tet.Pos.X, e.Pos.X)
-				}
+				assert.Equal(t, tet.Position.X, e.Position.X)
 			}
 		})
 	}
@@ -64,16 +60,16 @@ func TestNextQueue_Next(t *testing.T) {
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
 			nq := NextQueue{
-				elements:  tc.elements,
-				startLine: 40,
+				elements: tc.elements,
+				skyline:  40,
 			}
 			expected := tc.elements[0].DeepCopy()
-			expected.Pos.Y += nq.startLine
+			expected.Position.Y += nq.skyline
 
 			var expectedElements []Tetrimino
 			for _, e := range tc.elements[1:] {
 				temp := e.DeepCopy()
-				temp.Pos.Y += nq.startLine
+				temp.Position.Y += nq.skyline
 				expectedElements = append(expectedElements, *temp)
 			}
 
@@ -81,7 +77,7 @@ func TestNextQueue_Next(t *testing.T) {
 			assert.EqualValues(t, *expected, *result)
 
 			for i := range nq.elements {
-				nq.elements[i].Pos.Y += nq.startLine
+				nq.elements[i].Position.Y += nq.skyline
 			}
 
 			v := nq.elements[:len(expectedElements)]
@@ -132,8 +128,8 @@ func TestNextQueue_Fill(t *testing.T) {
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
 			nq := NextQueue{
-				elements:  tc.elements,
-				startLine: 40,
+				elements: tc.elements,
+				skyline:  40,
 			}
 
 			for range tc.timesToFill {

@@ -7,21 +7,21 @@ import (
 // NextQueue is a collection of up to 14 Tetriminos that are drawn from randomly.
 // The queue is refilled when it has less than 7 Tetriminos.
 type NextQueue struct {
-	elements  []Tetrimino
-	startLine int
+	elements []Tetrimino
+	skyline  int
 }
 
 // NewNextQueue creates a new NextQueue of Tetriminos.
-func NewNextQueue(startLine int) *NextQueue {
+func NewNextQueue(skyline int) *NextQueue {
 	nq := NextQueue{
-		elements:  make([]Tetrimino, 0, 14),
-		startLine: startLine,
+		elements: make([]Tetrimino, 0, 14),
+		skyline:  skyline,
 	}
-	nq.fill()
 	nq.fill()
 	return &nq
 }
 
+// GetElements returns the Tetriminos in the queue.
 func (nq *NextQueue) GetElements() []Tetrimino {
 	return nq.elements
 }
@@ -36,10 +36,12 @@ func (nq *NextQueue) Next() *Tetrimino {
 		nq.fill()
 	}
 
-	tet.Pos.Y += nq.startLine
+	tet.Position.Y += nq.skyline
 	return &tet
 }
 
+// fill adds Tetriminos to the queue until it has 7 or more.
+// This is done by getting all valid Tetriminos, shuffling them, and adding them to the queue.
 func (nq *NextQueue) fill() {
 	if len(nq.elements) > 7 {
 		return

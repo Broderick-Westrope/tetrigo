@@ -4,6 +4,9 @@ import (
 	"fmt"
 )
 
+// Scoring is a scoring system for Tetris.
+// It keeps track of the current level, total score, and lines cleared.
+// It also has options to increase the level, end the game on max level, and end the game on max lines.
 type Scoring struct {
 	level         int
 	maxLevel      int
@@ -18,6 +21,7 @@ type Scoring struct {
 	backToBack bool
 }
 
+// NewScoring creates a new scoring system.
 func NewScoring(
 	level, maxLevel int,
 	increaseLevel, endOnMaxLevel bool,
@@ -51,26 +55,33 @@ func (s *Scoring) validate() error {
 	return nil
 }
 
+// Level returns the current level.
 func (s *Scoring) Level() int {
 	return s.level
 }
 
+// Total returns the total score.
 func (s *Scoring) Total() int {
 	return s.total
 }
 
+// Lines returns the total lines cleared.
 func (s *Scoring) Lines() int {
 	return s.lines
 }
 
+// AddSoftDrop adds points for a soft drop.
 func (s *Scoring) AddSoftDrop(lines int) {
 	s.total += lines
 }
 
+// AddHardDrop adds points for a hard drop.
 func (s *Scoring) AddHardDrop(lines int) {
 	s.total += lines * 2
 }
 
+// ProcessAction processes an action and updates the score, lines cleared, level, etc.
+// The returned boolean indicates if the game should end.
 func (s *Scoring) ProcessAction(a Action) (bool, error) {
 	if a == Actions.None {
 		return false, nil
@@ -94,8 +105,6 @@ func (s *Scoring) ProcessAction(a Action) (bool, error) {
 	}
 
 	s.total += int(points+backToBack) * s.level
-
-	// increase lines
 	s.lines += int((points + backToBack) / 100)
 
 	// if max lines enabled, and max lines reached
@@ -107,7 +116,7 @@ func (s *Scoring) ProcessAction(a Action) (bool, error) {
 		}
 	}
 
-	// increase level
+	// while increase level enabled, and the next level was reached
 	for s.increaseLevel && s.lines >= s.level*5 {
 		s.level++
 
@@ -118,7 +127,10 @@ func (s *Scoring) ProcessAction(a Action) (bool, error) {
 
 		// if max level reached
 		s.level = s.maxLevel
-		return s.endOnMaxLevel, nil
+		if s.endOnMaxLevel {
+			return true, nil
+		}
+		break
 	}
 
 	return false, nil
