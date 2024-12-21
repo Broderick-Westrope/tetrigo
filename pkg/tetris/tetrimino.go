@@ -9,7 +9,8 @@ import (
 const invalidRotationPoint = -1
 
 // A Tetrimino is a geometric Tetris piece formed by connecting four square blocks (Minos) along their edges.
-// Each Tetrimino has a unique shape, position, rotation state, and rotation behavior defined by the Super Rotation System (SRS).
+// Each Tetrimino has a unique shape, position, rotation state, and rotation behavior defined by
+// the Super Rotation System (SRS).
 type Tetrimino struct {
 	// Value is the character identifier for the Tetrimino (I, O, T, S, Z, J, L).
 	// This is used internally and may differ from the display representation.
