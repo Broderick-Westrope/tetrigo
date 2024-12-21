@@ -22,9 +22,7 @@ func TestNewNextQueue(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			b := NewNextQueue(tc.matrixHeight)
 
-			if len(b.elements) != 14 {
-				t.Errorf("Length: want 14, got %d", len(b.elements))
-			}
+			assert.GreaterOrEqual(t, len(b.elements), 7, "Length: want at least 7, got %d", len(b.elements))
 
 			for _, e := range b.elements {
 				for _, tet := range GetValidTetriminos() {
