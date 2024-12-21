@@ -32,7 +32,7 @@ func TestNewNextQueue(t *testing.T) {
 						continue
 					}
 
-					assert.Equal(t, tet.Pos.X, e.Pos.X)
+					assert.Equal(t, tet.Position.X, e.Position.X)
 				}
 			}
 		})
@@ -68,12 +68,12 @@ func TestNextQueue_Next(t *testing.T) {
 				startLine: 40,
 			}
 			expected := tc.elements[0].DeepCopy()
-			expected.Pos.Y += nq.startLine
+			expected.Position.Y += nq.startLine
 
 			var expectedElements []Tetrimino
 			for _, e := range tc.elements[1:] {
 				temp := e.DeepCopy()
-				temp.Pos.Y += nq.startLine
+				temp.Position.Y += nq.startLine
 				expectedElements = append(expectedElements, *temp)
 			}
 
@@ -81,7 +81,7 @@ func TestNextQueue_Next(t *testing.T) {
 			assert.EqualValues(t, *expected, *result)
 
 			for i := range nq.elements {
-				nq.elements[i].Pos.Y += nq.startLine
+				nq.elements[i].Position.Y += nq.startLine
 			}
 
 			v := nq.elements[:len(expectedElements)]

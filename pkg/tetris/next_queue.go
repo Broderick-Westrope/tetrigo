@@ -36,7 +36,7 @@ func (nq *NextQueue) Next() *Tetrimino {
 		nq.fill()
 	}
 
-	tet.Pos.Y += nq.startLine
+	tet.Position.Y += nq.startLine
 	return &tet
 }
 

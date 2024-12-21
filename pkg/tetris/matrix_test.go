@@ -184,8 +184,8 @@ func TestMatrix_RemoveCompletedLines(t *testing.T) {
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
 			tet := &Tetrimino{
-				Pos:   Coordinate{0, tc.posY},
-				Minos: tc.cells,
+				Position: Coordinate{0, tc.posY},
+				Cells:    tc.cells,
 			}
 
 			act := tc.matrix.RemoveCompletedLines(tet)
@@ -319,9 +319,9 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 				{0, 0, 0},
 			},
 			tet: &Tetrimino{
-				Value: 'X',
-				Pos:   Coordinate{1, 0},
-				Minos: [][]bool{
+				Value:    'X',
+				Position: Coordinate{1, 0},
+				Cells: [][]bool{
 					{false, true},
 					{true, true},
 				},
@@ -334,9 +334,9 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 		"failure; row out of bounds": {
 			matrix: Matrix{{0}},
 			tet: &Tetrimino{
-				Value: 'X',
-				Pos:   Coordinate{0, 1},
-				Minos: [][]bool{
+				Value:    'X',
+				Position: Coordinate{0, 1},
+				Cells: [][]bool{
 					{true},
 					{true},
 				},
@@ -346,9 +346,9 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 		"failure; col out of bounds": {
 			matrix: Matrix{{0}},
 			tet: &Tetrimino{
-				Value: 'X',
-				Pos:   Coordinate{1, 0},
-				Minos: [][]bool{
+				Value:    'X',
+				Position: Coordinate{1, 0},
+				Cells: [][]bool{
 					{true, true},
 				},
 			},
@@ -357,9 +357,9 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 		"failure; mino not expected value": {
 			matrix: Matrix{{'#'}},
 			tet: &Tetrimino{
-				Value: 'X',
-				Pos:   Coordinate{0, 0},
-				Minos: [][]bool{
+				Value:    'X',
+				Position: Coordinate{0, 0},
+				Cells: [][]bool{
 					{true},
 				},
 			},
@@ -395,9 +395,9 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 				{0, 'X', 'X'},
 			},
 			tet: &Tetrimino{
-				Value: 'X',
-				Pos:   Coordinate{1, 0},
-				Minos: [][]bool{
+				Value:    'X',
+				Position: Coordinate{1, 0},
+				Cells: [][]bool{
 					{false, true},
 					{true, true},
 				},
@@ -410,9 +410,9 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 		"failure; row out of bounds": {
 			matrix: Matrix{{0}},
 			tet: &Tetrimino{
-				Value: 'X',
-				Pos:   Coordinate{0, 1},
-				Minos: [][]bool{
+				Value:    'X',
+				Position: Coordinate{0, 1},
+				Cells: [][]bool{
 					{true},
 					{true},
 				},
@@ -422,9 +422,9 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 		"failure; col out of bounds": {
 			matrix: Matrix{{0}},
 			tet: &Tetrimino{
-				Value: 'X',
-				Pos:   Coordinate{1, 0},
-				Minos: [][]bool{
+				Value:    'X',
+				Position: Coordinate{1, 0},
+				Cells: [][]bool{
 					{true, true},
 				},
 			},
@@ -433,9 +433,9 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 		"failure; mino not expected value": {
 			matrix: Matrix{{'#'}},
 			tet: &Tetrimino{
-				Value: 'X',
-				Pos:   Coordinate{0, 0},
-				Minos: [][]bool{
+				Value:    'X',
+				Position: Coordinate{0, 0},
+				Cells: [][]bool{
 					{true},
 				},
 			},

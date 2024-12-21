@@ -76,13 +76,13 @@ func (m *Matrix) RemoveTetrimino(tet *Tetrimino) error {
 		return cell == tet.Value
 	}
 
-	return m.modifyCell(tet.Minos, tet.Pos, 0, isExpectedValue)
+	return m.modifyCell(tet.Cells, tet.Position, 0, isExpectedValue)
 }
 
 // AddTetrimino adds the given Tetrimino to the Matrix.
 // It returns an error if the Tetrimino is out of bounds or if the Tetrimino overlaps with an occupied mino.
 func (m *Matrix) AddTetrimino(tet *Tetrimino) error {
-	return m.modifyCell(tet.Minos, tet.Pos, tet.Value, isCellEmpty)
+	return m.modifyCell(tet.Cells, tet.Position, tet.Value, isCellEmpty)
 }
 
 func (m *Matrix) modifyCell(minos [][]bool, pos Coordinate, newValue byte, isExpectedValue func(byte) bool) error {
@@ -122,9 +122,9 @@ func (m *Matrix) modifyCell(minos [][]bool, pos Coordinate, newValue byte, isExp
 // It returns an Action to be used for calculating the score.
 func (m *Matrix) RemoveCompletedLines(tet *Tetrimino) Action {
 	lines := 0
-	for row := range tet.Minos {
-		if m.isLineComplete(tet.Pos.Y + row) {
-			m.removeLine(tet.Pos.Y + row)
+	for row := range tet.Cells {
+		if m.isLineComplete(tet.Position.Y + row) {
+			m.removeLine(tet.Position.Y + row)
 			lines++
 		}
 	}

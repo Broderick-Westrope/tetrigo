@@ -444,9 +444,9 @@ func (m *SingleModel) bagView() string {
 
 func (m *SingleModel) renderTetrimino(t *tetris.Tetrimino, background byte) string {
 	var output string
-	for row := range t.Minos {
-		for col := range t.Minos[row] {
-			if t.Minos[row][col] {
+	for row := range t.Cells {
+		for col := range t.Cells[row] {
+			if t.Cells[row][col] {
 				output += m.renderCell(t.Value)
 			} else {
 				output += m.renderCell(background)
