@@ -66,7 +66,7 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tui.FatalErrorMsg:
-		m.ExitError = msg.(error)
+		m.ExitError = msg
 		return m, tea.Quit
 
 	case tea.KeyMsg:
