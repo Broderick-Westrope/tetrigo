@@ -20,6 +20,10 @@ func TestMenuFormCompletion(t *testing.T) {
 			return 1
 		case tui.ModeUltra:
 			return 2
+		case tui.ModeMenu:
+			fallthrough
+		case tui.ModeLeaderboard:
+			fallthrough
 		default:
 			return 0
 		}
@@ -89,7 +93,8 @@ func TestMenuFormCompletion(t *testing.T) {
 			tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 			time.Sleep(10 * time.Millisecond)
 
-			// TODO(fix): The following msg send should not be necessary. The SwitchModeMsg should be sent automatically when the form is completed.
+			// TODO(fix): The following msg send should not be necessary.
+			// 	The SwitchModeMsg should be sent automatically when the form is completed.
 			tm.Send(tea.KeyMsg{Type: tea.KeyUp})
 			time.Sleep(10 * time.Millisecond)
 
