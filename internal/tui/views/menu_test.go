@@ -11,7 +11,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMenuFormCompletion(t *testing.T) {
+func TestMenu_Output(t *testing.T) {
+	m := NewMenuModel(&tui.MenuInput{})
+	tm := teatest.NewTestModel(t, m)
+
+	// Input username
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("testuser")})
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	time.Sleep(10 * time.Millisecond)
+
+	// Select game mode
+	tm.Send(tea.KeyMsg{Type: tea.KeyDown})
+	time.Sleep(10 * time.Millisecond)
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	time.Sleep(10 * time.Millisecond)
+
+	// Select level
+	for range 3 {
+		tm.Send(tea.KeyMsg{Type: tea.KeyDown})
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	tm.Send(tea.Quit())
+	outBytes := []byte(tm.FinalModel(t).View())
+	teatest.RequireEqualOutput(t, outBytes)
+}
+
+func TestMenu_SwitchModeMsg(t *testing.T) {
 	modeToMoveDownCount := func(mode tui.Mode) int {
 		switch mode {
 		case tui.ModeMarathon:

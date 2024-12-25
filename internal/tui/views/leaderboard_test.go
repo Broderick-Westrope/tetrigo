@@ -3,7 +3,6 @@ package views
 import (
 	"database/sql"
 	"fmt"
-	"io"
 	"testing"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLeaderboardCapacity(t *testing.T) {
+func TestLeaderboard_TableEntries(t *testing.T) {
 	db := setupInMemoryDB(t)
 	repo := data.NewLeaderboardRepository(db)
 
@@ -37,7 +36,7 @@ func TestLeaderboardCapacity(t *testing.T) {
 			for i := range tc.count {
 				_, err := repo.Save(&data.Score{
 					GameMode: t.Name(),
-					Name:     fmt.Sprintf("testuser-%d", i),
+					Name:     fmt.Sprintf("user-%d", i),
 					Time:     time.Second * time.Duration(i*2),
 					Score:    i * 100,
 					Lines:    i,
@@ -54,22 +53,20 @@ func TestLeaderboardCapacity(t *testing.T) {
 			tm := teatest.NewTestModel(t, m)
 			tm.Send(tea.Quit())
 
-			outBytes, err := io.ReadAll(tm.FinalOutput(t))
-			require.NoError(t, err)
-
+			outBytes := []byte(tm.FinalModel(t).View())
 			teatest.RequireEqualOutput(t, outBytes)
 		})
 	}
 }
 
-func TestLeaderboardNewEntry(t *testing.T) {
+func TestLeaderboard_NewEntryInEmptyTable(t *testing.T) {
 	db := setupInMemoryDB(t)
 
 	m, err := NewLeaderboardModel(&tui.LeaderboardInput{
 		GameMode: t.Name(),
 		NewEntry: &data.Score{
 			GameMode: t.Name(),
-			Name:     "testuser-new",
+			Name:     "user-new",
 			Time:     time.Minute,
 			Score:    1000,
 			Lines:    2,
@@ -81,20 +78,18 @@ func TestLeaderboardNewEntry(t *testing.T) {
 	tm := teatest.NewTestModel(t, m)
 	tm.Send(tea.Quit())
 
-	outBytes, err := io.ReadAll(tm.FinalOutput(t))
-	require.NoError(t, err)
-
+	outBytes := []byte(tm.FinalModel(t).View())
 	teatest.RequireEqualOutput(t, outBytes)
 }
 
-func TestLeaderboardNavigation(t *testing.T) {
+func TestLeaderboard_KeyboardNavigation(t *testing.T) {
 	db := setupInMemoryDB(t)
 	repo := data.NewLeaderboardRepository(db)
 
 	for i := range 50 {
 		_, err := repo.Save(&data.Score{
 			GameMode: t.Name(),
-			Name:     fmt.Sprintf("testuser-%d", i),
+			Name:     fmt.Sprintf("user-%d", i),
 			Time:     time.Second * time.Duration(i*2),
 			Score:    i * 100,
 			Lines:    i,
@@ -107,7 +102,7 @@ func TestLeaderboardNavigation(t *testing.T) {
 		GameMode: t.Name(),
 		NewEntry: &data.Score{
 			GameMode: t.Name(),
-			Name:     "testuser-new",
+			Name:     "user-new",
 			Time:     time.Minute,
 			Score:    2001,
 			Lines:    2,
@@ -117,13 +112,13 @@ func TestLeaderboardNavigation(t *testing.T) {
 	require.NoError(t, err)
 
 	tm := teatest.NewTestModel(t, m)
-	tm.Send(tea.KeyMsg{Type: tea.KeyDown})
-	time.Sleep(10 * time.Millisecond)
+	for range 3 {
+		tm.Send(tea.KeyMsg{Type: tea.KeyDown})
+		time.Sleep(10 * time.Millisecond)
+	}
 	tm.Send(tea.Quit())
 
-	outBytes, err := io.ReadAll(tm.FinalOutput(t))
-	require.NoError(t, err)
-
+	outBytes := []byte(tm.FinalModel(t).View())
 	teatest.RequireEqualOutput(t, outBytes)
 }
 
