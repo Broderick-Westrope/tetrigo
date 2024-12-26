@@ -1,20 +1,20 @@
 package views
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/testutils"
 	"github.com/Broderick-Westrope/x/exp/teatest"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/require"
 )
 
 func TestLeaderboard_TableEntries(t *testing.T) {
-	db := setupInMemoryDB(t)
+	db := testutils.SetupInMemoryDB(t)
 	repo := data.NewLeaderboardRepository(db)
 
 	tt := map[string]struct {
@@ -60,7 +60,7 @@ func TestLeaderboard_TableEntries(t *testing.T) {
 }
 
 func TestLeaderboard_NewEntryInEmptyTable(t *testing.T) {
-	db := setupInMemoryDB(t)
+	db := testutils.SetupInMemoryDB(t)
 
 	m, err := NewLeaderboardModel(&tui.LeaderboardInput{
 		GameMode: t.Name(),
@@ -83,7 +83,7 @@ func TestLeaderboard_NewEntryInEmptyTable(t *testing.T) {
 }
 
 func TestLeaderboard_KeyboardNavigation(t *testing.T) {
-	db := setupInMemoryDB(t)
+	db := testutils.SetupInMemoryDB(t)
 	repo := data.NewLeaderboardRepository(db)
 
 	for i := range 50 {
@@ -122,17 +122,8 @@ func TestLeaderboard_KeyboardNavigation(t *testing.T) {
 	teatest.RequireEqualOutput(t, outBytes)
 }
 
-func setupInMemoryDB(t *testing.T) *sql.DB {
-	db, err := sql.Open("sqlite3", ":memory:")
-	require.NoError(t, err)
-
-	err = data.EnsureTablesExist(db)
-	require.NoError(t, err)
-	return db
-}
-
 func TestLeaderboard_SwitchModeMsg(t *testing.T) {
-	db := setupInMemoryDB(t)
+	db := testutils.SetupInMemoryDB(t)
 
 	m, err := NewLeaderboardModel(&tui.LeaderboardInput{
 		GameMode: t.Name(),
@@ -141,7 +132,7 @@ func TestLeaderboard_SwitchModeMsg(t *testing.T) {
 	tm := teatest.NewTestModel(t, m)
 
 	switchModeMsgCh := make(chan tui.SwitchModeMsg, 1)
-	go waitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
+	go testutils.WaitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
 
 	// exit the leaderboard
 	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/testutils"
 	"github.com/Broderick-Westrope/x/exp/teatest"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
@@ -84,7 +85,7 @@ func TestMenu_SwitchModeMsg(t *testing.T) {
 			tm := teatest.NewTestModel(t, m)
 
 			switchModeMsgCh := make(chan tui.SwitchModeMsg, 1)
-			go waitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
+			go testutils.WaitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
 
 			// Wait for initial render
 			var out string
@@ -136,24 +137,4 @@ func TestMenu_SwitchModeMsg(t *testing.T) {
 			}
 		})
 	}
-}
-
-func waitForMsgOfType[T tea.Msg](t *testing.T, tm *teatest.TestModel, msgCh chan T, timeout time.Duration) {
-	msg := tm.WaitForMsg(t, func(msg tea.Msg) bool {
-		_, ok := msg.(T)
-		return ok
-	}, teatest.WithDuration(timeout))
-
-	if msg == nil {
-		t.Error("WaitForMsg returned nil")
-		return
-	}
-
-	concreteMsg, ok := msg.(T)
-	if !ok {
-		var zeroValue T
-		t.Errorf("Expected %T, got %T", zeroValue, msg)
-		return
-	}
-	msgCh <- concreteMsg
 }

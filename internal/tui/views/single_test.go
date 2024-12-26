@@ -9,6 +9,7 @@ import (
 	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/testutils"
 	"github.com/Broderick-Westrope/x/exp/teatest"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/assert"
@@ -213,7 +214,7 @@ func TestSingle_GameOverSwitchModeMsg(t *testing.T) {
 	tm := teatest.NewTestModel(t, m)
 
 	switchModeMsgCh := make(chan tui.SwitchModeMsg, 1)
-	go waitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
+	go testutils.WaitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
 
 	// hard drop 12
 	for range 12 {
