@@ -12,6 +12,11 @@ type Stopwatch interface {
 	Update(tea.Msg) (tea.Model, tea.Cmd)
 	View() string
 	Elapsed() time.Duration
+	SetInterval(time.Duration)
+	ID() int
+	Reset() tea.Cmd
+	Toggle() tea.Cmd
+	Stop() tea.Cmd
 }
 
 type stopwatchImpl struct {
@@ -24,24 +29,40 @@ func NewStopwatchWithInterval(interval time.Duration) Stopwatch {
 	}
 }
 
-// Init implements Stopwatch.
 func (s *stopwatchImpl) Init() tea.Cmd {
 	return s.model.Init()
 }
 
-// Update implements Stopwatch.
 func (s *stopwatchImpl) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m, cmd := s.model.Update(msg)
 	s.model = m
 	return s, cmd
 }
 
-// View implements Stopwatch.
 func (s *stopwatchImpl) View() string {
 	return s.model.View()
 }
 
-// Elapsed implements Stopwatch.
 func (s *stopwatchImpl) Elapsed() time.Duration {
 	return s.model.Elapsed()
+}
+
+func (s *stopwatchImpl) SetInterval(interval time.Duration) {
+	s.model.Interval = interval
+}
+
+func (s *stopwatchImpl) ID() int {
+	return s.model.ID()
+}
+
+func (s *stopwatchImpl) Reset() tea.Cmd {
+	return s.model.Reset()
+}
+
+func (s *stopwatchImpl) Toggle() tea.Cmd {
+	return s.model.Toggle()
+}
+
+func (s *stopwatchImpl) Stop() tea.Cmd {
+	return s.model.Stop()
 }

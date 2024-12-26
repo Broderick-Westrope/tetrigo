@@ -67,6 +67,51 @@ func (_c *MockStopwatch_Elapsed_Call) RunAndReturn(run func() time.Duration) *Mo
 	return _c
 }
 
+// ID provides a mock function with no fields
+func (_m *MockStopwatch) ID() int {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ID")
+	}
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
+// MockStopwatch_ID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ID'
+type MockStopwatch_ID_Call struct {
+	*mock.Call
+}
+
+// ID is a helper method to define mock.On call
+func (_e *MockStopwatch_Expecter) ID() *MockStopwatch_ID_Call {
+	return &MockStopwatch_ID_Call{Call: _e.mock.On("ID")}
+}
+
+func (_c *MockStopwatch_ID_Call) Run(run func()) *MockStopwatch_ID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockStopwatch_ID_Call) Return(_a0 int) *MockStopwatch_ID_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockStopwatch_ID_Call) RunAndReturn(run func() int) *MockStopwatch_ID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Init provides a mock function with no fields
 func (_m *MockStopwatch) Init() tea.Cmd {
 	ret := _m.Called()
@@ -110,6 +155,180 @@ func (_c *MockStopwatch_Init_Call) Return(_a0 tea.Cmd) *MockStopwatch_Init_Call 
 }
 
 func (_c *MockStopwatch_Init_Call) RunAndReturn(run func() tea.Cmd) *MockStopwatch_Init_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Reset provides a mock function with no fields
+func (_m *MockStopwatch) Reset() tea.Cmd {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Reset")
+	}
+
+	var r0 tea.Cmd
+	if rf, ok := ret.Get(0).(func() tea.Cmd); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(tea.Cmd)
+		}
+	}
+
+	return r0
+}
+
+// MockStopwatch_Reset_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Reset'
+type MockStopwatch_Reset_Call struct {
+	*mock.Call
+}
+
+// Reset is a helper method to define mock.On call
+func (_e *MockStopwatch_Expecter) Reset() *MockStopwatch_Reset_Call {
+	return &MockStopwatch_Reset_Call{Call: _e.mock.On("Reset")}
+}
+
+func (_c *MockStopwatch_Reset_Call) Run(run func()) *MockStopwatch_Reset_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockStopwatch_Reset_Call) Return(_a0 tea.Cmd) *MockStopwatch_Reset_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockStopwatch_Reset_Call) RunAndReturn(run func() tea.Cmd) *MockStopwatch_Reset_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetInterval provides a mock function with given fields: _a0
+func (_m *MockStopwatch) SetInterval(_a0 time.Duration) {
+	_m.Called(_a0)
+}
+
+// MockStopwatch_SetInterval_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetInterval'
+type MockStopwatch_SetInterval_Call struct {
+	*mock.Call
+}
+
+// SetInterval is a helper method to define mock.On call
+//   - _a0 time.Duration
+func (_e *MockStopwatch_Expecter) SetInterval(_a0 interface{}) *MockStopwatch_SetInterval_Call {
+	return &MockStopwatch_SetInterval_Call{Call: _e.mock.On("SetInterval", _a0)}
+}
+
+func (_c *MockStopwatch_SetInterval_Call) Run(run func(_a0 time.Duration)) *MockStopwatch_SetInterval_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(time.Duration))
+	})
+	return _c
+}
+
+func (_c *MockStopwatch_SetInterval_Call) Return() *MockStopwatch_SetInterval_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockStopwatch_SetInterval_Call) RunAndReturn(run func(time.Duration)) *MockStopwatch_SetInterval_Call {
+	_c.Run(run)
+	return _c
+}
+
+// Stop provides a mock function with no fields
+func (_m *MockStopwatch) Stop() tea.Cmd {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Stop")
+	}
+
+	var r0 tea.Cmd
+	if rf, ok := ret.Get(0).(func() tea.Cmd); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(tea.Cmd)
+		}
+	}
+
+	return r0
+}
+
+// MockStopwatch_Stop_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Stop'
+type MockStopwatch_Stop_Call struct {
+	*mock.Call
+}
+
+// Stop is a helper method to define mock.On call
+func (_e *MockStopwatch_Expecter) Stop() *MockStopwatch_Stop_Call {
+	return &MockStopwatch_Stop_Call{Call: _e.mock.On("Stop")}
+}
+
+func (_c *MockStopwatch_Stop_Call) Run(run func()) *MockStopwatch_Stop_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockStopwatch_Stop_Call) Return(_a0 tea.Cmd) *MockStopwatch_Stop_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockStopwatch_Stop_Call) RunAndReturn(run func() tea.Cmd) *MockStopwatch_Stop_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Toggle provides a mock function with no fields
+func (_m *MockStopwatch) Toggle() tea.Cmd {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Toggle")
+	}
+
+	var r0 tea.Cmd
+	if rf, ok := ret.Get(0).(func() tea.Cmd); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(tea.Cmd)
+		}
+	}
+
+	return r0
+}
+
+// MockStopwatch_Toggle_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Toggle'
+type MockStopwatch_Toggle_Call struct {
+	*mock.Call
+}
+
+// Toggle is a helper method to define mock.On call
+func (_e *MockStopwatch_Expecter) Toggle() *MockStopwatch_Toggle_Call {
+	return &MockStopwatch_Toggle_Call{Call: _e.mock.On("Toggle")}
+}
+
+func (_c *MockStopwatch_Toggle_Call) Run(run func()) *MockStopwatch_Toggle_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockStopwatch_Toggle_Call) Return(_a0 tea.Cmd) *MockStopwatch_Toggle_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockStopwatch_Toggle_Call) RunAndReturn(run func() tea.Cmd) *MockStopwatch_Toggle_Call {
 	_c.Call.Return(run)
 	return _c
 }
