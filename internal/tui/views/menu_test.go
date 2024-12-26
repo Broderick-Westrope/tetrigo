@@ -1,6 +1,7 @@
 package views
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -86,11 +87,10 @@ func TestMenu_SwitchModeMsg(t *testing.T) {
 			go waitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
 
 			// Wait for initial render
-			time.Sleep(100 * time.Millisecond)
 			var out string
 			teatest.WaitForOutput(t, tm.Output(), func(bytes []byte) bool {
 				out = string(bytes)
-				return len(out) > 0
+				return strings.Contains(out, "Username:")
 			}, teatest.WithDuration(time.Second))
 
 			// Verify expected content is present
