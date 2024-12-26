@@ -109,3 +109,47 @@ func TestSingle_Interaction(t *testing.T) {
 	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second)).View())
 	teatest.RequireEqualOutput(t, outBytes)
 }
+
+// TODO: The golden file of this test shows that the ghost is
+// written over the top of the placed Tet at the skyline.
+// TODO: Fix formatting for the output. The golden file shows
+// that escape sequences of the background are not handled
+// correctly when overlaying the modal.
+func TestSingle_GameOverOutput(t *testing.T) {
+	mockGameStopwatch := components.NewMockStopwatch(t)
+	mockGameStopwatch.EXPECT().Init().Return(nil)
+	mockGameStopwatch.EXPECT().Update(mock.Anything).Return(mockGameStopwatch, nil)
+	mockGameStopwatch.EXPECT().Elapsed().Return(time.Duration(0))
+
+	m, err := NewSingleModel(
+		&tui.SingleInput{
+			Mode:     tui.ModeMarathon,
+			Level:    1,
+			Username: "testuser",
+		},
+		&config.Config{
+			NextQueueLength: 0,
+			GhostEnabled:    true,
+			LockDownMode:    "",
+			MaxLevel:        0,
+			EndOnMaxLevel:   false,
+			Theme:           config.DefaultTheme(),
+			Keys:            config.DefaultKeys(),
+		},
+		WithRandSource(rand.New(rand.NewPCG(0, 0))),
+	)
+	require.NoError(t, err)
+	m.gameStopwatch = mockGameStopwatch
+	tm := teatest.NewTestModel(t, m)
+	time.Sleep(time.Second)
+
+	// hard drop 12
+	for range 12 {
+		tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("w")})
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	tm.Send(tea.Quit())
+	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second)).View())
+	teatest.RequireEqualOutput(t, outBytes)
+}
