@@ -82,7 +82,8 @@ func NewSingleModel(
 		isPaused:        false,
 		nextQueueLength: cfg.NextQueueLength,
 		mode:            in.Mode,
-		rand:            rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())),
+		//nolint:gosec // This random source is not for any security-related things.
+		rand: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())),
 	}
 
 	for _, opt := range opts {
