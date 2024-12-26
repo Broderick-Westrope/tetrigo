@@ -3,6 +3,7 @@ package single
 import (
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
@@ -32,7 +33,8 @@ type Input struct {
 	MaxLines      int  // The maximum number of lines to clear before the game ends. 0 means no limit.
 	EndOnMaxLines bool // Whether the game should end when the maximum number of lines is cleared.
 
-	GhostEnabled bool // Whether the ghost Tetrimino should be displayed.
+	GhostEnabled bool       // Whether the ghost Tetrimino should be displayed.
+	Rand         *rand.Rand // The random source to use for Tetrimino generation.
 }
 
 func NewGame(in *Input) (*Game, error) {
@@ -40,7 +42,7 @@ func NewGame(in *Input) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	nq := tetris.NewNextQueue(matrix.GetSkyline())
+	nq := tetris.NewNextQueue(matrix.GetSkyline(), tetris.WithRandSource(in.Rand))
 
 	scoring, err := tetris.NewScoring(
 		in.Level, in.MaxLevel, in.IncreaseLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines,

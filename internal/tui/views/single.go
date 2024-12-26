@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"strconv"
 	"time"
 
@@ -50,23 +51,27 @@ type SingleModel struct {
 	username        string
 	game            *single.Game
 	nextQueueLength int
-	fallStopwatch   stopwatch.Model
+	fallStopwatch   components.Stopwatch
 	mode            tui.Mode
 
-	useTimer      bool
-	gameTimer     timer.Model
-	gameStopwatch stopwatch.Model
+	gameTimer     components.Timer
+	gameStopwatch components.Stopwatch
 
 	styles   *components.GameStyles
 	help     help.Model
 	keys     *components.GameKeyMap
 	isPaused bool
+	rand     *rand.Rand
 
 	width  int
 	height int
 }
 
-func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, error) {
+func NewSingleModel(
+	in *tui.SingleInput,
+	cfg *config.Config,
+	opts ...func(*SingleModel),
+) (*SingleModel, error) {
 	// Setup initial model
 	m := &SingleModel{
 		username:        in.Username,
@@ -76,6 +81,12 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 		isPaused:        false,
 		nextQueueLength: cfg.NextQueueLength,
 		mode:            in.Mode,
+		//nolint:gosec // This random source is not for any security-related tasks.
+		rand: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())),
+	}
+
+	for _, opt := range opts {
+		opt(m)
 	}
 
 	// Get game input
@@ -90,7 +101,7 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 
 			GhostEnabled: cfg.GhostEnabled,
 		}
-		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+		m.gameStopwatch = components.NewStopwatchWithInterval(timerUpdateInterval)
 
 	case tui.ModeSprint:
 		gameIn = &single.Input{
@@ -103,21 +114,21 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 
 			GhostEnabled: cfg.GhostEnabled,
 		}
-		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+		m.gameStopwatch = components.NewStopwatchWithInterval(timerUpdateInterval)
 
 	case tui.ModeUltra:
 		gameIn = &single.Input{
 			Level:        in.Level,
 			GhostEnabled: cfg.GhostEnabled,
 		}
-		m.useTimer = true
-		m.gameTimer = timer.NewWithInterval(time.Minute*2, timerUpdateInterval)
+		m.gameTimer = components.NewTimerWithInterval(time.Minute*2, timerUpdateInterval)
 
 	case tui.ModeMenu, tui.ModeLeaderboard:
 		fallthrough
 	default:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	}
+	gameIn.Rand = m.rand
 
 	// Create game
 	var err error
@@ -127,17 +138,22 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 	}
 
 	// Setup game dependents
-	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
+	m.fallStopwatch = components.NewStopwatchWithInterval(m.game.GetDefaultFallInterval())
 
 	return m, nil
 }
 
+func WithRandSource(r *rand.Rand) func(*SingleModel) {
+	return func(m *SingleModel) {
+		m.rand = r
+	}
+}
+
 func (m *SingleModel) Init() tea.Cmd {
 	var cmd tea.Cmd
-	switch m.useTimer {
-	case true:
+	if m.gameTimer != nil {
 		cmd = m.gameTimer.Init()
-	default:
+	} else {
 		cmd = m.gameStopwatch.Init()
 	}
 
@@ -192,16 +208,25 @@ func (m *SingleModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *SingleModel) dependenciesUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+	var err error
 
-	switch m.useTimer {
-	case true:
-		m.gameTimer, cmd = m.gameTimer.Update(msg)
-	default:
-		m.gameStopwatch, cmd = m.gameStopwatch.Update(msg)
+	if m.gameTimer != nil {
+		cmd, err = charmutils.UpdateTypedModel(&m.gameTimer, msg)
+		if err != nil {
+			cmds = append(cmds, tui.FatalErrorCmd(err))
+		}
+	} else {
+		cmd, err = charmutils.UpdateTypedModel(&m.gameStopwatch, msg)
+		if err != nil {
+			cmds = append(cmds, tui.FatalErrorCmd(err))
+		}
 	}
 	cmds = append(cmds, cmd)
 
-	m.fallStopwatch, cmd = m.fallStopwatch.Update(msg)
+	cmd, err = charmutils.UpdateTypedModel(&m.fallStopwatch, msg)
+	if err != nil {
+		cmds = append(cmds, tui.FatalErrorCmd(err))
+	}
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
@@ -249,7 +274,7 @@ func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 		if msg.ID != m.fallStopwatch.ID() {
 			break
 		}
-		m.fallStopwatch.Interval = m.game.GetDefaultFallInterval()
+		m.fallStopwatch.SetInterval(m.game.GetDefaultFallInterval())
 		gameOver, err := m.game.TickLower()
 		if err != nil {
 			return nil, tui.FatalErrorCmd(fmt.Errorf("lowering tetrimino (tick): %w", err))
@@ -301,7 +326,7 @@ func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd
 		cmds = append(cmds, m.fallStopwatch.Reset())
 		return m, tea.Batch(cmds...)
 	case key.Matches(msg, m.keys.SoftDrop):
-		m.fallStopwatch.Interval = m.game.ToggleSoftDrop()
+		m.fallStopwatch.SetInterval(m.game.ToggleSoftDrop())
 		// TODO: find a fix for "pausing" momentarily before soft drop begins
 		// cmds = append(cmds, func() tea.Msg {
 		// 	return stopwatch.TickMsg{ID: m.fallStopwatch.ID()}
@@ -396,10 +421,9 @@ func (m *SingleModel) informationView() string {
 	}
 
 	var gameTime float64
-	switch m.useTimer {
-	case true:
-		gameTime = m.gameTimer.Timeout.Seconds()
-	default:
+	if m.gameTimer != nil {
+		gameTime = m.gameTimer.GetTimeout().Seconds()
+	} else {
 		gameTime = m.gameStopwatch.Elapsed().Seconds()
 	}
 
@@ -478,20 +502,29 @@ func (m *SingleModel) triggerGameOver() tea.Cmd {
 	m.game.EndGame()
 	m.isPaused = false
 
-	if m.useTimer {
-		m.gameTimer.Timeout = 0
+	var cmds []tea.Cmd
+	if m.gameTimer != nil {
+		m.gameTimer.SetTimeout(0)
+		cmds = append(cmds, m.gameTimer.Stop())
+	} else {
+		cmds = append(cmds, m.fallStopwatch.Stop())
 	}
 
-	var cmds []tea.Cmd
-	cmds = append(cmds, m.gameTimer.Stop())
-	cmds = append(cmds, m.fallStopwatch.Stop())
 	return tea.Batch(cmds...)
 }
 
 func (m *SingleModel) togglePause() tea.Cmd {
 	m.isPaused = !m.isPaused
+
+	var cmd tea.Cmd
+	if m.gameTimer != nil {
+		cmd = m.gameTimer.Toggle()
+	} else {
+		cmd = m.gameStopwatch.Toggle()
+	}
+
 	return tea.Batch(
 		m.fallStopwatch.Toggle(),
-		m.gameTimer.Toggle(),
+		cmd,
 	)
 }

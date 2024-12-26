@@ -21,7 +21,7 @@ type Theme struct {
 	} `toml:"characters"`
 }
 
-func defaultTheme() *Theme {
+func DefaultTheme() *Theme {
 	theme := new(Theme)
 
 	theme.Colours.TetriminoCells.I = "#64C4EB"

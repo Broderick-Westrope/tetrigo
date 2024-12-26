@@ -13,7 +13,7 @@ func NewDB(dataSourceName string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	err = ensureTablesExist(db)
+	err = EnsureTablesExist(db)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func NewDB(dataSourceName string) (*sql.DB, error) {
 	return db, nil
 }
 
-func ensureTablesExist(db *sql.DB) error {
+func EnsureTablesExist(db *sql.DB) error {
 	// Leaderboard table
 	_, err := db.Exec(
 		`CREATE TABLE IF NOT EXISTS leaderboard 

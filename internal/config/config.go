@@ -39,8 +39,8 @@ func GetConfig(path string) (*Config, error) {
 		MaxLevel:        15,
 		EndOnMaxLevel:   false,
 
-		Theme: defaultTheme(),
-		Keys:  defaultKeys(),
+		Theme: DefaultTheme(),
+		Keys:  DefaultKeys(),
 	}
 
 	_, err := toml.DecodeFile(path, &c)

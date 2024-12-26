@@ -59,10 +59,8 @@ func TestNextQueue_Next(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			nq := NextQueue{
-				elements: tc.elements,
-				skyline:  40,
-			}
+			nq := NewNextQueue(40)
+			nq.elements = tc.elements
 			expected := tc.elements[0].DeepCopy()
 			expected.Position.Y += nq.skyline
 
@@ -127,10 +125,8 @@ func TestNextQueue_Fill(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			nq := NextQueue{
-				elements: tc.elements,
-				skyline:  40,
-			}
+			nq := NewNextQueue(40)
+			nq.elements = tc.elements
 
 			for range tc.timesToFill {
 				nq.fill()
