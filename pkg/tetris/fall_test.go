@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// calculateExpectedSpeed helper function to match the formula exactly
+// calculateExpectedSpeed helper function to match the formula exactly.
 func calculateExpectedSpeed(level int) time.Duration {
 	decrementedLevel := float64(level - 1)
 	speed := math.Pow(0.8-(decrementedLevel*0.007), decrementedLevel)
@@ -16,7 +16,7 @@ func calculateExpectedSpeed(level int) time.Duration {
 }
 
 func TestNewFall(t *testing.T) {
-	// Test initialization with different levels
+	// Test initialization with different levels.
 	tt := map[string]struct {
 		level int
 	}{
@@ -46,14 +46,14 @@ func TestNewFall(t *testing.T) {
 func TestFall_CalculateFallSpeeds(t *testing.T) {
 	f := &Fall{}
 
-	// Test that recalculating speeds works
+	// Test that recalculating speeds works.
 	t.Run("recalculate speeds", func(t *testing.T) {
 		// Start with level 1
 		f.CalculateFallSpeeds(1)
 		initialDefault := f.DefaultInterval
 		initialSoftDrop := f.SoftDropInterval
 
-		// Recalculate for level 10
+		// Recalculate for level 10.
 		f.CalculateFallSpeeds(10)
 
 		assert.Greater(t, initialDefault, f.DefaultInterval,
@@ -62,7 +62,7 @@ func TestFall_CalculateFallSpeeds(t *testing.T) {
 			"soft drop at level 10 should be faster than level 1")
 	})
 
-	// Test that soft drop is always faster
+	// Test that soft drop is always faster.
 	t.Run("soft drop faster than default", func(t *testing.T) {
 		levels := []int{1, 5, 10, 15, 20}
 		for _, level := range levels {
