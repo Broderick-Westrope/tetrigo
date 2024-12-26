@@ -105,14 +105,6 @@ func TestSingle_Interaction(t *testing.T) {
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("w")})
 	time.Sleep(10 * time.Millisecond)
 
-	// reset timer
-	// TODO: abstract the timer so that it can be stubbed to return 0s for tests.
-
-	// tm.Send(m.gameStopwatch.Stop())
-	// time.Sleep(10 * time.Millisecond)
-	// tm.Send(m.gameStopwatch.Reset())
-	// time.Sleep(10 * time.Millisecond)
-
 	tm.Send(tea.Quit())
 	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second)).View())
 	teatest.RequireEqualOutput(t, outBytes)
