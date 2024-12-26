@@ -13,14 +13,26 @@ type NextQueue struct {
 }
 
 // NewNextQueue creates a new NextQueue of Tetriminos.
-func NewNextQueue(skyline int, randSource *rand.Rand) *NextQueue {
-	nq := NextQueue{
+func NewNextQueue(skyline int, opts ...func(*NextQueue)) *NextQueue {
+	nq := &NextQueue{
 		elements: make([]Tetrimino, 0, 14),
 		skyline:  skyline,
-		rand:     randSource,
+		//nolint:gosec // This random source is not for any security-related tasks.
+		rand: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())),
 	}
+
+	for _, opt := range opts {
+		opt(nq)
+	}
+
 	nq.fill()
-	return &nq
+	return nq
+}
+
+func WithRandSource(rand *rand.Rand) func(*NextQueue) {
+	return func(nq *NextQueue) {
+		nq.rand = rand
+	}
 }
 
 // GetElements returns the Tetriminos in the queue.

@@ -82,7 +82,7 @@ func NewSingleModel(
 		isPaused:        false,
 		nextQueueLength: cfg.NextQueueLength,
 		mode:            in.Mode,
-		//nolint:gosec // This random source is not for any security-related things.
+		//nolint:gosec // This random source is not for any security-related tasks.
 		rand: rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())),
 	}
 
@@ -130,7 +130,7 @@ func NewSingleModel(
 	default:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	}
-	gameIn.RandSource = m.rand
+	gameIn.Rand = m.rand
 
 	// Create game
 	var err error

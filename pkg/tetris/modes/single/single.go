@@ -34,7 +34,7 @@ type Input struct {
 	EndOnMaxLines bool // Whether the game should end when the maximum number of lines is cleared.
 
 	GhostEnabled bool       // Whether the ghost Tetrimino should be displayed.
-	RandSource   *rand.Rand // The random source to use for Tetrimino generation.
+	Rand         *rand.Rand // The random source to use for Tetrimino generation.
 }
 
 func NewGame(in *Input) (*Game, error) {
@@ -42,7 +42,7 @@ func NewGame(in *Input) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	nq := tetris.NewNextQueue(matrix.GetSkyline(), in.RandSource)
+	nq := tetris.NewNextQueue(matrix.GetSkyline(), tetris.WithRandSource(in.Rand))
 
 	scoring, err := tetris.NewScoring(
 		in.Level, in.MaxLevel, in.IncreaseLevel, in.EndOnMaxLevel, in.MaxLines, in.EndOnMaxLines,
