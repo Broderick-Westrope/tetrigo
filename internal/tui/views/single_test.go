@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/Broderick-Westrope/tetrigo/internal/data"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 	"github.com/Broderick-Westrope/x/exp/teatest"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -187,4 +189,63 @@ func TestSingle_PausedOutput(t *testing.T) {
 	tm.Send(tea.Quit())
 	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second)).View())
 	teatest.RequireEqualOutput(t, outBytes)
+}
+
+func TestSingle_GameOverSwitchModeMsg(t *testing.T) {
+	m, err := NewSingleModel(
+		&tui.SingleInput{
+			Mode:     tui.ModeMarathon,
+			Level:    1,
+			Username: "testuser",
+		},
+		&config.Config{
+			NextQueueLength: 0,
+			GhostEnabled:    true,
+			LockDownMode:    "",
+			MaxLevel:        0,
+			EndOnMaxLevel:   false,
+			Theme:           config.DefaultTheme(),
+			Keys:            config.DefaultKeys(),
+		},
+		WithRandSource(rand.New(rand.NewPCG(0, 0))),
+	)
+	require.NoError(t, err)
+	tm := teatest.NewTestModel(t, m)
+
+	switchModeMsgCh := make(chan tui.SwitchModeMsg, 1)
+	go waitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
+
+	// hard drop 12
+	for range 12 {
+		tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("w")})
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	// continue past game over message
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	time.Sleep(10 * time.Millisecond)
+
+	// Wait for switch mode message with timeout
+	select {
+	case switchModeMsg := <-switchModeMsgCh:
+		require.Equal(t, tui.ModeLeaderboard, switchModeMsg.Target)
+
+		leaderboardInput, ok := switchModeMsg.Input.(*tui.LeaderboardInput)
+		require.True(t, ok, "Expected %T, got %T", &tui.LeaderboardInput{}, switchModeMsg.Input)
+
+		assert.Equal(t, tui.ModeMarathon.String(), leaderboardInput.GameMode)
+		assert.EqualValues(t, &data.Score{
+			ID:       0,
+			Rank:     0,
+			GameMode: tui.ModeMarathon.String(),
+			Name:     "testuser",
+			Time:     time.Duration(0),
+			Score:    230,
+			Lines:    0,
+			Level:    1,
+		}, leaderboardInput.NewEntry)
+
+	case <-time.After(time.Second):
+		t.Fatal("Timeout waiting for switch mode message")
+	}
 }
