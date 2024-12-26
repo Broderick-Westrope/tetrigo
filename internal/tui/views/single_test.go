@@ -7,8 +7,10 @@ import (
 
 	"github.com/Broderick-Westrope/tetrigo/internal/config"
 	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
 	"github.com/Broderick-Westrope/x/exp/teatest"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +43,10 @@ func TestSingle_InitialOutput(t *testing.T) {
 }
 
 func TestSingle_Interaction(t *testing.T) {
-	r := rand.New(rand.NewPCG(0, 0))
+	mockGameStopwatch := components.NewMockStopwatch(t)
+	mockGameStopwatch.EXPECT().Init().Return(nil)
+	mockGameStopwatch.EXPECT().Update(mock.Anything).Return(mockGameStopwatch, nil)
+	mockGameStopwatch.EXPECT().Elapsed().Return(time.Duration(0))
 
 	m, err := NewSingleModel(
 		&tui.SingleInput{
@@ -58,9 +63,10 @@ func TestSingle_Interaction(t *testing.T) {
 			Theme:           config.DefaultTheme(),
 			Keys:            config.DefaultKeys(),
 		},
-		WithRandSource(r),
+		WithRandSource(rand.New(rand.NewPCG(0, 0))),
 	)
 	require.NoError(t, err)
+	m.gameStopwatch = mockGameStopwatch
 	tm := teatest.NewTestModel(t, m)
 
 	// hold
@@ -101,12 +107,13 @@ func TestSingle_Interaction(t *testing.T) {
 
 	// reset timer
 	// TODO: abstract the timer so that it can be stubbed to return 0s for tests.
-	tm.Send(m.gameStopwatch.Stop())
-	time.Sleep(10 * time.Millisecond)
-	tm.Send(m.gameStopwatch.Reset())
-	time.Sleep(10 * time.Millisecond)
+
+	// tm.Send(m.gameStopwatch.Stop())
+	// time.Sleep(10 * time.Millisecond)
+	// tm.Send(m.gameStopwatch.Reset())
+	// time.Sleep(10 * time.Millisecond)
 
 	tm.Send(tea.Quit())
-	outBytes := []byte(tm.FinalModel(t).View())
+	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second)).View())
 	teatest.RequireEqualOutput(t, outBytes)
 }

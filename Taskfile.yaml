@@ -1,12 +1,13 @@
-version: '3'
+version: "3"
 
 env:
-  GOLANG_CROSS_VERSION: 'v1.22'
-  PACKAGE_NAME: 'github.com/Broderick-Westrope/tetrigo'
+  GOLANG_CROSS_VERSION: "v1.22"
+  PACKAGE_NAME: "github.com/Broderick-Westrope/tetrigo"
 
 tasks:
   default:
     cmds:
+      - task: codegen
       - task: lint
       - task: test
 
@@ -14,7 +15,7 @@ tasks:
     desc: Installs Tetrigo
     aliases: [i]
     sources:
-      - './**/*.go'
+      - "./**/*.go"
     cmds:
       - go install -v ./cmd/tetrigo
 
@@ -24,11 +25,16 @@ tasks:
       - go mod download
       - go mod tidy
 
+  codegen:
+    desc: Generate code dependencies
+    cmds:
+      - mockery
+
   lint:
     desc: Runs golangci-lint
     aliases: [l]
     sources:
-      - './**/*.go'
+      - "./**/*.go"
       - .golangci.yaml
     cmds:
       - golangci-lint run
@@ -36,7 +42,7 @@ tasks:
   lint:fix:
     desc: Runs golangci-lint and fixes any issues
     sources:
-      - './**/*.go'
+      - "./**/*.go"
       - .golangci.yaml
     cmds:
       - golangci-lint run --fix

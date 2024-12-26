@@ -1,0 +1,9 @@
+with-expecter: true
+inpackage: true
+dir: "{{.InterfaceDir}}"
+outpkg: "{{.PackageName}}"
+
+packages:
+  github.com/Broderick-Westrope/tetrigo/internal/tui/components:
+    interfaces:
+      Stopwatch: {}

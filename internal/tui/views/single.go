@@ -56,7 +56,7 @@ type SingleModel struct {
 
 	useTimer      bool
 	gameTimer     timer.Model
-	gameStopwatch stopwatch.Model
+	gameStopwatch components.Stopwatch
 
 	styles   *components.GameStyles
 	help     help.Model
@@ -102,7 +102,7 @@ func NewSingleModel(
 
 			GhostEnabled: cfg.GhostEnabled,
 		}
-		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+		m.gameStopwatch = components.NewStopwatchWithInterval(timerUpdateInterval)
 
 	case tui.ModeSprint:
 		gameIn = &single.Input{
@@ -115,7 +115,7 @@ func NewSingleModel(
 
 			GhostEnabled: cfg.GhostEnabled,
 		}
-		m.gameStopwatch = stopwatch.NewWithInterval(timerUpdateInterval)
+		m.gameStopwatch = components.NewStopwatchWithInterval(timerUpdateInterval)
 
 	case tui.ModeUltra:
 		gameIn = &single.Input{
@@ -216,7 +216,11 @@ func (m *SingleModel) dependenciesUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 	case true:
 		m.gameTimer, cmd = m.gameTimer.Update(msg)
 	default:
-		m.gameStopwatch, cmd = m.gameStopwatch.Update(msg)
+		cmd, err := charmutils.UpdateTypedModel(&m.gameStopwatch, msg)
+		if err != nil {
+			cmds = append(cmds, tui.FatalErrorCmd(err))
+		}
+		cmds = append(cmds, cmd)
 	}
 	cmds = append(cmds, cmd)
 
