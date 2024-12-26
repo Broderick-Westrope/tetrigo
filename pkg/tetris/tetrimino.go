@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 )
 
 const invalidRotationPoint = -1
@@ -182,12 +183,23 @@ func getMapOfValidTetriminos() map[byte]Tetrimino {
 }
 
 // GetValidTetriminos returns a slice containing all seven valid Tetriminos (I, O, T, S, Z, J, L).
+// The Tetrminos are sorted by their value to ensure determinism in tests.
 func GetValidTetriminos() []Tetrimino {
 	validTetriminos := getMapOfValidTetriminos()
 	result := make([]Tetrimino, 0, len(validTetriminos))
 	for _, t := range validTetriminos {
 		result = append(result, t)
 	}
+	slices.SortFunc(result, func(a, b Tetrimino) int {
+		switch {
+		case a.Value < b.Value:
+			return -1
+		case a.Value > b.Value:
+			return 1
+		default:
+			return 0
+		}
+	})
 	return result
 }
 

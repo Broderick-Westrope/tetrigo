@@ -2,6 +2,7 @@ package views
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"strconv"
 	"time"
 
@@ -61,12 +62,17 @@ type SingleModel struct {
 	help     help.Model
 	keys     *components.GameKeyMap
 	isPaused bool
+	rand     *rand.Rand
 
 	width  int
 	height int
 }
 
-func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, error) {
+func NewSingleModel(
+	in *tui.SingleInput,
+	cfg *config.Config,
+	opts ...func(*SingleModel),
+) (*SingleModel, error) {
 	// Setup initial model
 	m := &SingleModel{
 		username:        in.Username,
@@ -76,6 +82,11 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 		isPaused:        false,
 		nextQueueLength: cfg.NextQueueLength,
 		mode:            in.Mode,
+		rand:            rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())),
+	}
+
+	for _, opt := range opts {
+		opt(m)
 	}
 
 	// Get game input
@@ -118,6 +129,7 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 	default:
 		return nil, fmt.Errorf("invalid single player game mode: %v", in.Mode)
 	}
+	gameIn.RandSource = m.rand
 
 	// Create game
 	var err error
@@ -130,6 +142,12 @@ func NewSingleModel(in *tui.SingleInput, cfg *config.Config) (*SingleModel, erro
 	m.fallStopwatch = stopwatch.NewWithInterval(m.game.GetDefaultFallInterval())
 
 	return m, nil
+}
+
+func WithRandSource(r *rand.Rand) func(*SingleModel) {
+	return func(m *SingleModel) {
+		m.rand = r
+	}
 }
 
 func (m *SingleModel) Init() tea.Cmd {

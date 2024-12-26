@@ -1,7 +1,7 @@
 package tetris
 
 import (
-	"math/rand"
+	"math/rand/v2"
 )
 
 // NextQueue is a collection of up to 14 Tetriminos that are drawn from randomly.
@@ -9,13 +9,15 @@ import (
 type NextQueue struct {
 	elements []Tetrimino
 	skyline  int
+	rand     *rand.Rand
 }
 
 // NewNextQueue creates a new NextQueue of Tetriminos.
-func NewNextQueue(skyline int) *NextQueue {
+func NewNextQueue(skyline int, randSource *rand.Rand) *NextQueue {
 	nq := NextQueue{
 		elements: make([]Tetrimino, 0, 14),
 		skyline:  skyline,
+		rand:     randSource,
 	}
 	nq.fill()
 	return &nq
@@ -48,7 +50,7 @@ func (nq *NextQueue) fill() {
 	}
 
 	tetriminos := GetValidTetriminos()
-	perm := rand.Perm(len(tetriminos))
+	perm := nq.rand.Perm(len(tetriminos))
 	for _, i := range perm {
 		if len(nq.elements) == 14 {
 			// This should be impossible whilst there are only 7 Tetriminos and we check that there is space for 7 in the queue

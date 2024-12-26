@@ -1,6 +1,7 @@
 package tetris
 
 import (
+	"math/rand/v2"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ func TestNewNextQueue(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
-			b := NewNextQueue(tc.matrixHeight)
+			b := NewNextQueue(tc.matrixHeight, rand.New(rand.NewPCG(0, 0)))
 
 			assert.GreaterOrEqual(t, len(b.elements), 7, "Length: want at least 7, got %d", len(b.elements))
 
@@ -62,6 +63,7 @@ func TestNextQueue_Next(t *testing.T) {
 			nq := NextQueue{
 				elements: tc.elements,
 				skyline:  40,
+				rand:     rand.New(rand.NewPCG(0, 0)),
 			}
 			expected := tc.elements[0].DeepCopy()
 			expected.Position.Y += nq.skyline
@@ -130,6 +132,7 @@ func TestNextQueue_Fill(t *testing.T) {
 			nq := NextQueue{
 				elements: tc.elements,
 				skyline:  40,
+				rand:     rand.New(rand.NewPCG(0, 0)),
 			}
 
 			for range tc.timesToFill {

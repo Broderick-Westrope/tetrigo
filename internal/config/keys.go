@@ -13,7 +13,7 @@ type Keys struct {
 	RotateClockwise        []string `toml:"rotate_clockwise"`
 }
 
-func defaultKeys() *Keys {
+func DefaultKeys() *Keys {
 	return &Keys{
 		ForceQuit:              []string{"ctrl+c"},
 		Exit:                   []string{"esc"},
