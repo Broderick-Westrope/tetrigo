@@ -130,3 +130,32 @@ func setupInMemoryDB(t *testing.T) *sql.DB {
 	require.NoError(t, err)
 	return db
 }
+
+func TestLeaderboard_SwitchModeMsg(t *testing.T) {
+	db := setupInMemoryDB(t)
+
+	m, err := NewLeaderboardModel(&tui.LeaderboardInput{
+		GameMode: t.Name(),
+	}, db)
+	require.NoError(t, err)
+	tm := teatest.NewTestModel(t, m)
+
+	switchModeMsgCh := make(chan tui.SwitchModeMsg, 1)
+	go waitForMsgOfType(t, tm, switchModeMsgCh, time.Second)
+
+	// exit the leaderboard
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	time.Sleep(10 * time.Millisecond)
+
+	// Wait for switch mode message with timeout
+	select {
+	case switchModeMsg := <-switchModeMsgCh:
+		require.Equal(t, tui.ModeMenu, switchModeMsg.Target)
+
+		_, ok := switchModeMsg.Input.(*tui.MenuInput)
+		require.True(t, ok, "Expected %T, got %T", &tui.MenuInput{}, switchModeMsg.Input)
+
+	case <-time.After(time.Second):
+		t.Fatal("Timeout waiting for switch mode message")
+	}
+}
