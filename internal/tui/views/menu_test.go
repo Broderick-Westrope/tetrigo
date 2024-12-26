@@ -119,11 +119,6 @@ func TestMenu_SwitchModeMsg(t *testing.T) {
 			tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 			time.Sleep(10 * time.Millisecond)
 
-			// TODO(fix): The following msg send should not be necessary.
-			// 	The SwitchModeMsg should be sent automatically when the form is completed.
-			tm.Send(tea.KeyMsg{Type: tea.KeyUp})
-			time.Sleep(10 * time.Millisecond)
-
 			// Wait for switch mode message with timeout
 			select {
 			case switchModeMsg := <-switchModeMsgCh:

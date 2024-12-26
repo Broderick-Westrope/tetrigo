@@ -86,20 +86,15 @@ func (m *MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	if m.form.State == huh.StateCompleted {
-		switch m.hasAnnouncedCompletion {
-		case false:
-			return m, m.announceCompletion()
-		default:
-			return m, nil
-		}
-	}
-
 	var cmds []tea.Cmd
 	form, cmd := m.form.Update(msg)
 	if f, ok := form.(*huh.Form); ok {
 		m.form = f
 		cmds = append(cmds, cmd)
+	}
+
+	if m.form.State == huh.StateCompleted && !m.hasAnnouncedCompletion {
+		cmds = append(cmds, m.announceCompletion())
 	}
 
 	return m, tea.Batch(cmds...)
