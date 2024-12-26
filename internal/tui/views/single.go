@@ -54,7 +54,6 @@ type SingleModel struct {
 	fallStopwatch   components.Stopwatch
 	mode            tui.Mode
 
-	useTimer      bool
 	gameTimer     components.Timer
 	gameStopwatch components.Stopwatch
 
@@ -122,7 +121,6 @@ func NewSingleModel(
 			Level:        in.Level,
 			GhostEnabled: cfg.GhostEnabled,
 		}
-		m.useTimer = true
 		m.gameTimer = components.NewTimerWithInterval(time.Minute*2, timerUpdateInterval)
 
 	case tui.ModeMenu, tui.ModeLeaderboard:
@@ -153,10 +151,9 @@ func WithRandSource(r *rand.Rand) func(*SingleModel) {
 
 func (m *SingleModel) Init() tea.Cmd {
 	var cmd tea.Cmd
-	switch m.useTimer {
-	case true:
+	if m.gameTimer != nil {
 		cmd = m.gameTimer.Init()
-	default:
+	} else {
 		cmd = m.gameStopwatch.Init()
 	}
 
@@ -213,20 +210,16 @@ func (m *SingleModel) dependenciesUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 	var cmds []tea.Cmd
 	var err error
 
-	switch m.useTimer {
-	case true:
+	if m.gameTimer != nil {
 		cmd, err = charmutils.UpdateTypedModel(&m.gameTimer, msg)
 		if err != nil {
 			cmds = append(cmds, tui.FatalErrorCmd(err))
 		}
-		cmds = append(cmds, cmd)
-
-	default:
+	} else {
 		cmd, err = charmutils.UpdateTypedModel(&m.gameStopwatch, msg)
 		if err != nil {
 			cmds = append(cmds, tui.FatalErrorCmd(err))
 		}
-		cmds = append(cmds, cmd)
 	}
 	cmds = append(cmds, cmd)
 
@@ -428,10 +421,9 @@ func (m *SingleModel) informationView() string {
 	}
 
 	var gameTime float64
-	switch m.useTimer {
-	case true:
+	if m.gameTimer != nil {
 		gameTime = m.gameTimer.GetTimeout().Seconds()
-	default:
+	} else {
 		gameTime = m.gameStopwatch.Elapsed().Seconds()
 	}
 
@@ -510,20 +502,29 @@ func (m *SingleModel) triggerGameOver() tea.Cmd {
 	m.game.EndGame()
 	m.isPaused = false
 
-	if m.useTimer {
+	var cmds []tea.Cmd
+	if m.gameTimer != nil {
 		m.gameTimer.SetTimeout(0)
+		cmds = append(cmds, m.gameTimer.Stop())
+	} else {
+		cmds = append(cmds, m.fallStopwatch.Stop())
 	}
 
-	var cmds []tea.Cmd
-	cmds = append(cmds, m.gameTimer.Stop())
-	cmds = append(cmds, m.fallStopwatch.Stop())
 	return tea.Batch(cmds...)
 }
 
 func (m *SingleModel) togglePause() tea.Cmd {
 	m.isPaused = !m.isPaused
+
+	var cmd tea.Cmd
+	if m.gameTimer != nil {
+		cmd = m.gameTimer.Toggle()
+	} else {
+		cmd = m.gameStopwatch.Toggle()
+	}
+
 	return tea.Batch(
 		m.fallStopwatch.Toggle(),
-		m.gameTimer.Toggle(),
+		cmd,
 	)
 }
