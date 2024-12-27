@@ -107,7 +107,7 @@ archives:
         format: zip
 
 release:
-  draft: true
+  prerelease: auto
 
 changelog:
   sort: asc
@@ -134,3 +134,14 @@ dockers:
       - --label=org.opencontainers.image.licenses=GPL-3.0
     dockerfile: Dockerfile
     use: buildx
+
+brews:
+  - repository:
+      owner: "Broderick-Westrope"
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    commit_author:
+      name: "Brodie Westrope"
+      email: "brodie.westrope@gmail.com"
+    homepage: "https://www.westrope.dev/"
+    description: "Play Tetris in your terminal."
