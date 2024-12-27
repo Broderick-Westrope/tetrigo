@@ -1,7 +1,7 @@
 version: "3"
 
 env:
-  GOLANG_CROSS_VERSION: "v1.22"
+  GOLANG_CROSS_VERSION: "v1.23"
   PACKAGE_NAME: "github.com/Broderick-Westrope/tetrigo"
 
 tasks:
