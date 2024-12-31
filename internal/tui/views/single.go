@@ -274,7 +274,6 @@ func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 		if msg.ID != m.fallStopwatch.ID() {
 			break
 		}
-		m.fallStopwatch.SetInterval(m.game.GetDefaultFallInterval())
 		gameOver, err := m.game.TickLower()
 		if err != nil {
 			return nil, tui.FatalErrorCmd(fmt.Errorf("lowering tetrimino (tick): %w", err))
