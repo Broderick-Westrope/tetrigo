@@ -62,7 +62,8 @@ func TestToggleSoftDrop(t *testing.T) {
 			game.fall.IsSoftDrop = tt.initialSoftDrop
 			game.tetInPlay.Position.Y = tt.tetriminoEndY
 
-			interval := game.ToggleSoftDrop()
+			game.ToggleSoftDrop()
+			interval := game.GetFallInterval()
 
 			assert.InDelta(t, tt.wantInterval, interval, float64(time.Millisecond))
 			assert.Equal(t, game.fall.IsSoftDrop, !tt.initialSoftDrop)
