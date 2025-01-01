@@ -270,20 +270,13 @@ func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		return m.playingKeyMsgUpdate(msg)
+
 	case stopwatch.TickMsg:
 		if msg.ID != m.fallStopwatch.ID() {
 			break
 		}
-		m.fallStopwatch.SetInterval(m.game.GetDefaultFallInterval())
-		gameOver, err := m.game.TickLower()
-		if err != nil {
-			return nil, tui.FatalErrorCmd(fmt.Errorf("lowering tetrimino (tick): %w", err))
-		}
-		var cmds []tea.Cmd
-		if gameOver {
-			cmds = append(cmds, m.triggerGameOver())
-		}
-		return m, tea.Batch(cmds...)
+		return m, m.fallStopwatchTick()
+
 	case timer.TimeoutMsg:
 		if msg.ID != m.gameTimer.ID() {
 			break
@@ -299,21 +292,25 @@ func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd
 	case key.Matches(msg, m.keys.Left):
 		m.game.MoveLeft()
 		return m, nil
+
 	case key.Matches(msg, m.keys.Right):
 		m.game.MoveRight()
 		return m, nil
+
 	case key.Matches(msg, m.keys.Clockwise):
 		err := m.game.Rotate(true)
 		if err != nil {
 			return nil, tui.FatalErrorCmd(fmt.Errorf("rotating clockwise: %w", err))
 		}
 		return m, nil
+
 	case key.Matches(msg, m.keys.CounterClockwise):
 		err := m.game.Rotate(false)
 		if err != nil {
 			return nil, tui.FatalErrorCmd(fmt.Errorf("rotating counter-clockwise: %w", err))
 		}
 		return m, nil
+
 	case key.Matches(msg, m.keys.HardDrop):
 		gameOver, err := m.game.HardDrop()
 		if err != nil {
@@ -325,12 +322,11 @@ func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd
 		}
 		cmds = append(cmds, m.fallStopwatch.Reset())
 		return m, tea.Batch(cmds...)
+
 	case key.Matches(msg, m.keys.SoftDrop):
-		m.fallStopwatch.SetInterval(m.game.ToggleSoftDrop())
-		// TODO: find a fix for "pausing" momentarily before soft drop begins
-		// cmds = append(cmds, func() tea.Msg {
-		// 	return stopwatch.TickMsg{ID: m.fallStopwatch.ID()}
-		// })
+		m.game.ToggleSoftDrop()
+		return m, m.fallStopwatchTick()
+
 	case key.Matches(msg, m.keys.Hold):
 		gameOver, err := m.game.Hold()
 		if err != nil {
@@ -341,10 +337,23 @@ func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd
 			cmds = append(cmds, m.triggerGameOver())
 		}
 		return m, tea.Batch(cmds...)
+
 	case key.Matches(msg, m.keys.Exit):
 		return m, m.togglePause()
 	}
 	return m, nil
+}
+
+func (m *SingleModel) fallStopwatchTick() tea.Cmd {
+	gameOver, err := m.game.TickLower()
+	if err != nil {
+		return tui.FatalErrorCmd(fmt.Errorf("lowering tetrimino (tick): %w", err))
+	}
+	if gameOver {
+		return m.triggerGameOver()
+	}
+	m.fallStopwatch.SetInterval(m.game.GetFallInterval())
+	return nil
 }
 
 func (m *SingleModel) View() string {
