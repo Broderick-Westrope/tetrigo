@@ -192,18 +192,25 @@ func (g *Game) HardDrop() (bool, error) {
 
 // ToggleSoftDrop toggles the Soft Drop state of the game.
 // If Soft Drop is enabled, the game will calculate the number of lines cleared and add them to the score.
-// The time interval for the Fall system is returned.
-func (g *Game) ToggleSoftDrop() time.Duration {
+func (g *Game) ToggleSoftDrop() {
 	g.fall.ToggleSoftDrop()
 	if g.fall.IsSoftDrop {
 		g.softDropStartRow = g.tetInPlay.Position.Y
-		return g.fall.SoftDropInterval
+		return
 	}
+
 	linesCleared := g.tetInPlay.Position.Y - g.softDropStartRow
 	if linesCleared > 0 {
 		g.scoring.AddSoftDrop(linesCleared)
 	}
 	g.softDropStartRow = g.matrix.GetSkyline()
+}
+
+// GetFallInterval returns the time interval for the Fall system.
+func (g *Game) GetFallInterval() time.Duration {
+	if g.fall.IsSoftDrop {
+		return g.fall.SoftDropInterval
+	}
 	return g.fall.DefaultInterval
 }
 

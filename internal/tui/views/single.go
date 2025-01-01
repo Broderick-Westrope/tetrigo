@@ -282,6 +282,7 @@ func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 		if gameOver {
 			cmds = append(cmds, m.triggerGameOver())
 		}
+		m.fallStopwatch.SetInterval(m.game.GetFallInterval())
 		return m, tea.Batch(cmds...)
 	case timer.TimeoutMsg:
 		if msg.ID != m.gameTimer.ID() {
@@ -325,7 +326,7 @@ func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd
 		cmds = append(cmds, m.fallStopwatch.Reset())
 		return m, tea.Batch(cmds...)
 	case key.Matches(msg, m.keys.SoftDrop):
-		m.fallStopwatch.SetInterval(m.game.ToggleSoftDrop())
+		m.game.ToggleSoftDrop()
 		// TODO: find a fix for "pausing" momentarily before soft drop begins
 		// cmds = append(cmds, func() tea.Msg {
 		// 	return stopwatch.TickMsg{ID: m.fallStopwatch.ID()}
