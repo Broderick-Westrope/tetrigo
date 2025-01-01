@@ -21,9 +21,6 @@ const (
    / / / /___  / / / _, _// // /_/ / /_/ / 
   /_/ /_____/ /_/ /_/ |_/___/\____/\____/  
 `
-	formKeyUsername = "username"
-	formKeyGameMode = "game_mode"
-	formKeyLevel    = "level"
 )
 
 var _ tea.Model = &MenuModel{}
@@ -32,32 +29,42 @@ type MenuModel struct {
 	form                   *huh.Form
 	hasAnnouncedCompletion bool
 	keys                   *menuKeyMap
+	formData               *MenuFormData
 
 	width  int
 	height int
 }
 
+type MenuFormData struct {
+	Username string
+	GameMode tui.Mode
+	Level    int
+}
+
 func NewMenuModel(_ *tui.MenuInput) *MenuModel {
+	formData := new(MenuFormData)
 	keys := defaultMenuKeyMap()
+
 	return &MenuModel{
+		formData: formData,
 		form: huh.NewForm(
 			huh.NewGroup(
-				huh.NewInput().Key(formKeyUsername).
+				huh.NewInput().Value(&formData.Username).
 					Title("Username:").CharLimit(100).
 					Validate(func(s string) error {
-						if s == "" {
+						if len(s) == 0 {
 							return errors.New("empty username not allowed")
 						}
 						return nil
 					}),
-				huh.NewSelect[tui.Mode]().Key(formKeyGameMode).
+				huh.NewSelect[tui.Mode]().Value(&formData.GameMode).
 					Title("Game Mode:").
 					Options(
 						huh.NewOption("Marathon", tui.ModeMarathon),
 						huh.NewOption("Sprint (40 Lines)", tui.ModeSprint),
 						huh.NewOption("Ultra (Time Trial)", tui.ModeUltra),
 					),
-				huh.NewSelect[int]().Key(formKeyLevel).
+				huh.NewSelect[int]().Value(&formData.Level).
 					Title("Starting Level:").
 					Options(charmutils.HuhIntRangeOptions(1, 15)...),
 			),
@@ -101,24 +108,17 @@ func (m *MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MenuModel) announceCompletion() tea.Cmd {
-	username := m.form.GetString(formKeyUsername)
-	level := m.form.GetInt(formKeyLevel)
-	mode, ok := m.form.Get(formKeyGameMode).(tui.Mode)
-	if !ok {
-		return tui.FatalErrorCmd(fmt.Errorf("retrieving form mode: %w", charmutils.ErrInvalidTypeAssertion))
-	}
-
 	m.hasAnnouncedCompletion = true
 
-	switch mode {
+	switch m.formData.GameMode {
 	case tui.ModeMarathon, tui.ModeSprint, tui.ModeUltra:
-		in := tui.NewSingleInput(mode, level, username)
-		return tui.SwitchModeCmd(mode, in)
+		in := tui.NewSingleInput(m.formData.GameMode, m.formData.Level, m.formData.Username)
+		return tui.SwitchModeCmd(m.formData.GameMode, in)
 
 	case tui.ModeMenu, tui.ModeLeaderboard:
 		fallthrough
 	default:
-		return tui.FatalErrorCmd(fmt.Errorf("invalid mode for starting game %q", mode))
+		return tui.FatalErrorCmd(fmt.Errorf("invalid mode for starting game %q", m.formData.GameMode))
 	}
 }
 
