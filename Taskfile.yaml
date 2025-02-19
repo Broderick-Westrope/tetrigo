@@ -1,10 +1,61 @@
 version: "3"
+vars:
+  PROJECT_NAME:
+    sh: echo ${PWD##*/}
+  BRANCH:
+    sh: if [ $(git rev-parse --abbrev-ref HEAD) != "main" ]; then echo $(git rev-parse --abbrev-ref HEAD); else echo main ; fi
+  GIT_COMMIT:
+    sh: git log -n 1 --format=%h
+  DATE:
+    sh: date -Ih
+  VERSION:
+    sh: |
+      [ "$(git branch --show-current)" != "main" ] && echo "dev-$(git describe --tags --abbrev=0)" || echo $(git describe --tags --abbrev=0)
+dotenv: ['.env', '{{.HOME}}/.env']
+
 
 env:
   GOLANG_CROSS_VERSION: "v1.23"
   PACKAGE_NAME: "github.com/Broderick-Westrope/tetrigo"
 
 tasks:
+  branch:
+    desc: Create branch from main
+    cmds:
+      - git checkout main
+      - git branch
+      - git pull
+      - |
+        echo "Enter to be created (remote) branch:"
+        read BRANCH_NAME;
+        git checkout -b ${BRANCH_NAME}
+        git push origin ${BRANCH_NAME}
+      - git branch
+      - git branch --set-upstream-to=origin/main ${BRANCH_NAME}
+
+  commit:
+    desc: Commit + push code into branch
+    cmds:
+      - rm -rf dist/
+      - git branch --set-upstream-to=origin/{{ .BRANCH }}
+      - git pull
+      - |
+        git add *
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "committing changes"
+          echo "ENTER COMMIT MESSAGE"
+          COMMIT_MESSAGE=$(echo $(gum choose "feat: {{ .BRANCH }}" "fix: {{ .BRANCH }}" "BREAKING CHANGE: {{ .BRANCH }}" "ENTER CUSTOM COMMIT MESSAGE"))
+
+          if [ "$COMMIT_MESSAGE" == "ENTER CUSTOM COMMIT MESSAGE" ]; then
+            COMMIT_MESSAGE=$(echo $(gum input --placeholder "scope" --value "commit to {{ .BRANCH }}"))
+          fi
+
+          git commit --allow-empty -a -m "$(echo ${COMMIT_MESSAGE})"
+        else
+          echo "no changes"
+        fi
+        git push origin -u {{ .BRANCH }}
+
   default:
     cmds:
       - task: codegen

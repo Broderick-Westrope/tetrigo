@@ -11,7 +11,6 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/stopwatch"
-	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -34,7 +33,7 @@ const (
 Press PAUSE to continue or HOLD to exit.
 `
 	gameOverMessage = `
-   ______                        ____                 
+   ______                        ____
   / ____/___ _____ ___  ___     / __ \_   _____  _____
  / / __/ __ ^/ __ ^__ \/ _ \   / / / / | / / _ \/ ___/
 / /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /
@@ -53,6 +52,7 @@ type SingleModel struct {
 	nextQueueLength int
 	fallStopwatch   components.Stopwatch
 	mode            tui.Mode
+	randomMessage   string
 
 	gameTimer     components.Timer
 	gameStopwatch components.Stopwatch
@@ -267,26 +267,33 @@ func (m *SingleModel) pausedUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 }
 
 func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		return m.playingKeyMsgUpdate(msg)
+	prevLines := m.game.GetLinesCleared() // Store previous line count
 
+	switch msg := msg.(type) {
 	case stopwatch.TickMsg:
 		if msg.ID != m.fallStopwatch.ID() {
 			break
 		}
 		return m, m.fallStopwatchTick()
+	case tea.KeyMsg:
+		return m.playingKeyMsgUpdate(msg) // Process key inputs here
+	}
 
-	case timer.TimeoutMsg:
-		if msg.ID != m.gameTimer.ID() {
-			break
+	// Check if lines were cleared
+	newLines := m.game.GetLinesCleared()
+
+	if newLines > prevLines {
+		fmt.Println("Lines cleared:", prevLines, "->", newLines)
+
+		randomMessages := []string{
+			"Nice clear!", "Tetris!", "Combo!", "Keep going!", "Awesome!",
 		}
-		return m, m.triggerGameOver()
+		randomIndex := m.rand.IntN(len(randomMessages))
+		m.randomMessage = randomMessages[randomIndex] // Store the message
 	}
 
 	return m, nil
 }
-
 func (m *SingleModel) playingKeyMsgUpdate(msg tea.KeyMsg) (*SingleModel, tea.Cmd) {
 	switch {
 	case key.Matches(msg, m.keys.Left):
@@ -415,7 +422,7 @@ func (m *SingleModel) informationView() string {
 
 	var header string
 	headerStyle := lipgloss.NewStyle().Width(width).AlignHorizontal(lipgloss.Center).Bold(true).Underline(true)
-
+	fmt.Sprintln("\n")
 	switch {
 	case m.game.IsGameOver():
 		header = headerStyle.Render("GAME OVER")
@@ -447,20 +454,27 @@ func (m *SingleModel) informationView() string {
 	}
 
 	var output string
-	output += fmt.Sprintln("Score:")
-	output += fmt.Sprintf("%*d\n", width-1, m.game.GetTotalScore())
-	output += fmt.Sprintln("Time:")
-	output += fmt.Sprintf("%*s\n", width-1, timeStr)
+	output += toFixedWidth("\nScore:", strconv.Itoa(m.game.GetTotalScore()))
+	// output += fmt.Sprintf("%*d\n", width-1, m.game.GetTotalScore())
+	output += fmt.Sprintln("Time:", timeStr)
+
+	// output += fmt.Sprintf("%*s\n", width-1, timeStr)
 	output += toFixedWidth("Lines:", strconv.Itoa(m.game.GetLinesCleared()))
 	output += toFixedWidth("Level:", strconv.Itoa(m.game.GetLevel()))
-
+	// output += toFixedWidth("Killed Pods:", strconv.Itoa(m.game.GetLinesCleared()))
+	// output += m.game.GetMessage(m.game.GetLinesCleared())
 	return m.styles.Information.Render(lipgloss.JoinVertical(lipgloss.Left, header, output))
 }
 
 func (m *SingleModel) holdView() string {
-	label := m.styles.Hold.Label.Render("Hold:")
+
+	label := m.styles.Hold.Label.Render("STHINGS-TETRIS")
 	item := m.styles.Hold.Item.Render(m.renderTetrimino(m.game.GetHoldTetrimino(), 1))
 	output := lipgloss.JoinVertical(lipgloss.Top, label, item)
+	output += "Killed Pods: "
+	output += strconv.Itoa(m.game.GetLinesCleared())
+
+	output += m.game.GetMessage(m.game.GetLinesCleared())
 	return m.styles.Hold.View.Render(output)
 }
 

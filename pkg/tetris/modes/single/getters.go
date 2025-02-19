@@ -1,6 +1,7 @@
 package single
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
@@ -45,6 +46,16 @@ func (g *Game) GetLevel() int {
 
 func (g *Game) GetLinesCleared() int {
 	return g.scoring.Lines()
+}
+
+func (g *Game) GetMessage(score int) string {
+
+	if score > 0 {
+		return "FIREEE:  " + strconv.Itoa(score)
+	} else {
+		return ""
+	}
+
 }
 
 func (g *Game) GetDefaultFallInterval() time.Duration {
