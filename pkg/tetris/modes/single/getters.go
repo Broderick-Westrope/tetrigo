@@ -1,6 +1,7 @@
 package single
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -50,6 +51,7 @@ func (g *Game) GetLinesCleared() int {
 
 func (g *Game) GetMessage(score int) string {
 
+	fmt.Println(g.scoring.Lines())
 	if score > 0 {
 		return "FIREEE:  " + strconv.Itoa(score)
 	} else {
