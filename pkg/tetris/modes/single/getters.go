@@ -1,12 +1,14 @@
 package single
 
 import (
-	"fmt"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/stuttgart-things/sthings-tetris/pkg/tetris"
 )
+
+var cacheNumber int64
 
 func (g *Game) IsGameOver() bool {
 	return g.gameOver
@@ -51,12 +53,25 @@ func (g *Game) GetLinesCleared() int {
 
 func (g *Game) GetMessage(score int) string {
 
-	fmt.Println(g.scoring.Lines())
-	if score > 0 {
-		return "FIREEE:  " + strconv.Itoa(score)
-	} else {
-		return ""
+	var returnValue string
+
+	if score == 0 {
+		atomic.StoreInt64(&cacheNumber, int64(score))
+		returnValue = "0"
 	}
+
+	if score != 0 {
+		oldValue := atomic.LoadInt64(&cacheNumber)
+
+		lines := int(oldValue) - score
+		atomic.StoreInt64(&cacheNumber, int64(score))
+
+		returnValue = strconv.Itoa(lines)
+		atomic.StoreInt64(&cacheNumber, int64(score))
+
+	}
+
+	return returnValue
 
 }
 

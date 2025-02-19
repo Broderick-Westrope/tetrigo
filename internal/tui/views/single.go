@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/stuttgart-things/sthings-tetris/internal/tui/components"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -18,6 +20,7 @@ import (
 
 	"github.com/stuttgart-things/sthings-tetris/internal/config"
 	"github.com/stuttgart-things/sthings-tetris/internal/data"
+	"github.com/stuttgart-things/sthings-tetris/internal/k8s"
 	"github.com/stuttgart-things/sthings-tetris/internal/tui"
 	"github.com/stuttgart-things/sthings-tetris/pkg/tetris"
 	"github.com/stuttgart-things/sthings-tetris/pkg/tetris/modes/single"
@@ -267,7 +270,6 @@ func (m *SingleModel) pausedUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 }
 
 func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
-	prevLines := m.game.GetLinesCleared() // Store previous line count
 
 	switch msg := msg.(type) {
 	case stopwatch.TickMsg:
@@ -277,19 +279,6 @@ func (m *SingleModel) playingUpdate(msg tea.Msg) (*SingleModel, tea.Cmd) {
 		return m, m.fallStopwatchTick()
 	case tea.KeyMsg:
 		return m.playingKeyMsgUpdate(msg) // Process key inputs here
-	}
-
-	// Check if lines were cleared
-	newLines := m.game.GetLinesCleared()
-
-	if newLines > prevLines {
-		fmt.Println("Lines cleared:", prevLines, "->", newLines)
-
-		randomMessages := []string{
-			"Nice clear!", "Tetris!", "Combo!", "Keep going!", "Awesome!",
-		}
-		randomIndex := m.rand.IntN(len(randomMessages))
-		m.randomMessage = randomMessages[randomIndex] // Store the message
 	}
 
 	return m, nil
@@ -363,6 +352,47 @@ func (m *SingleModel) fallStopwatchTick() tea.Cmd {
 	return nil
 }
 
+func (m *SingleModel) podOverviewView() string {
+	width := m.styles.Information.GetWidth() * 2 // Make the podOverviewView wider
+
+	toFixedWidth := func(title, value string) string {
+		return fmt.Sprintf("%s%*s\n", title, width-(1+len(title)), value)
+	}
+
+	var output string
+	output += toFixedWidth("All Pods:", strconv.Itoa(m.game.GetLinesCleared()))
+	output += toFixedWidth("Killed Pods:", strconv.Itoa(m.game.GetLinesCleared()))
+	output += m.game.GetMessage(m.game.GetLinesCleared())
+
+	// Beispiel für eine Zeichenfolgen-Slice
+	stringSlice := []string{"Message 1", "Message 2", "Message 3"}
+	for _, str := range stringSlice {
+		output += fmt.Sprintf("%s\n", str)
+	}
+
+	config, err := clientcmd.BuildConfigFromFlags("", "/home/sthings/.kube/homerun-int2")
+	if err != nil {
+		fmt.Printf("Error loading kubeconfig: %v\n", err)
+	}
+
+	// Create the Kubernetes clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		fmt.Printf("Error creating clientset: %v\n", err)
+	}
+
+	pods, err := k8s.GetPodsInNamespace(clientset, "default")
+	if err != nil {
+		fmt.Printf("Error getting pods: %v\n", err)
+	}
+
+	for _, pod := range pods {
+		output += fmt.Sprintf("%s\n", pod.Name)
+	}
+
+	return m.styles.Information.Render(lipgloss.JoinVertical(lipgloss.Left, output))
+}
+
 func (m *SingleModel) View() string {
 	matrixView, err := m.matrixView()
 	if err != nil {
@@ -370,7 +400,7 @@ func (m *SingleModel) View() string {
 	}
 
 	var output = lipgloss.JoinHorizontal(lipgloss.Top,
-		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView()),
+		lipgloss.JoinVertical(lipgloss.Right, m.holdView(), m.informationView(), m.podOverviewView()),
 		matrixView,
 		m.bagView(),
 	)
