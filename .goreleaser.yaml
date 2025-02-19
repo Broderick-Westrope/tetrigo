@@ -126,8 +126,8 @@ dockers:
       - --platform=linux/amd64
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.description={{ .ProjectName }}
-      - --label=org.opencontainers.image.url=https://github.com/broderick-westrope/tetrigo
-      - --label=org.opencontainers.image.source=https://github.com/broderick-westrope/tetrigo
+      - --label=org.opencontainers.image.url=https://github.com/stuttgart-things/sthings-tetris
+      - --label=org.opencontainers.image.source=https://github.com/stuttgart-things/sthings-tetris
       - --label=org.opencontainers.image.version=v{{ .Version }}
       - --label=org.opencontainers.image.created={{ .Date }}
       - --label=org.opencontainers.image.revision={{ .FullCommit }}

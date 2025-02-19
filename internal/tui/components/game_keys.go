@@ -4,7 +4,7 @@ import (
 	"github.com/Broderick-Westrope/charmutils"
 	"github.com/charmbracelet/bubbles/key"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/stuttgart-things/sthings-tetris/internal/config"
 )
 
 type GameKeyMap struct {

@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
+	"github.com/stuttgart-things/sthings-tetris/pkg/tetris"
 )
 
 func (g *Game) IsGameOver() bool {

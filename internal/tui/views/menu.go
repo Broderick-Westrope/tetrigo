@@ -10,16 +10,16 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/stuttgart-things/sthings-tetris/internal/tui"
 )
 
 const (
 	titleStr = `
-    ______________________  ______________ 
+    ______________________  ______________
    /_  __/ ____/_  __/ __ \/  _/ ____/ __ \
     / / / __/   / / / /_/ // // / __/ / / /
-   / / / /___  / / / _, _// // /_/ / /_/ / 
-  /_/ /_____/ /_/ /_/ |_/___/\____/\____/  
+   / / / /___  / / / _, _// // /_/ / /_/ /
+  /_/ /_____/ /_/ /_/ |_/___/\____/\____/
 `
 )
 

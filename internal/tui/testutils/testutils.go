@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/x/exp/teatest"
+	"github.com/stuttgart-things/sthings-tetris/internal/data"
+
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/exp/teatest"
 	"github.com/stretchr/testify/require"
 )
 

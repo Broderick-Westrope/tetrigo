@@ -6,7 +6,7 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
+	"github.com/stuttgart-things/sthings-tetris/pkg/tetris"
 )
 
 // Game represents a single player game of Tetris.

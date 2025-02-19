@@ -1,7 +1,8 @@
 package components
 
 import (
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
+	"github.com/stuttgart-things/sthings-tetris/internal/config"
+
 	"github.com/charmbracelet/lipgloss"
 )
 

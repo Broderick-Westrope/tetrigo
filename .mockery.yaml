@@ -4,6 +4,6 @@ dir: "{{.InterfaceDir}}"
 outpkg: "{{.PackageName}}"
 
 packages:
-  github.com/Broderick-Westrope/tetrigo/internal/tui/components:
+  github.com/stuttgart-things/sthings-tetris/internal/tui/components:
     interfaces:
       Stopwatch: {}

@@ -10,9 +10,9 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/views"
+	"github.com/stuttgart-things/sthings-tetris/internal/config"
+	"github.com/stuttgart-things/sthings-tetris/internal/tui"
+	"github.com/stuttgart-things/sthings-tetris/internal/tui/views"
 )
 
 type Input struct {

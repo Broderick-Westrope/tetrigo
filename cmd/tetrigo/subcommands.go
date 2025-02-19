@@ -5,10 +5,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/starter"
+	"github.com/stuttgart-things/sthings-tetris/internal/config"
+	"github.com/stuttgart-things/sthings-tetris/internal/data"
+	"github.com/stuttgart-things/sthings-tetris/internal/tui"
+	"github.com/stuttgart-things/sthings-tetris/internal/tui/starter"
 )
 
 type MenuCmd struct{}

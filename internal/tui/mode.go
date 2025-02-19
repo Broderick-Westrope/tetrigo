@@ -3,7 +3,7 @@ package tui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
+	"github.com/stuttgart-things/sthings-tetris/internal/data"
 )
 
 type SwitchModeMsg struct {

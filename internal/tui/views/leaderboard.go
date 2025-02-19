@@ -11,8 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
+	"github.com/stuttgart-things/sthings-tetris/internal/data"
+	"github.com/stuttgart-things/sthings-tetris/internal/tui"
 )
 
 var _ tea.Model = &LeaderboardModel{}

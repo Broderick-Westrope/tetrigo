@@ -21,7 +21,7 @@ type GlobalVars struct {
 func main() {
 	cli := CLI{}
 	ctx := kong.Parse(&cli,
-		kong.Name("tetrigo"),
+		kong.Name("sthings-tetris"),
 		kong.Description("A tetris TUI written in Go"),
 		kong.UsageOnError(),
 	)

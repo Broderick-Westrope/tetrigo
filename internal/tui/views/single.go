@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
+	"github.com/stuttgart-things/sthings-tetris/internal/tui/components"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -16,11 +16,11 @@ import (
 
 	"github.com/Broderick-Westrope/charmutils"
 
-	"github.com/Broderick-Westrope/tetrigo/internal/config"
-	"github.com/Broderick-Westrope/tetrigo/internal/data"
-	"github.com/Broderick-Westrope/tetrigo/internal/tui"
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris"
-	"github.com/Broderick-Westrope/tetrigo/pkg/tetris/modes/single"
+	"github.com/stuttgart-things/sthings-tetris/internal/config"
+	"github.com/stuttgart-things/sthings-tetris/internal/data"
+	"github.com/stuttgart-things/sthings-tetris/internal/tui"
+	"github.com/stuttgart-things/sthings-tetris/pkg/tetris"
+	"github.com/stuttgart-things/sthings-tetris/pkg/tetris/modes/single"
 )
 
 const (

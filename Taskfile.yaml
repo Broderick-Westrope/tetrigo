@@ -16,7 +16,7 @@ dotenv: ['.env', '{{.HOME}}/.env']
 
 env:
   GOLANG_CROSS_VERSION: "v1.23"
-  PACKAGE_NAME: "github.com/Broderick-Westrope/tetrigo"
+  PACKAGE_NAME: "github.com/stuttgart-things/sthings-tetris"
 
 tasks:
   branch:

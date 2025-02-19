@@ -30,7 +30,7 @@ Tetrigo can be installed by downloading the binary or by building from source. S
 
 ### Binary
 
-You can download the binary corresponding to your operating system from the [releases page on GitHub](https://github.com/Broderick-Westrope/tetrigo/releases).
+You can download the binary corresponding to your operating system from the [releases page on GitHub](https://github.com/stuttgart-things/sthings-tetris/releases).
 
 Once downloaded you can run the binary from the command line:
 
@@ -51,7 +51,7 @@ Ensure that you have a supported version of Go properly installed and setup. You
 You can then install the latest release globally by running:
 
 ```bash
-go install github.com/Broderick-Westrope/tetrigo/cmd/tetrigo@v0.1.6
+go install github.com/stuttgart-things/sthings-tetris/cmd/tetrigo@v0.1.6
 ```
 
 ## Usage
@@ -91,7 +91,7 @@ You're also able to start the game directly in a game mode (eg. Marathon), skipp
 
 ```bash
 # Start the game in Marathon mode with a level of 5 and the player name "Brodie"
-./tetrigo play marathon --level=5 --name=Brodie 
+./tetrigo play marathon --level=5 --name=Brodie
 ```
 
 To see more options for starting the game you can run:
