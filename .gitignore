@@ -159,7 +159,6 @@ fabric.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/go,goland,visualstudiocode
 
-
 # Application configuration file (may be created during testing)
 config.toml
 # Go test coverage
@@ -170,3 +169,5 @@ cover.out
 ./task/*
 .task
 dist/
+# Nix build
+result
