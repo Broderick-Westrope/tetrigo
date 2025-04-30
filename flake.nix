@@ -9,7 +9,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, utils, ... }: {
+  outputs = { self, utils, ... }: {
     overlays.default = final: prev: {
       tetrigo = self.packages.${prev.system}.default;
     };
