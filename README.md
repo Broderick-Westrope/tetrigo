@@ -231,7 +231,3 @@ The ordered priorities for testing are:
   - See "Extended Placement Lock Down" in the design guidelines.
 - Score points from T-Spins
 - SSH Multiplayer (akin to [Gambit](https://github.com/maaslalani/gambit))
-
-```
-
-```
