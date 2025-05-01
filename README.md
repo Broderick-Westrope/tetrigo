@@ -87,7 +87,7 @@ This flake also exposes an overlay, so you can use tetrigo as a package in your 
     #   config = {
     #     max_level = 20;
     #     keys = {
-    #       force_quite = ["q"];
+    #       force_quit = ["q"];
     #       exit = ["esc"];
     #     };
     #   };
@@ -175,7 +175,7 @@ This project consists of three main components:
 
 1. `cmd/tetrigo/`: A TUI (Text User Interface) allowing you to play it out of the box. It also serves as a demonstration on how to use the packages and how to create a TUI using [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 2. `pkg/tetris/modes/`: The functionality for different Tetris game modes. This can be used to easily create a Tetris game with your own UI but without needing to know the ruleset.
-3. `pkg/tetris/`: The core Tetris logic, including things like Tetrminimos, the Matrix, and scoring. This can be used to create game modes with your own ruleset and requirements.
+3. `pkg/tetris/`: The core Tetris logic, including things like Tetriminimos, the Matrix, and scoring. This can be used to create game modes with your own ruleset and requirements.
 
 [Task](https://taskfile.dev/) is the build tool used in this project. The Task config lives in [Taskfile.yaml](./Taskfile.yaml). Once the Task CLI is installed, you can see all available tasks by running:
 
