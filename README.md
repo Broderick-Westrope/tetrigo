@@ -1,17 +1,18 @@
 # Tetrigo
 
-*teh·tree·go*
+_teh·tree·go_
 
 ![app demo](./docs/readme-demo.gif)
 
 A Golang implementation of Tetris, following the official [2009 Tetris Design Guideline](./docs/2009-Tetris-Design-Guideline.pdf).
 
 This project consists of three main components, depending on what your goals are:
-- ***"I just want to play Tetris"***
+
+- **_"I just want to play Tetris"_**
   - The TUI (Text User Interface) in `cmd/tetrigo/` is for you. See the [installation](#installation) section.
-- ***"I want to create my own Tetris game/UI"***
+- **_"I want to create my own Tetris game/UI"_**
   - The packages in `pkg/tetris/modes/` are for you. You can reuse these game modes with your own UI.
-- ***"I want to create my own Tetris game mode"***
+- **_"I want to create my own Tetris game mode"_**
   - The packages in `pkg/tetris/` are for you. You can create your own game mode with a custom set of rules and requirements.
 
 You can find more information on these sections in the [development](#development) section. If you have a suggestion, bug, or feature request, please open a GitHub issue.
@@ -54,6 +55,54 @@ You can then install the latest release globally by running:
 go install github.com/Broderick-Westrope/tetrigo/cmd/tetrigo@v0.1.6
 ```
 
+### Build, run or install using Nix
+
+If you're using [Nix](https://nixos.org), you can do any of the following:
+The flake installs a wrapper that automatically sets up the database and config in your user’s XDG config directory on first run.
+
+```bash
+nix run github:Broderick-Westrope/tetrigo     # Run the package and delete it
+nix build github:Broderick-Westrope/tetrigo   # Build the package into a result symlink
+nix shell github:Broderick-Westrope/tetrigo   # Create a temporary shell with the tetrigo binary
+```
+
+This flake also exposes an overlay, so you can use tetrigo as a package in your own Nix projects:
+
+```nix
+{
+  # Import the flake
+  inputs.tetrigo.url = "github:Broderick-Westrope/tetrigo"
+
+  outputs = { tetrigo, ... }: {
+    packages.x86_64-linux.default = let
+      # Apply the overlay
+      pkgs = import nixpkgs {
+        system = "x86_64-linux";
+        overlays = [ tetrigo.overlays.default ];
+      };
+    # Use the package
+    in pkgs.tetrigo;
+    # Optionally override the package using:
+    # pkgs.tetrigo.override {
+    #   config = {
+    #     max_level = 20;
+    #     keys = {
+    #       force_quite = ["q"];
+    #       exit = ["esc"];
+    #     };
+    #   };
+    #   dbPath = ./my/custom/location/tetrigo.db;
+    # };
+}
+
+```
+
+> 🛠 The `tetrigo` package accepts `config` and `dbPath` as override arguments.
+>
+> - `config` should be a Nix attribute set mirroring values in [`example.config.toml`](./example.config.toml).
+> - `dbPath` should be a path to a `.db` file.
+>   These are automatically converted into a TOML config and used when the game launches.
+
 ## Usage
 
 For general information on how to play Tetris see [this beginners guide](https://tetris.com/article/33/tetris-tips-for-beginners).
@@ -91,7 +140,7 @@ You're also able to start the game directly in a game mode (eg. Marathon), skipp
 
 ```bash
 # Start the game in Marathon mode with a level of 5 and the player name "Brodie"
-./tetrigo play marathon --level=5 --name=Brodie 
+./tetrigo play marathon --level=5 --name=Brodie
 ```
 
 To see more options for starting the game you can run:
@@ -123,16 +172,19 @@ The game data is stored in a SQLite database. By default, the database is stored
 ## Development
 
 This project consists of three main components:
+
 1. `cmd/tetrigo/`: A TUI (Text User Interface) allowing you to play it out of the box. It also serves as a demonstration on how to use the packages and how to create a TUI using [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 2. `pkg/tetris/modes/`: The functionality for different Tetris game modes. This can be used to easily create a Tetris game with your own UI but without needing to know the ruleset.
 3. `pkg/tetris/`: The core Tetris logic, including things like Tetrminimos, the Matrix, and scoring. This can be used to create game modes with your own ruleset and requirements.
 
 [Task](https://taskfile.dev/) is the build tool used in this project. The Task config lives in [Taskfile.yaml](./Taskfile.yaml). Once the Task CLI is installed, you can see all available tasks by running:
+
 ```bash
 task -l
 ```
 
 You can run the TUI using the `run` task:
+
 ```bash
 task run
 ```
@@ -140,6 +192,7 @@ task run
 ### Building
 
 You can build the project using the `build` task:
+
 ```bash
 task build
 ```
@@ -149,16 +202,19 @@ This will create a binary in the `bin/` directory which can be run using the ins
 ### Testing
 
 Tests can be run using the `test` task:
+
 ```bash
 task test
 ```
 
 You can also use the `cover` task to generate and open a coverage report:
+
 ```bash
 task cover
 ```
 
 The ordered priorities for testing are:
+
 1. `pkg/tetris/`
 2. `pkg/tetris/modes/`
 3. `cmd/tetrigo/`
