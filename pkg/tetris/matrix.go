@@ -3,6 +3,7 @@ package tetris
 import (
 	"errors"
 	"fmt"
+	"slices"
 )
 
 // Matrix represents the board of cells on which the game is played.
@@ -56,12 +57,7 @@ func (m *Matrix) DeepCopy() *Matrix {
 }
 
 func (m *Matrix) isLineComplete(row int) bool {
-	for _, cell := range (*m)[row] {
-		if isCellEmpty(cell) {
-			return false
-		}
-	}
-	return true
+	return !slices.ContainsFunc((*m)[row], isCellEmpty)
 }
 
 func (m *Matrix) removeLine(row int) {

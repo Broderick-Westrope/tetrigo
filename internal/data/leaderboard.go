@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"time"
 )
@@ -25,7 +26,8 @@ func NewLeaderboardRepository(db *sql.DB) *LeaderboardRepository {
 }
 
 func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
-	rows, err := r.db.Query("SELECT * FROM leaderboard WHERE game_mode = $1 ORDER BY score DESC, time ASC", gameMode)
+	rows, err := r.db.QueryContext(context.TODO(),
+		"SELECT * FROM leaderboard WHERE game_mode = $1 ORDER BY score DESC, time ASC", gameMode)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +51,7 @@ func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
 
 // Save saves a score to the leaderboard and returns the ID of the new score.
 func (r *LeaderboardRepository) Save(score *Score) (int, error) {
-	res, err := r.db.Exec(
+	res, err := r.db.ExecContext(context.TODO(),
 		"INSERT INTO leaderboard (game_mode, name, time, score, lines, level) VALUES ($1, $2, $3, $4, $5, $6)",
 		score.GameMode, score.Name, score.Time, score.Score, score.Lines, score.Level,
 	)
