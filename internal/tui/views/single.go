@@ -26,21 +26,21 @@ import (
 
 const (
 	pausedMessage = `
-	____                            __
-   / __ \____ ___  __________  ____/ /
-  / /_/ / __ ^/ / / / ___/ _ \/ __  /
- / ____/ /_/ / /_/ (__  )  __/ /_/ /
-/_/    \__,_/\__,_/____/\___/\__,_/
+    ____                            __  
+   / __ \____ ___  __________  ____/ /  
+  / /_/ / __ ^/ / / / ___/ _ \/ __  /   
+ / ____/ /_/ / /_/ (__  )  __/ /_/ /    
+/_/    \__,_/\__,_/____/\___/\__,_/     
 Press PAUSE to continue or HOLD to exit.
 `
 	gameOverMessage = `
    ______                        ____                 
   / ____/___ _____ ___  ___     / __ \_   _____  _____
  / / __/ __ ^/ __ ^__ \/ _ \   / / / / | / / _ \/ ___/
-/ /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /
-\____/\__,_/_/ /_/ /_/\___/   \____/ |___/\___/_/
+/ /_/ / /_/ / / / / / /  __/  / /_/ /| |/ /  __/ /    
+\____/\__,_/_/ /_/ /_/\___/   \____/ |___/\___/_/     
 
-			Press EXIT or HOLD to continue.
+            Press EXIT or HOLD to continue.           
 `
 	timerUpdateInterval = time.Millisecond * 13
 )
@@ -369,12 +369,15 @@ func (m *SingleModel) View() string {
 	)
 
 	if m.game.IsGameOver() {
-		output, err = charmutils.OverlayCenter(output, gameOverMessage, true)
+		output, err = charmutils.OverlayCenter(output, gameOverMessage, false)
 		if err != nil {
 			return "** FAILED TO OVERLAY GAME OVER MESSAGE **"
 		}
 	} else if m.isPaused {
-		output, err = charmutils.OverlayCenter(output, pausedMessage, true)
+		output, err = charmutils.OverlayCenter(output,
+			lipgloss.NewStyle().Margin(0, 1).
+				Render(pausedMessage),
+			false)
 		if err != nil {
 			return "** FAILED TO OVERLAY PAUSED MESSAGE **"
 		}
