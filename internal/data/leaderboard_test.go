@@ -10,23 +10,25 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"github.com/testcontainers/testcontainers-go"
 )
 
 type LeaderboardTestSuite struct {
 	suite.Suite
-	container *testutils.SQLiteContainer
+	container testcontainers.Container
 	repo      *LeaderboardRepository
 	ctx       context.Context
 }
 
 func (suite *LeaderboardTestSuite) SetupSuite() {
+	testutils.CheckSkipTestContainers(suite.T())
 	suite.ctx = context.Background()
-	container, err := testutils.CreateSQLiteContainer(suite.ctx)
+	container, err := testutils.CreateSQLiteContainer(suite.ctx) // TODO: Use a real database (e.g. Postgres)
 	if err != nil {
 		log.Fatal(err)
 	}
 	suite.container = container
-	db, err := NewDB(container.ConnectionString) // Uses :memory:
+	db, err := NewDB(container.ConnectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
