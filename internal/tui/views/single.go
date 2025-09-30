@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Broderick-Westrope/tetrigo/internal/tui/components"
@@ -425,7 +426,7 @@ func (m *SingleModel) informationView() string {
 	case m.isPaused:
 		header = headerStyle.Render("PAUSED")
 	default:
-		header = headerStyle.Render("MARATHON")
+		header = headerStyle.Render(strings.ToUpper(m.mode.String()))
 	}
 
 	toFixedWidth := func(title, value string) string {
