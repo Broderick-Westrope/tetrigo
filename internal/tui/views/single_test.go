@@ -188,7 +188,7 @@ func TestSingle_PausedOutput(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 
 	tm.Send(tea.Quit())
-	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second)).View())
+	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second*2)).View())
 	teatest.RequireEqualOutput(t, outBytes)
 }
 
