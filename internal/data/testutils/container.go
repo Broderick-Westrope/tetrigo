@@ -19,10 +19,12 @@ type SQLiteContainer struct {
 func CreateSQLiteContainer(ctx context.Context) (*SQLiteContainer, error) {
 	req := testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
+			Name:  "sqlite",
 			Image: "nouchka/sqlite3:latest",
 			WaitingFor: wait.ForLog("SQLite version").WithOccurrence(1).
 				WithStartupTimeout(5 * time.Second),
 		},
+		Reuse: true,
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, req)

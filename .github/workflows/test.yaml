@@ -33,4 +33,4 @@ jobs:
       - name: Test
         run: go test -cover -count=1 -race ./...
         env:
-          SKIP_TESTCONTAINERS: ${{ matrix.os == 'macos-latest' && 'true' || 'false' }}
+          SKIP_TESTCONTAINERS: ${{ (matrix.os == 'macos-latest' || matrix.os == 'windows-latest') && 'true' || 'false' }}
