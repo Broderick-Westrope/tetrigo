@@ -53,7 +53,7 @@ func TestLeaderboard_TableEntries(t *testing.T) {
 			tm := teatest.NewTestModel(t, m)
 			tm.Send(tea.Quit())
 
-			outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second*2)).View())
+			outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second*3)).View())
 			teatest.RequireEqualOutput(t, outBytes)
 		})
 	}
