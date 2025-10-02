@@ -72,14 +72,14 @@ func TestNextQueue_Next(t *testing.T) {
 			}
 
 			result := nq.Next()
-			assert.EqualValues(t, *expected, *result)
+			assert.Equal(t, *expected, *result)
 
 			for i := range nq.elements {
 				nq.elements[i].Position.Y += nq.skyline
 			}
 
 			v := nq.elements[:len(expectedElements)]
-			assert.EqualValues(t, expectedElements, v)
+			assert.Equal(t, expectedElements, v)
 
 			expectedLength := len(expectedElements)
 			if expectedLength < 7 && len(nq.elements) != expectedLength+7 {

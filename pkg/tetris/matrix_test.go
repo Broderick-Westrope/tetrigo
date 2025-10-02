@@ -191,7 +191,7 @@ func TestMatrix_RemoveCompletedLines(t *testing.T) {
 			act := tc.matrix.RemoveCompletedLines(tet)
 
 			assert.Equal(t, tc.wantAction, act)
-			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
+			assert.Equal(t, tc.wantMatrix, tc.matrix)
 		})
 	}
 }
@@ -220,7 +220,7 @@ func TestMatrix_isOutOfBoundsHorizontally(t *testing.T) {
 			m := DefaultMatrix()
 			result := m.isOutOfBoundsHorizontally(tc.col)
 
-			assert.EqualValues(t, tc.want, result)
+			assert.Equal(t, tc.want, result)
 		})
 	}
 }
@@ -377,7 +377,7 @@ func TestMatrix_AddTetrimino(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
+			assert.Equal(t, tc.wantMatrix, tc.matrix)
 		})
 	}
 }
@@ -453,7 +453,7 @@ func TestMatrix_RemoveTetrimino(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			assert.EqualValues(t, tc.wantMatrix, tc.matrix)
+			assert.Equal(t, tc.wantMatrix, tc.matrix)
 		})
 	}
 }

@@ -71,7 +71,7 @@ func TestTetrimino_MoveDown(t *testing.T) {
 			moved := tc.tet.MoveDown(tc.matrix)
 
 			assert.Equal(t, tc.want, moved)
-			assert.EqualValues(t, originalMatrix, tc.matrix)
+			assert.Equal(t, originalMatrix, tc.matrix)
 
 			if tc.want {
 				assert.Equal(t, originalY+1, tc.tet.Position.Y)
@@ -160,7 +160,7 @@ func TestTetrimino_MoveLeft(t *testing.T) {
 			moved := tc.tet.MoveLeft(tc.matrix)
 
 			assert.Equal(t, tc.want, moved)
-			assert.EqualValues(t, originalMatrix, tc.matrix)
+			assert.Equal(t, originalMatrix, tc.matrix)
 
 			if tc.want {
 				assert.Equal(t, originalX-1, tc.tet.Position.X)
@@ -249,7 +249,7 @@ func TestTetrimino_MoveRight(t *testing.T) {
 			moved := tc.tet.MoveRight(tc.matrix)
 
 			assert.Equal(t, tc.want, moved)
-			assert.EqualValues(t, originalMatrix, tc.matrix)
+			assert.Equal(t, originalMatrix, tc.matrix)
 
 			if tc.want {
 				assert.Equal(t, originalX+1, tc.tet.Position.X)
@@ -392,7 +392,7 @@ func TestTetrimino_Rotate(t *testing.T) {
 			err := tc.tet.Rotate(tc.matrix, tc.clockwise)
 
 			require.NoError(t, err)
-			assert.EqualValues(t, tc.wantTet, tc.tet)
+			assert.Equal(t, tc.wantTet, tc.tet)
 		})
 	}
 }
@@ -1914,7 +1914,7 @@ func TestTetrimino_rotateClockwise(t *testing.T) {
 
 			require.NoError(t, err)
 			if tc.wantTet != nil {
-				assert.EqualValues(t, tc.wantTet, tc.tet)
+				assert.Equal(t, tc.wantTet, tc.tet)
 				assert.Equal(t, tc.wantRotationPoint, rotationPoint)
 			} else {
 				assert.Equal(t, invalidRotationPoint, rotationPoint)
@@ -3401,7 +3401,7 @@ func TestTetrimino_rotateCounterClockwise(t *testing.T) {
 
 			require.NoError(t, err)
 			if tc.wantTet != nil {
-				assert.EqualValues(t, tc.wantTet, tc.tet)
+				assert.Equal(t, tc.wantTet, tc.tet)
 				assert.Equal(t, tc.wantRotationPoint, rotationPoint)
 			} else {
 				assert.Equal(t, invalidRotationPoint, rotationPoint)
@@ -3541,7 +3541,7 @@ func TestTetrimino_IsValid(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			result := tc.tet.IsValid(tc.matrix, true)
 
-			assert.EqualValues(t, tc.want, result)
+			assert.Equal(t, tc.want, result)
 		})
 	}
 }
@@ -3648,9 +3648,9 @@ func TestTetrimino_DeepCopy(t *testing.T) {
 	easyCopy := *tet.DeepCopy()
 
 	// Assert that all are equal
-	assert.EqualValues(t, tet, manualCopy)
-	assert.EqualValues(t, tet, easyCopy)
-	assert.EqualValues(t, manualCopy, easyCopy)
+	assert.Equal(t, tet, manualCopy)
+	assert.Equal(t, tet, easyCopy)
+	assert.Equal(t, manualCopy, easyCopy)
 
 	// Modify the original
 	tet.Value = 1
@@ -3660,9 +3660,9 @@ func TestTetrimino_DeepCopy(t *testing.T) {
 	tet.RotationCompass[0][0].X = 1
 
 	// Assert that the original changed but both copies stayed the same
-	assert.NotEqualValues(t, tet, manualCopy)
-	assert.NotEqualValues(t, tet, easyCopy)
-	assert.EqualValues(t, manualCopy, easyCopy)
+	assert.NotEqual(t, tet, manualCopy)
+	assert.NotEqual(t, tet, easyCopy)
+	assert.Equal(t, manualCopy, easyCopy)
 }
 
 func TestTetrimino_IsAboveSkyline(t *testing.T) {

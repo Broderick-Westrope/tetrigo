@@ -292,9 +292,6 @@ func (g *Game) updateGhost() {
 	g.ghostTet = g.tetInPlay.DeepCopy()
 	g.ghostTet.Value = 'G'
 
-	for {
-		if !g.ghostTet.MoveDown(g.matrix) {
-			break
-		}
+	for g.ghostTet.MoveDown(g.matrix) {
 	}
 }
