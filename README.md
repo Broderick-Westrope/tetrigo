@@ -219,6 +219,10 @@ The ordered priorities for testing are:
 2. `pkg/tetris/modes/`
 3. `cmd/tetrigo/`
 
+## STAR HISTORY!!
+
+[![Star History Chart](https://api.star-history.com/svg?repos=broderick-westrope/tetrigo&type=date&legend=top-left)](https://www.star-history.com/#broderick-westrope/tetrigo&type=date&legend=top-left)
+
 ### TODO
 
 - Add more tests
