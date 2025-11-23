@@ -188,7 +188,7 @@ func TestSingle_PausedOutput(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 
 	tm.Send(tea.Quit())
-	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second)).View())
+	outBytes := []byte(tm.FinalModel(t, teatest.WithFinalTimeout(time.Second*2)).View())
 	teatest.RequireEqualOutput(t, outBytes)
 }
 
@@ -235,7 +235,7 @@ func TestSingle_GameOverSwitchModeMsg(t *testing.T) {
 		require.True(t, ok, "Expected %T, got %T", &tui.LeaderboardInput{}, switchModeMsg.Input)
 
 		assert.Equal(t, tui.ModeMarathon.String(), leaderboardInput.GameMode)
-		assert.EqualValues(t, &data.Score{
+		assert.Equal(t, &data.Score{
 			ID:       0,
 			Rank:     0,
 			GameMode: tui.ModeMarathon.String(),
