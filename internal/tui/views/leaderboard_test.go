@@ -1,6 +1,7 @@
 package views
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -33,8 +34,9 @@ func TestLeaderboard_TableEntries(t *testing.T) {
 
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
+			ctx := context.TODO()
 			for i := range tc.count {
-				_, err := repo.Save(&data.Score{
+				_, err := repo.Save(ctx, &data.Score{
 					GameMode: t.Name(),
 					Name:     fmt.Sprintf("user-%d", i),
 					Time:     time.Second * time.Duration(i*2),
@@ -45,7 +47,7 @@ func TestLeaderboard_TableEntries(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			m, err := NewLeaderboardModel(&tui.LeaderboardInput{
+			m, err := NewLeaderboardModel(ctx, &tui.LeaderboardInput{
 				GameMode: t.Name(),
 			}, db)
 			require.NoError(t, err)
@@ -62,7 +64,7 @@ func TestLeaderboard_TableEntries(t *testing.T) {
 func TestLeaderboard_NewEntryInEmptyTable(t *testing.T) {
 	db := testutils.SetupInMemoryDB(t)
 
-	m, err := NewLeaderboardModel(&tui.LeaderboardInput{
+	m, err := NewLeaderboardModel(context.TODO(), &tui.LeaderboardInput{
 		GameMode: t.Name(),
 		NewEntry: &data.Score{
 			GameMode: t.Name(),
@@ -85,9 +87,10 @@ func TestLeaderboard_NewEntryInEmptyTable(t *testing.T) {
 func TestLeaderboard_KeyboardNavigation(t *testing.T) {
 	db := testutils.SetupInMemoryDB(t)
 	repo := data.NewLeaderboardRepository(db)
+	ctx := context.TODO()
 
 	for i := range 50 {
-		_, err := repo.Save(&data.Score{
+		_, err := repo.Save(ctx, &data.Score{
 			GameMode: t.Name(),
 			Name:     fmt.Sprintf("user-%d", i),
 			Time:     time.Second * time.Duration(i*2),
@@ -98,7 +101,7 @@ func TestLeaderboard_KeyboardNavigation(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	m, err := NewLeaderboardModel(&tui.LeaderboardInput{
+	m, err := NewLeaderboardModel(ctx, &tui.LeaderboardInput{
 		GameMode: t.Name(),
 		NewEntry: &data.Score{
 			GameMode: t.Name(),
@@ -124,8 +127,9 @@ func TestLeaderboard_KeyboardNavigation(t *testing.T) {
 
 func TestLeaderboard_SwitchModeMsg(t *testing.T) {
 	db := testutils.SetupInMemoryDB(t)
+	ctx := context.TODO()
 
-	m, err := NewLeaderboardModel(&tui.LeaderboardInput{
+	m, err := NewLeaderboardModel(ctx, &tui.LeaderboardInput{
 		GameMode: t.Name(),
 	}, db)
 	require.NoError(t, err)

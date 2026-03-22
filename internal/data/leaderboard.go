@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"time"
 )
@@ -24,12 +25,13 @@ func NewLeaderboardRepository(db *sql.DB) *LeaderboardRepository {
 	return &LeaderboardRepository{db}
 }
 
-func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
-	rows, err := r.db.Query("SELECT * FROM leaderboard WHERE game_mode = $1 ORDER BY score DESC, time ASC", gameMode)
+func (r *LeaderboardRepository) All(ctx context.Context, gameMode string) ([]Score, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT id, game_mode, name, time, score, lines, level FROM leaderboard
+		WHERE game_mode = $1
+		ORDER BY score DESC, time ASC
+	`, gameMode)
 	if err != nil {
-		return nil, err
-	}
-	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 	defer rows.Close()
@@ -43,13 +45,16 @@ func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
 		s.Rank = len(scores) + 1
 		scores = append(scores, s)
 	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return scores, nil
 }
 
 // Save saves a score to the leaderboard and returns the ID of the new score.
-func (r *LeaderboardRepository) Save(score *Score) (int, error) {
-	res, err := r.db.Exec(
+func (r *LeaderboardRepository) Save(ctx context.Context, score *Score) (int, error) {
+	res, err := r.db.ExecContext(ctx,
 		"INSERT INTO leaderboard (game_mode, name, time, score, lines, level) VALUES ($1, $2, $3, $4, $5, $6)",
 		score.GameMode, score.Name, score.Time, score.Score, score.Lines, score.Level,
 	)
@@ -60,5 +65,5 @@ func (r *LeaderboardRepository) Save(score *Score) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return int(id), err
+	return int(id), nil
 }

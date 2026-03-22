@@ -394,23 +394,23 @@ func (m *SingleModel) matrixView() (string, error) {
 		return "", fmt.Errorf("getting visible matrix: %w", err)
 	}
 
-	var output string
+	var output strings.Builder
 	for row := range matrix {
 		for col := range matrix[row] {
-			output += m.renderCell(matrix[row][col])
+			output.WriteString(m.renderCell(matrix[row][col]))
 		}
 		if row < len(matrix)-1 {
-			output += "\n"
+			output.WriteByte('\n')
 		}
 	}
 
-	var rowIndicator string
+	var rowIndicator strings.Builder
 	for i := 1; i <= 20; i++ {
-		rowIndicator += fmt.Sprintf("%d\n", i)
+		fmt.Fprintf(&rowIndicator, "%d\n", i)
 	}
 	return lipgloss.JoinHorizontal(lipgloss.Center,
-		m.styles.Playfield.Render(output),
-		m.styles.RowIndicator.Render(rowIndicator),
+		m.styles.Playfield.Render(output.String()),
+		m.styles.RowIndicator.Render(rowIndicator.String()),
 	), nil
 }
 
@@ -469,29 +469,31 @@ func (m *SingleModel) holdView() string {
 }
 
 func (m *SingleModel) bagView() string {
-	output := "Next:\n"
+	var output strings.Builder
+	output.WriteString("Next:\n")
 	for i, t := range m.game.GetBagTetriminos() {
 		if i >= m.nextQueueLength {
 			break
 		}
-		output += "\n" + m.renderTetrimino(&t, 1)
+		output.WriteByte('\n')
+		output.WriteString(m.renderTetrimino(&t, 1))
 	}
-	return m.styles.Bag.Render(output)
+	return m.styles.Bag.Render(output.String())
 }
 
 func (m *SingleModel) renderTetrimino(t *tetris.Tetrimino, background byte) string {
-	var output string
+	var output strings.Builder
 	for row := range t.Cells {
 		for col := range t.Cells[row] {
 			if t.Cells[row][col] {
-				output += m.renderCell(t.Value)
+				output.WriteString(m.renderCell(t.Value))
 			} else {
-				output += m.renderCell(background)
+				output.WriteString(m.renderCell(background))
 			}
 		}
-		output += "\n"
+		output.WriteByte('\n')
 	}
-	return output
+	return output.String()
 }
 
 func (m *SingleModel) renderCell(cell byte) string {

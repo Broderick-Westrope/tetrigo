@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 	"time"
@@ -35,7 +36,8 @@ func SetupInMemoryDB(t *testing.T) *sql.DB {
 	db, err := sql.Open("sqlite3", ":memory:")
 	require.NoError(t, err)
 
-	err = data.EnsureTablesExist(db)
+	// TODO: replace with t.Context after upgrading to Go 1.24
+	err = data.EnsureTablesExist(context.Background(), db)
 	require.NoError(t, err)
 	return db
 }

@@ -1,6 +1,7 @@
 package views
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strconv"
@@ -28,7 +29,9 @@ type LeaderboardModel struct {
 	height int
 }
 
-func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (*LeaderboardModel, error) {
+// TODO: replace all test uses of NewLeaderboardModel after upgrading to Go 1.24
+
+func NewLeaderboardModel(ctx context.Context, in *tui.LeaderboardInput, db *sql.DB) (*LeaderboardModel, error) {
 	repo := data.NewLeaderboardRepository(db)
 
 	var err error
@@ -38,13 +41,13 @@ func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (*LeaderboardMode
 			in.NewEntry.Name = "Anonymous"
 		}
 
-		newEntryID, err = repo.Save(in.NewEntry)
+		newEntryID, err = repo.Save(ctx, in.NewEntry)
 		if err != nil {
 			return nil, fmt.Errorf("saving new entry: %w", err)
 		}
 	}
 
-	scores, err := repo.All(in.GameMode)
+	scores, err := repo.All(ctx, in.GameMode)
 	if err != nil {
 		return nil, fmt.Errorf("fetching scores: %w", err)
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,7 +15,7 @@ import (
 type MenuCmd struct{}
 
 func (c *MenuCmd) Run(globals *GlobalVars) error {
-	return launchStarter(globals, tui.ModeMenu, tui.NewMenuInput())
+	return launchStarter(context.Background(), globals, tui.ModeMenu, tui.NewMenuInput())
 }
 
 type PlayCmd struct {
@@ -35,7 +36,7 @@ func (c *PlayCmd) Run(globals *GlobalVars) error {
 		return fmt.Errorf("invalid game mode: %s", c.GameMode)
 	}
 
-	return launchStarter(globals, mode, tui.NewSingleInput(tui.ModeMarathon, c.Level, c.Name))
+	return launchStarter(context.Background(), globals, mode, tui.NewSingleInput(mode, c.Level, c.Name))
 }
 
 type LeaderboardCmd struct {
@@ -43,11 +44,11 @@ type LeaderboardCmd struct {
 }
 
 func (c *LeaderboardCmd) Run(globals *GlobalVars) error {
-	return launchStarter(globals, tui.ModeLeaderboard, tui.NewLeaderboardInput(c.GameMode))
+	return launchStarter(context.Background(), globals, tui.ModeLeaderboard, tui.NewLeaderboardInput(c.GameMode))
 }
 
-func launchStarter(globals *GlobalVars, starterMode tui.Mode, switchIn tui.SwitchModeInput) error {
-	db, err := data.NewDB(globals.DB)
+func launchStarter(ctx context.Context, globals *GlobalVars, starterMode tui.Mode, switchIn tui.SwitchModeInput) error {
+	db, err := data.NewDB(ctx, globals.DB)
 	if err != nil {
 		return fmt.Errorf("opening database: %w", err)
 	}
@@ -57,9 +58,8 @@ func launchStarter(globals *GlobalVars, starterMode tui.Mode, switchIn tui.Switc
 		return fmt.Errorf("getting config: %w", err)
 	}
 
-	model, err := starter.NewModel(
-		starter.NewInput(starterMode, switchIn, db, cfg),
-	)
+	model, err := starter.NewModel(ctx,
+		starter.NewInput(starterMode, switchIn, db, cfg))
 	if err != nil {
 		return fmt.Errorf("creating starter model: %w", err)
 	}
