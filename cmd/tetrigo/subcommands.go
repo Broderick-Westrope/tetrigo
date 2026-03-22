@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -47,7 +48,7 @@ func (c *LeaderboardCmd) Run(globals *GlobalVars) error {
 }
 
 func launchStarter(globals *GlobalVars, starterMode tui.Mode, switchIn tui.SwitchModeInput) error {
-	db, err := data.NewDB(globals.DB)
+	db, err := data.NewDB(context.Background(), globals.DB)
 	if err != nil {
 		return fmt.Errorf("opening database: %w", err)
 	}

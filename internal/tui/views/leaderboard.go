@@ -1,6 +1,7 @@
 package views
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strconv"
@@ -38,13 +39,13 @@ func NewLeaderboardModel(in *tui.LeaderboardInput, db *sql.DB) (*LeaderboardMode
 			in.NewEntry.Name = "Anonymous"
 		}
 
-		newEntryID, err = repo.Save(in.NewEntry)
+		newEntryID, err = repo.Save(context.TODO(), in.NewEntry)
 		if err != nil {
 			return nil, fmt.Errorf("saving new entry: %w", err)
 		}
 	}
 
-	scores, err := repo.All(in.GameMode)
+	scores, err := repo.All(context.TODO(), in.GameMode)
 	if err != nil {
 		return nil, fmt.Errorf("fetching scores: %w", err)
 	}

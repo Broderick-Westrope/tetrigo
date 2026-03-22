@@ -1,6 +1,7 @@
 package data_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -17,7 +18,7 @@ func TestSave(t *testing.T) {
 		db := setupTestDB(t)
 		repo := data.NewLeaderboardRepository(db)
 
-		id, err := repo.Save(&data.Score{
+		id, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon",
 			Name:     "Alice",
 			Time:     5 * time.Minute,
@@ -34,7 +35,7 @@ func TestSave(t *testing.T) {
 		db := setupTestDB(t)
 		repo := data.NewLeaderboardRepository(db)
 
-		id1, err := repo.Save(&data.Score{
+		id1, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon",
 			Name:     "Alice",
 			Time:     5 * time.Minute,
@@ -44,7 +45,7 @@ func TestSave(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		id2, err := repo.Save(&data.Score{
+		id2, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon",
 			Name:     "Bob",
 			Time:     3 * time.Minute,
@@ -71,10 +72,10 @@ func TestSave(t *testing.T) {
 			Level:    7,
 		}
 
-		id, err := repo.Save(input)
+		id, err := repo.Save(context.Background(), input)
 		require.NoError(t, err)
 
-		scores, err := repo.All("sprint")
+		scores, err := repo.All(context.Background(), "sprint")
 		require.NoError(t, err)
 		require.Len(t, scores, 1)
 
@@ -94,7 +95,7 @@ func TestSave(t *testing.T) {
 		db := setupTestDB(t)
 		repo := data.NewLeaderboardRepository(db)
 
-		id, err := repo.Save(&data.Score{
+		id, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon",
 			Name:     "Newbie",
 			Time:     10 * time.Second,
@@ -105,7 +106,7 @@ func TestSave(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotZero(t, id)
 
-		scores, err := repo.All("marathon")
+		scores, err := repo.All(context.Background(), "marathon")
 		require.NoError(t, err)
 		require.Len(t, scores, 1)
 		assert.Equal(t, 0, scores[0].Score)
@@ -120,7 +121,7 @@ func TestAll(t *testing.T) {
 		db := setupTestDB(t)
 		repo := data.NewLeaderboardRepository(db)
 
-		scores, err := repo.All("marathon")
+		scores, err := repo.All(context.Background(), "marathon")
 		require.NoError(t, err)
 		assert.Empty(t, scores)
 	})
@@ -130,7 +131,7 @@ func TestAll(t *testing.T) {
 		db := setupTestDB(t)
 		repo := data.NewLeaderboardRepository(db)
 
-		_, err := repo.Save(&data.Score{
+		_, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon",
 			Name:     "Alice",
 			Time:     5 * time.Minute,
@@ -140,7 +141,7 @@ func TestAll(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		scores, err := repo.All("marathon")
+		scores, err := repo.All(context.Background(), "marathon")
 		require.NoError(t, err)
 		require.Len(t, scores, 1)
 
@@ -165,11 +166,11 @@ func TestAll(t *testing.T) {
 			{GameMode: "marathon", Name: "Mid", Time: 2 * time.Minute, Score: 1500, Lines: 15, Level: 5},
 		}
 		for i := range entries {
-			_, err := repo.Save(&entries[i])
+			_, err := repo.Save(context.Background(), &entries[i])
 			require.NoError(t, err)
 		}
 
-		scores, err := repo.All("marathon")
+		scores, err := repo.All(context.Background(), "marathon")
 		require.NoError(t, err)
 		require.Len(t, scores, 3)
 
@@ -185,7 +186,7 @@ func TestAll(t *testing.T) {
 		repo := data.NewLeaderboardRepository(db)
 
 		for i := 1; i <= 5; i++ {
-			_, err := repo.Save(&data.Score{
+			_, err := repo.Save(context.Background(), &data.Score{
 				GameMode: "marathon",
 				Name:     "Player",
 				Time:     time.Duration(i) * time.Minute,
@@ -196,7 +197,7 @@ func TestAll(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		scores, err := repo.All("marathon")
+		scores, err := repo.All(context.Background(), "marathon")
 		require.NoError(t, err)
 		require.Len(t, scores, 5)
 
@@ -211,16 +212,16 @@ func TestAll(t *testing.T) {
 		repo := data.NewLeaderboardRepository(db)
 
 		// Two entries with same score but different times
-		_, err := repo.Save(&data.Score{
+		_, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon", Name: "Tied1", Time: 2 * time.Minute, Score: 1000, Lines: 10, Level: 3,
 		})
 		require.NoError(t, err)
-		_, err = repo.Save(&data.Score{
+		_, err = repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon", Name: "Tied2", Time: 3 * time.Minute, Score: 1000, Lines: 10, Level: 3,
 		})
 		require.NoError(t, err)
 
-		scores, err := repo.All("marathon")
+		scores, err := repo.All(context.Background(), "marathon")
 		require.NoError(t, err)
 		require.Len(t, scores, 2)
 
@@ -233,21 +234,21 @@ func TestAll(t *testing.T) {
 		db := setupTestDB(t)
 		repo := data.NewLeaderboardRepository(db)
 
-		_, err := repo.Save(&data.Score{
+		_, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "modeA", Name: "PlayerA", Time: time.Minute, Score: 1000, Lines: 10, Level: 3,
 		})
 		require.NoError(t, err)
-		_, err = repo.Save(&data.Score{
+		_, err = repo.Save(context.Background(), &data.Score{
 			GameMode: "modeB", Name: "PlayerB", Time: time.Minute, Score: 2000, Lines: 20, Level: 5,
 		})
 		require.NoError(t, err)
 
-		scoresA, err := repo.All("modeA")
+		scoresA, err := repo.All(context.Background(), "modeA")
 		require.NoError(t, err)
 		require.Len(t, scoresA, 1)
 		assert.Equal(t, "PlayerA", scoresA[0].Name)
 
-		scoresB, err := repo.All("modeB")
+		scoresB, err := repo.All(context.Background(), "modeB")
 		require.NoError(t, err)
 		require.Len(t, scoresB, 1)
 		assert.Equal(t, "PlayerB", scoresB[0].Name)
@@ -258,16 +259,16 @@ func TestAll(t *testing.T) {
 		db := setupTestDB(t)
 		repo := data.NewLeaderboardRepository(db)
 
-		_, err := repo.Save(&data.Score{
+		_, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon", Name: "Slow", Time: 5 * time.Minute, Score: 1000, Lines: 10, Level: 3,
 		})
 		require.NoError(t, err)
-		_, err = repo.Save(&data.Score{
+		_, err = repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon", Name: "Fast", Time: 2 * time.Minute, Score: 1000, Lines: 10, Level: 3,
 		})
 		require.NoError(t, err)
 
-		scores, err := repo.All("marathon")
+		scores, err := repo.All(context.Background(), "marathon")
 		require.NoError(t, err)
 		require.Len(t, scores, 2)
 
@@ -282,12 +283,12 @@ func TestAll(t *testing.T) {
 		repo := data.NewLeaderboardRepository(db)
 
 		// Save something to another mode to ensure DB isn't empty
-		_, err := repo.Save(&data.Score{
+		_, err := repo.Save(context.Background(), &data.Score{
 			GameMode: "marathon", Name: "Alice", Time: time.Minute, Score: 1000, Lines: 10, Level: 3,
 		})
 		require.NoError(t, err)
 
-		scores, err := repo.All("nonexistent")
+		scores, err := repo.All(context.Background(), "nonexistent")
 		require.NoError(t, err)
 		assert.Empty(t, scores)
 	})

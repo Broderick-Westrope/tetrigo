@@ -1,6 +1,7 @@
 package data_test
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 
@@ -14,12 +15,12 @@ func setupTestDB(t *testing.T) *sql.DB {
 	db, err := sql.Open("sqlite3", ":memory:")
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		if err := db.Close(); err != nil {
-			t.Errorf("closing test DB: %v", err)
+		if closeErr := db.Close(); closeErr != nil {
+			t.Errorf("closing test DB: %v", closeErr)
 		}
 	})
 
-	err = data.EnsureTablesExist(db)
+	err = data.EnsureTablesExist(context.Background(), db)
 	require.NoError(t, err)
 
 	return db

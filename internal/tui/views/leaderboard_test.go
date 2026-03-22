@@ -1,6 +1,7 @@
 package views
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -34,7 +35,7 @@ func TestLeaderboard_TableEntries(t *testing.T) {
 	for name, tc := range tt {
 		t.Run(name, func(t *testing.T) {
 			for i := range tc.count {
-				_, err := repo.Save(&data.Score{
+				_, err := repo.Save(context.Background(), &data.Score{
 					GameMode: t.Name(),
 					Name:     fmt.Sprintf("user-%d", i),
 					Time:     time.Second * time.Duration(i*2),
@@ -87,7 +88,7 @@ func TestLeaderboard_KeyboardNavigation(t *testing.T) {
 	repo := data.NewLeaderboardRepository(db)
 
 	for i := range 50 {
-		_, err := repo.Save(&data.Score{
+		_, err := repo.Save(context.Background(), &data.Score{
 			GameMode: t.Name(),
 			Name:     fmt.Sprintf("user-%d", i),
 			Time:     time.Second * time.Duration(i*2),
