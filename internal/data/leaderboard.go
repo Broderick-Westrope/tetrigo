@@ -26,8 +26,11 @@ func NewLeaderboardRepository(db *sql.DB) *LeaderboardRepository {
 }
 
 func (r *LeaderboardRepository) All(ctx context.Context, gameMode string) ([]Score, error) {
-	rows, err := r.db.QueryContext(ctx,
-		"SELECT * FROM leaderboard WHERE game_mode = $1 ORDER BY score DESC, time ASC", gameMode)
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT id, game_mode, name, time, score, lines, level FROM leaderboard
+		WHERE game_mode = $1
+		ORDER BY score DESC, time ASC
+	`, gameMode)
 	if err != nil {
 		return nil, err
 	}

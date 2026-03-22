@@ -1,6 +1,7 @@
 package starter
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -38,6 +39,7 @@ type Model struct {
 	db           *sql.DB
 	cfg          *config.Config
 	forceQuitKey key.Binding
+	ctx          context.Context
 
 	width  int
 	height int
@@ -45,14 +47,15 @@ type Model struct {
 	ExitError error
 }
 
-func NewModel(in *Input) (*Model, error) {
+func NewModel(ctx context.Context, in *Input) (*Model, error) {
 	m := &Model{
 		db:           in.db,
 		cfg:          in.cfg,
 		forceQuitKey: key.NewBinding(key.WithKeys(in.cfg.Keys.ForceQuit...)),
+		ctx:          ctx,
 	}
 
-	err := m.setChild(in.mode, in.switchIn)
+	err := m.setChild(ctx, in.mode, in.switchIn)
 	if err != nil {
 		return nil, fmt.Errorf("setting child model: %w", err)
 	}
@@ -75,7 +78,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tui.SwitchModeMsg:
-		err := m.setChild(msg.Target, msg.Input)
+		err := m.setChild(m.ctx, msg.Target, msg.Input)
 		if err != nil {
 			return m, tui.FatalErrorCmd(fmt.Errorf("setting child model: %w", err))
 		}
@@ -96,7 +99,7 @@ func (m *Model) View() string {
 	return m.child.View()
 }
 
-func (m *Model) setChild(mode tui.Mode, switchIn tui.SwitchModeInput) error {
+func (m *Model) setChild(ctx context.Context, mode tui.Mode, switchIn tui.SwitchModeInput) error {
 	if rv := reflect.ValueOf(switchIn); !rv.IsValid() || rv.IsNil() {
 		return errors.New("switchIn is not valid")
 	}
@@ -125,7 +128,7 @@ func (m *Model) setChild(mode tui.Mode, switchIn tui.SwitchModeInput) error {
 		if !ok {
 			return fmt.Errorf("switchIn is not a LeaderboardInput: %w", charmutils.ErrInvalidTypeAssertion)
 		}
-		child, err := views.NewLeaderboardModel(leaderboardIn, m.db)
+		child, err := views.NewLeaderboardModel(ctx, leaderboardIn, m.db)
 		if err != nil {
 			return fmt.Errorf("creating leaderboard model: %w", err)
 		}
