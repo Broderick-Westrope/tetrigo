@@ -36,7 +36,7 @@ func (c *PlayCmd) Run(globals *GlobalVars) error {
 		return fmt.Errorf("invalid game mode: %s", c.GameMode)
 	}
 
-	return launchStarter(context.Background(), globals, mode, tui.NewSingleInput(tui.ModeMarathon, c.Level, c.Name))
+	return launchStarter(context.Background(), globals, mode, tui.NewSingleInput(mode, c.Level, c.Name))
 }
 
 type LeaderboardCmd struct {
