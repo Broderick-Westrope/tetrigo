@@ -29,9 +29,6 @@ func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
 	defer rows.Close()
 
 	var scores []Score
@@ -42,6 +39,9 @@ func (r *LeaderboardRepository) All(gameMode string) ([]Score, error) {
 		}
 		s.Rank = len(scores) + 1
 		scores = append(scores, s)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return scores, nil
@@ -60,5 +60,5 @@ func (r *LeaderboardRepository) Save(score *Score) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return int(id), err
+	return int(id), nil
 }
