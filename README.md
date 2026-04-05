@@ -83,7 +83,7 @@ This flake also exposes an overlay, so you can use tetrigo as a package in your 
     # Use the package
     in pkgs.tetrigo;
     # Optionally override the package using:
-    # pkgs.tetrigo.override {
+    # pkgs.tetrigo.override = {
     #   config = {
     #     max_level = 20;
     #     keys = {
